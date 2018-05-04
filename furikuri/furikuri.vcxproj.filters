@@ -16,7 +16,7 @@
     <Filter Include="Заголовочные файлы\furikuri">
       <UniqueIdentifier>{47d56a82-b17d-4269-87c2-b1f5200dd68c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\obfurikuri">
+    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator">
       <UniqueIdentifier>{3bb0ab87-e93b-416a-807d-e4ae9cee945a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
