@@ -1,0 +1,3 @@
+[submodule "shibari"]
+	path = shibari
+	url = https://github.com/jnastarot/shibari.git
