@@ -27,6 +27,9 @@
     <ClInclude Include="furikuri.h">
       <Filter>Заголовочные файлы\furikuri</Filter>
     </ClInclude>
+    <ClInclude Include="obfurikuriator.h">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -34,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="furikuri.cpp">
       <Filter>Заголовочные файлы\furikuri</Filter>
+    </ClCompile>
+    <ClCompile Include="obfurikuriator.cpp">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
