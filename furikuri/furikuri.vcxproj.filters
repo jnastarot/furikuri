@@ -19,6 +19,9 @@
     <Filter Include="Заголовочные файлы\furikuri\obfurikuriator">
       <UniqueIdentifier>{3bb0ab87-e93b-416a-807d-e4ae9cee945a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction">
+      <UniqueIdentifier>{1992578b-db89-4276-aca4-97eecbc1c7a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -30,6 +33,9 @@
     <ClInclude Include="obfurikuriator.h">
       <Filter>Заголовочные файлы\furikuri\obfurikuriator</Filter>
     </ClInclude>
+    <ClInclude Include="obfurikuristruction.h">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -40,6 +46,9 @@
     </ClCompile>
     <ClCompile Include="obfurikuriator.cpp">
       <Filter>Заголовочные файлы\furikuri\obfurikuriator</Filter>
+    </ClCompile>
+    <ClCompile Include="obfurikuristruction.cpp">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
