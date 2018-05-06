@@ -9,6 +9,5 @@ e.mail..: jnastarot@yandex.ru
 
 ---
 <h2>Third Party</h2>
-[https://github.com/jnastarot/shibari](https://github.com/jnastarot/shibari)
-[https://github.com/gdabah/distorm](https://github.com/gdabah/distorm)
- 
+[shibari project](https://github.com/jnastarot/shibari)<br>
+[distorm](https://github.com/gdabah/distorm)
