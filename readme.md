@@ -1,3 +1,9 @@
+
+| License | Windows | Linux |
+| ------- |  ----------- | ------ |
+| [![License](https://img.shields.io/badge/license-BSD3-blue.svg)](https://github.com/jnastarot/enma_pe/blob/master/LICENSE) | [![Build status](https://ci.appveyor.com/api/projects/status/4fa90sgo6c89fqcp?svg=true)](https://ci.appveyor.com/project/jnastarot/furikuri) | [![Build Status](https://travis-ci.org/jnastarot/furikuri.svg?branch=master)](https://travis-ci.org/jnastarot/furikuri) |
+
+
 ```
 --------------------------------------------------------------------------------
 Name....: furikuri
@@ -8,7 +14,8 @@ e.mail..: jnastarot@yandex.ru
 ```
 
 ---
-<h2>Third Party</h2>
----
+
+<h3 align="center">Third Party</h3>
+
 [shibari project](https://github.com/jnastarot/shibari)<br>
 [distorm](https://github.com/gdabah/distorm)
