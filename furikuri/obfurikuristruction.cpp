@@ -18,6 +18,9 @@ obfurikuristruction::obfurikuristruction(){
     this->link_label_id       = 0;
     this->relocation_label_id = 0;
     this->flags               = 0;
+    this->type               = 0;
+    this->modified_flags     = 0;
+    this->tested_flags       = 0;
 }
 
 
@@ -155,6 +158,17 @@ void  obfurikuristruction::set_flags(uint32_t flags) {
     this->flags = flags;
 }
 
+void  obfurikuristruction::set_type(uint16_t type) {
+    this->type = type;
+}
+
+void  obfurikuristruction::set_modified_flags(uint16_t modified_flags) {
+    this->modified_flags = modified_flags;
+}
+
+void  obfurikuristruction::set_tested_flags(uint16_t tested_flags) {
+    this->tested_flags = tested_flags;
+}
 
 const uint8_t* obfurikuristruction::get_op_code() const {
     return this->op_code;
@@ -203,4 +217,16 @@ uint32_t obfurikuristruction::get_relocation_label_id() const {
 
 uint32_t obfurikuristruction::get_flags() const {
     return this->flags;
+}
+
+uint16_t obfurikuristruction::get_type() const {
+    return this->type;
+}
+
+uint16_t obfurikuristruction::get_modified_flags() const {
+    return this->modified_flags;
+}
+
+uint16_t obfurikuristruction::get_tested_flags() const {
+    return this->tested_flags;
 }

@@ -202,6 +202,8 @@ static int operands_extract_modrm(_CodeInfo* ci,
 	_Operand* op = &di->ops[opNum];
 	uint16_t size = 0;
 
+    di->disp_offset = 0;
+
 	if (mod == 3) {
 		/*
 		 * General-purpose register is handled the same way in 16/32/64 bits decoding modes.
@@ -424,6 +426,8 @@ static int operands_extract_modrm(_CodeInfo* ci,
 
 			/* 5 is a special case - only 32 bits displacement, or RIP relative. */
 			di->dispSize = 32;
+            di->disp_offset = ci->code;
+
 			if (!read_stream_safe_sint(ci, (int64_t*)&di->disp, sizeof(int32_t))) return FALSE;
 
 			if (ci->dt == Decode64Bits) {

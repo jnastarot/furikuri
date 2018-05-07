@@ -1,4 +1,5 @@
 #pragma once
+#include "..\shibari\shibari\shibari.h"
 
 #include "obfurikuriator.h"
 

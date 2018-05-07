@@ -37,5 +37,3 @@ using namespace std;
   #endif
 #endif
 
-#include "..\shibari\shibari\shibari.h"
-#include "..\distorm_lib\include\distorm.h"

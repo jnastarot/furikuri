@@ -254,6 +254,8 @@ typedef struct {
 	uint8_t meta;
 	/* The CPU flags that the instruction operates upon. */
 	uint16_t modifiedFlagsMask, testedFlagsMask, undefinedFlagsMask;
+    //offset ot disp /*custom opt*/
+    uint8_t* disp_offset;
 } _DInst;
 
 #ifndef DISTORM_LIGHT
