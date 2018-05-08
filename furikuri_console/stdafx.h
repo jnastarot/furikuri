@@ -1,19 +1,28 @@
 #pragma once
 
+#include <vector>
+#include <list>
+#include <string>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <time.h>
 #include <stdio.h>
-#include <tchar.h>
+#include <sstream>
+#include <iostream>
+#include <iostream>
+#include <stdarg.h> 
+#include <cstdint>
+
+using namespace std;
 
 
-#ifndef _M_X64
-  #ifdef _DEBUG
-    #pragma comment(lib,"..\\Debug\\furikuri.lib")
-  #else
-	#pragma comment(lib,"..\\Release\\furikuri.lib")
-  #endif
-#else
-  #ifdef _DEBUG
-	#pragma comment(lib,"..\\x64\\Debug\\furikuri.lib")
-  #else
-	#pragma comment(lib,"..\\x64\\Release\\furikuri.lib")
-  #endif
-#endif
+
+#pragma comment(lib,"enma_pe.lib")
+#pragma comment(lib,"shibari.lib")
+#pragma comment(lib,"distorm_lib.lib")
+#pragma comment(lib,"furikuri.lib")
+
+#include "enma_pe\enma_pe\enma_pe.h"
+#include "shibari\shibari\shibari.h"
+#include "..\furikuri\furikuri.h"

@@ -19,21 +19,9 @@
 using namespace std;
 
 
-#ifndef _M_X64
-  #ifdef _DEBUG
-    #pragma comment(lib,"..\\Debug\\shibari.lib")
-    #pragma comment(lib,"..\\Debug\\distorm_lib.lib")
-  #else
-	#pragma comment(lib,"..\\Release\\shibari.lib")
-    #pragma comment(lib,"..\\Release\\distorm_lib.lib")
-  #endif
-#else
-  #ifdef _DEBUG
-	#pragma comment(lib,"..\\x64\\Debug\\shibari.lib")
-    #pragma comment(lib,"..\\x64\\Debug\\distorm_lib.lib")
-  #else
-	#pragma comment(lib,"..\\x64\\Release\\shibari.lib")
-    #pragma comment(lib,"..\\x64\\Release\\distorm_lib.lib")
-  #endif
-#endif
+#pragma comment(lib,"enma_pe.lib")
+#pragma comment(lib,"shibari.lib")
+#pragma comment(lib,"distorm_lib.lib")
 
+#include "enma_pe\enma_pe\enma_pe.h"
+#include "shibari\shibari\shibari.h"
