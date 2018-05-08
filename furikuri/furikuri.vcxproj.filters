@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Файлы ресурсов">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri">
       <UniqueIdentifier>{47d56a82-b17d-4269-87c2-b1f5200dd68c}</UniqueIdentifier>
     </Filter>
@@ -21,6 +17,12 @@
     </Filter>
     <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction">
       <UniqueIdentifier>{1992578b-db89-4276-aca4-97eecbc1c7a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\obfurikuritation">
+      <UniqueIdentifier>{be02e024-84aa-40da-8397-1033a70cfd64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\asm">
+      <UniqueIdentifier>{f1c3563a-955b-4d95-97c0-ea1ec090ea0f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +37,18 @@
     </ClInclude>
     <ClInclude Include="obfurikuristruction.h">
       <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction</Filter>
+    </ClInclude>
+    <ClInclude Include="obfurikuritation_x64.h">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuritation</Filter>
+    </ClInclude>
+    <ClInclude Include="obfurikuritation_x86.h">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuritation</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_asm.h">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator\asm</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_asm_jmp.h">
+      <Filter>Заголовочные файлы\furikuri\obfurikuriator\asm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

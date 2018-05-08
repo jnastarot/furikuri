@@ -22,8 +22,9 @@ struct obfkt_ip_relocations {
     uint8_t     instruction_size;
 };
 
-#include "obfurikuristruction.h"
 
+
+#include "obfurikuristruction.h"
 
 
 class obfurikuriator {
@@ -48,7 +49,12 @@ class obfurikuriator {
         std::vector<obfurikuristruction>&  lines,
         std::vector<obfkt_relocation>*	relocations);
 
-    std::vector<uint8_t> obfurikuriator::obfuscate(std::vector<obfurikuristruction>& lines, unsigned int recurse_idx);
+    void obfurikuriator::obfuscate_lines(std::vector<obfurikuristruction>& lines, unsigned int recurse_idx);
+
+    void obfurikuriator::obfurikuritation_x86(std::vector<obfurikuristruction>& lines, unsigned int current_line_idx, 
+        std::vector<obfurikuristruction>& out_lines);
+    void obfurikuriator::obfurikuritation_x64(std::vector<obfurikuristruction>& lines, unsigned int current_line_idx, 
+        std::vector<obfurikuristruction>& out_lines);
 
     void obfurikuriator::spagetti_code(std::vector<obfurikuristruction>& lines, uint64_t virtual_address);
 
@@ -64,7 +70,7 @@ public:
     obfurikuriator::obfurikuriator();
     obfurikuriator::~obfurikuriator();
 
-    std::vector<uint8_t> obfurikuriator::obfuscate();
+    std::vector<uint8_t> obfurikuriator::obfuscate_code();
 
     bool obfurikuriator::push_code(
         uint8_t * src, uint32_t src_len,

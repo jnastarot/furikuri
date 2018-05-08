@@ -39,29 +39,31 @@ class obfurikuristruction{
     uint8_t obfurikuristruction::get_prefixes_number();
 public:
     obfurikuristruction::obfurikuristruction();
+    obfurikuristruction::obfurikuristruction(const obfurikuristruction& line);
     obfurikuristruction::~obfurikuristruction();
 
+    obfurikuristruction& obfurikuristruction::operator=(const obfurikuristruction& line);
 public:
-    void  obfurikuristruction::set_op_code(uint8_t* op_code, uint8_t lenght);
+    obfurikuristruction&  obfurikuristruction::set_op_code(uint8_t* op_code, uint8_t lenght);
 
-    void  obfurikuristruction::set_source_virtual_address(uint64_t va);
-    void  obfurikuristruction::set_virtual_address(uint64_t va);
+    obfurikuristruction&  obfurikuristruction::set_source_virtual_address(uint64_t va);
+    obfurikuristruction&  obfurikuristruction::set_virtual_address(uint64_t va);
 
-    void  obfurikuristruction::set_ip_relocation_destination(uint64_t dst_va);
-    void  obfurikuristruction::set_ip_relocation_disp_offset(uint8_t offset);
+    obfurikuristruction&  obfurikuristruction::set_ip_relocation_destination(uint64_t dst_va);
+    obfurikuristruction&  obfurikuristruction::set_ip_relocation_disp_offset(uint8_t offset);
 
-    void  obfurikuristruction::set_relocation_id(uint32_t id);
-    void  obfurikuristruction::set_relocation_imm_offset(uint8_t offset);
+    obfurikuristruction&  obfurikuristruction::set_relocation_id(uint32_t id);
+    obfurikuristruction&  obfurikuristruction::set_relocation_imm_offset(uint8_t offset);
 
-    void  obfurikuristruction::set_label_id(uint32_t id);
-    void  obfurikuristruction::set_link_label_id(uint32_t id);
-    void  obfurikuristruction::set_relocation_label_id(uint32_t id);
+    obfurikuristruction&  obfurikuristruction::set_label_id(uint32_t id);
+    obfurikuristruction&  obfurikuristruction::set_link_label_id(uint32_t id);
+    obfurikuristruction&  obfurikuristruction::set_relocation_label_id(uint32_t id);
      
-    void  obfurikuristruction::set_flags(uint32_t flags);
+    obfurikuristruction&  obfurikuristruction::set_flags(uint32_t flags);
 
-    void  obfurikuristruction::set_type(uint16_t type);
-    void  obfurikuristruction::set_modified_flags(uint16_t modified_flags);
-    void  obfurikuristruction::set_tested_flags(uint16_t tested_flags);
+    obfurikuristruction&  obfurikuristruction::set_type(uint16_t type);
+    obfurikuristruction&  obfurikuristruction::set_modified_flags(uint16_t modified_flags);
+    obfurikuristruction&  obfurikuristruction::set_tested_flags(uint16_t tested_flags);
 public:
     const uint8_t* obfurikuristruction::get_op_code() const;
     uint8_t  obfurikuristruction::get_op_length() const;

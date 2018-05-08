@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "distorm", "distorm", "{53FA
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "distorm_lib", "distorm_lib\distorm_lib.vcxproj", "{7CEAA042-32B2-4858-A57E-4899058536C4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "furikuri_console", "furikuri_console\furikuri_console.vcxproj", "{9C776AA4-29BB-480F-BADC-2D5385D4BA54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		clib|Win32 = clib|Win32
@@ -164,6 +166,30 @@ Global
 		{7CEAA042-32B2-4858-A57E-4899058536C4}.Release|x64.Build.0 = Release|x64
 		{7CEAA042-32B2-4858-A57E-4899058536C4}.Release|x86.ActiveCfg = Release|Win32
 		{7CEAA042-32B2-4858-A57E-4899058536C4}.Release|x86.Build.0 = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.clib|Win32.ActiveCfg = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.clib|Win32.Build.0 = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.clib|x64.ActiveCfg = Release|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.clib|x64.Build.0 = Release|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.clib|x86.ActiveCfg = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.clib|x86.Build.0 = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Debug|Win32.Build.0 = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Debug|x64.ActiveCfg = Debug|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Debug|x64.Build.0 = Debug|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Debug|x86.ActiveCfg = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Debug|x86.Build.0 = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.dll|Win32.ActiveCfg = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.dll|Win32.Build.0 = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.dll|x64.ActiveCfg = Debug|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.dll|x64.Build.0 = Debug|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.dll|x86.ActiveCfg = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.dll|x86.Build.0 = Debug|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Release|Win32.ActiveCfg = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Release|Win32.Build.0 = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Release|x64.ActiveCfg = Release|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Release|x64.Build.0 = Release|x64
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Release|x86.ActiveCfg = Release|Win32
+		{9C776AA4-29BB-480F-BADC-2D5385D4BA54}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "obfurikuristruction.h"
 
-
 obfurikuristruction::obfurikuristruction(){
 
     memset(op_code, 0, sizeof(op_code));
@@ -23,11 +22,37 @@ obfurikuristruction::obfurikuristruction(){
     this->tested_flags       = 0;
 }
 
+obfurikuristruction::obfurikuristruction(const obfurikuristruction& line) {
+    this->operator=(line);
+}
+
 
 obfurikuristruction::~obfurikuristruction(){
 
 }
 
+obfurikuristruction& obfurikuristruction::operator=(const obfurikuristruction& line) {
+
+    memcpy(this->op_code, line.op_code, line.op_length);
+    this->op_length         = line.op_length;
+    this->op_pref_size      = line.op_pref_size;
+    this->source_virtual_address = line.source_virtual_address;
+    this->virtual_address   = line.virtual_address;
+    this->ip_relocation_destination = line.ip_relocation_destination;
+    this->ip_relocation_disp_offset = line.ip_relocation_disp_offset;
+    this->relocation_id     = line.relocation_id;
+    this->relocation_imm_offset = line.relocation_imm_offset;
+    this->label_id          = line.label_id;
+    this->link_label_id     = line.link_label_id;
+    this->relocation_label_id = line.relocation_label_id;
+    this->flags             = line.flags;
+    this->type              = line.type;
+    this->modified_flags    = line.modified_flags;
+    this->tested_flags      = line.tested_flags;
+
+
+    return *this;
+}
 
 uint8_t obfurikuristruction::get_prefixes_number() {
     uint32_t i = 0;
@@ -79,7 +104,7 @@ int32_t obfurikuristruction::get_jump_imm() const {
         op_code[op_pref_size] == 0xe8 ||
         op_code[op_pref_size] == 0xe9
         ) {
-        return *(int*)&op_code[op_pref_size + 1];
+        return *(int32_t*)&op_code[op_pref_size + 1];
     }
     else if (
         (op_code[op_pref_size] == 0x0f && (op_code[op_pref_size + 1] & 0xf0) == 0x80)
@@ -104,7 +129,7 @@ void obfurikuristruction::set_jump_imm(uint64_t destination_virtual_address) {
             {
             case 0x80:case 0x81:case 0x82:case 0x83:case 0x84:case 0x85:case 0x86:case 0x87: //jcc far
             case 0x88:case 0x89:case 0x8A:case 0x8B:case 0x8C:case 0x8D:case 0x8E:case 0x8F: {
-                *(uint32_t*)&op_code[op_pref_size + 2] = uint32_t(destination_virtual_address - virtual_address - op_length);
+                *(uint32_t*)&op_code[op_pref_size + 2] = uint32_t(destination_virtual_address - virtual_address - op_length );
                 break;
             }
 
@@ -115,59 +140,87 @@ void obfurikuristruction::set_jump_imm(uint64_t destination_virtual_address) {
     }
 }
 
-void  obfurikuristruction::set_op_code(uint8_t* _op_code, uint8_t _lenght) {
+obfurikuristruction&  obfurikuristruction::set_op_code(uint8_t* _op_code, uint8_t _lenght) {
 
     memcpy(this->op_code, _op_code, _lenght);
     this->op_length = _lenght;
     this->op_pref_size = get_prefixes_number();
+
+    return *this;
 }
 
-void  obfurikuristruction::set_source_virtual_address(uint64_t va) {
+obfurikuristruction&  obfurikuristruction::set_source_virtual_address(uint64_t va) {
     this->source_virtual_address = va;
+
+    return *this;
 }
-void  obfurikuristruction::set_virtual_address(uint64_t va) {
+obfurikuristruction&  obfurikuristruction::set_virtual_address(uint64_t va) {
     this->virtual_address = va;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_ip_relocation_destination(uint64_t dst_va) {
+obfurikuristruction&  obfurikuristruction::set_ip_relocation_destination(uint64_t dst_va) {
     this->ip_relocation_destination = dst_va;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_ip_relocation_disp_offset(uint8_t offset) {
+obfurikuristruction&  obfurikuristruction::set_ip_relocation_disp_offset(uint8_t offset) {
     this->ip_relocation_disp_offset = offset;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_relocation_id(uint32_t id) {
+obfurikuristruction&  obfurikuristruction::set_relocation_id(uint32_t id) {
     this->relocation_id = id;
+
+    return *this;
 }
-void  obfurikuristruction::set_relocation_imm_offset(uint8_t offset) {
+obfurikuristruction&  obfurikuristruction::set_relocation_imm_offset(uint8_t offset) {
     this->relocation_imm_offset = offset;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_label_id(uint32_t id) {
+obfurikuristruction&  obfurikuristruction::set_label_id(uint32_t id) {
     this->label_id = id;
+
+    return *this;
 }
-void  obfurikuristruction::set_link_label_id(uint32_t id) {
+obfurikuristruction&  obfurikuristruction::set_link_label_id(uint32_t id) {
     this->link_label_id = id;
+
+    return *this;
 }
-void  obfurikuristruction::set_relocation_label_id(uint32_t id) {
+obfurikuristruction&  obfurikuristruction::set_relocation_label_id(uint32_t id) {
     this->relocation_label_id = id;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_flags(uint32_t flags) {
+obfurikuristruction&  obfurikuristruction::set_flags(uint32_t flags) {
     this->flags = flags;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_type(uint16_t type) {
+obfurikuristruction&  obfurikuristruction::set_type(uint16_t type) {
     this->type = type;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_modified_flags(uint16_t modified_flags) {
+obfurikuristruction&  obfurikuristruction::set_modified_flags(uint16_t modified_flags) {
     this->modified_flags = modified_flags;
+
+    return *this;
 }
 
-void  obfurikuristruction::set_tested_flags(uint16_t tested_flags) {
+obfurikuristruction&  obfurikuristruction::set_tested_flags(uint16_t tested_flags) {
     this->tested_flags = tested_flags;
+
+    return *this;
 }
 
 const uint8_t* obfurikuristruction::get_op_code() const {

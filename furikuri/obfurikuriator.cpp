@@ -1,11 +1,23 @@
 #include "stdafx.h"
 #include "obfurikuriator.h"
 
+#define FUKU_GENERATE_NEW_BLOCK_CHANCE   20.f
+#define FUKU_MUTATE_LINE_CHANCE		     50.f
+#define FUKU_GENERATE_JUNK_CHANCE		 30.f
+#define FUKU_GET_CHANCE(x) (rand() % 1000) <= (10*x) //0.f - 100.f in
+
+#include "fuku_asm.h"
+#include "obfurikuritation_x86.h"
+#include "obfurikuritation_x64.h"
+
+
 
 obfurikuriator::obfurikuriator(){
     this->arch = obfkt_arch::obfkt_arch_x32;
 
     this->destination_virtual_address = 0;
+
+    this->label_seed = 1;
 
     this->complexity = 1;
     this->number_of_passes = 1;
@@ -76,11 +88,44 @@ std::vector<obfkt_ip_relocations>* obfurikuriator::get_ip_relocation_table() {
 }
 
 
-std::vector<uint8_t> obfurikuriator::obfuscate(std::vector<obfurikuristruction>& lines,unsigned int recurse_idx) {
+void obfurikuriator::obfuscate_lines(std::vector<obfurikuristruction>& lines,unsigned int recurse_idx) {
 
-    
+    if (recurse_idx == -1) { lines_correction(lines, destination_virtual_address); }
 
-    return lines_to_bin(lines);
+    std::vector<obfurikuristruction> obf_lines;
+
+    //obfuscate
+    for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
+        std::vector<obfurikuristruction> single_line;
+
+        if (arch == obfkt_arch::obfkt_arch_x32) {
+            obfurikuritation_x86(lines, line_idx, single_line);
+        }
+        else {
+            obfurikuritation_x64(lines, line_idx, single_line);
+        }
+
+        unsigned int recurse_idx_up = 0;
+        if (recurse_idx == -1) {
+            recurse_idx_up = rand() % complexity + 1;
+        }
+        else {
+            recurse_idx_up = recurse_idx - 1;
+        }
+
+        if (recurse_idx_up) {
+            obfuscate_lines(single_line, recurse_idx_up);
+        }
+
+        if (recurse_idx == -1) {
+            single_line[0].set_label_id(lines[line_idx].get_label_id());
+            single_line[0].set_source_virtual_address(lines[line_idx].get_source_virtual_address());
+        }
+
+        obf_lines.insert(obf_lines.end(), single_line.begin(), single_line.end());
+    }
+
+    lines = obf_lines;
 }
 
 
@@ -111,17 +156,17 @@ bool obfurikuriator::analyze_code(
         for (const auto &distorm_line : distorm_instructions) {
             obfurikuristruction line;
 
-            line.set_source_virtual_address(virtual_address + distorm_line.addr);
-            line.set_virtual_address(virtual_address + distorm_line.addr);
-            line.set_op_code(&src[distorm_line.addr], distorm_line.size);
-            line.set_type((_InstructionType)distorm_line.opcode);
-            line.set_modified_flags(distorm_line.modifiedFlagsMask);
-            line.set_tested_flags(distorm_line.testedFlagsMask);
+            line.set_source_virtual_address(virtual_address + distorm_line.addr)
+                .set_virtual_address(virtual_address + distorm_line.addr)
+                .set_op_code(&src[distorm_line.addr], distorm_line.size)
+                .set_type((_InstructionType)distorm_line.opcode)
+                .set_modified_flags(distorm_line.modifiedFlagsMask)
+                .set_tested_flags(distorm_line.testedFlagsMask);
 
             if (distorm_line.flags&FLAG_RIP_RELATIVE) {
-                line.set_flags(line.get_flags() | obfkst_instruction_has_ip_relocation);
-                line.set_ip_relocation_destination(INSTRUCTION_GET_RIP_TARGET(&distorm_line) + virtual_address);
-                line.set_ip_relocation_disp_offset(distorm_line.disp_offset - &src[distorm_line.addr]);
+                line.set_flags(line.get_flags() | obfkst_instruction_has_ip_relocation)
+                    .set_ip_relocation_destination(INSTRUCTION_GET_RIP_TARGET(&distorm_line) + virtual_address)
+                    .set_ip_relocation_disp_offset(distorm_line.disp_offset - &src[distorm_line.addr]);
             }
 
             lines.push_back(line);
@@ -153,17 +198,17 @@ bool obfurikuriator::analyze_code(
             }
             else {
                 if (line.is_jump()) {
-                    uint64_t rel_rva = line.get_virtual_address() +
+                    uint64_t jmp_dst_va = line.get_virtual_address() +
                         line.get_op_length() +
                         line.get_jump_imm();
 
-                    obfurikuristruction * dst_line = get_line_by_source_va(lines, rel_rva);
+                    obfurikuristruction * dst_line = get_line_by_source_va(lines, jmp_dst_va);
 
                     if (dst_line) {
                         line.set_link_label_id(set_label(*dst_line));
                     }
                     else {
-                        unsigned int prefixes_number = line.get_op_pref_size();
+                        size_t prefixes_number = line.get_op_pref_size();
 
                         if (
                             (line.get_op_code()[prefixes_number] == 0x0f &&
@@ -179,7 +224,7 @@ bool obfurikuriator::analyze_code(
                         }
 
                         line.set_flags(line.get_flags() | obfkst_instruction_has_ip_relocation);
-                        line.set_ip_relocation_destination(rel_rva);
+                        line.set_ip_relocation_destination(jmp_dst_va);
                     }
                 }
             }
@@ -191,8 +236,11 @@ bool obfurikuriator::analyze_code(
     return false;
 }
 
-std::vector<uint8_t> obfurikuriator::obfuscate() {
-    return obfuscate(this->lines, -1);
+std::vector<uint8_t> obfurikuriator::obfuscate_code() {
+
+    obfuscate_lines(this->lines, -1);
+
+    return lines_to_bin(lines);
 }
 
 bool obfurikuriator::push_code(
@@ -210,10 +258,27 @@ bool obfurikuriator::push_code(
             if (!stored_line.get_link_label_id()) {
 
                 if (stored_line.is_jump()) {
+                    uint64_t jmp_dst_va = stored_line.get_source_virtual_address() +
+                        stored_line.get_op_length() +
+                        stored_line.get_jump_imm();
 
+                    obfurikuristruction * dst_line = get_line_by_source_va(new_lines, jmp_dst_va);
+                    
+                    if (dst_line) {
+                        stored_line.set_link_label_id(set_label(*dst_line));
+                    }
                 }
                 else if (stored_line.get_flags()&obfkst_instruction_has_ip_relocation) {
 
+                    obfurikuristruction * dst_line = get_line_by_source_va(new_lines, stored_line.get_ip_relocation_destination());
+
+                    if (dst_line) {
+                        stored_line.set_link_label_id(set_label(*dst_line));
+
+                        stored_line.set_ip_relocation_destination(0);
+                        stored_line.set_ip_relocation_disp_offset(0);
+                        stored_line.set_flags(stored_line.get_flags()& (~uint32_t(obfkst_instruction_has_ip_relocation)));
+                    }
                 }
             }
         }
@@ -224,13 +289,33 @@ bool obfurikuriator::push_code(
 
                 if (new_line.is_jump()) {
 
+                    uint64_t jmp_dst_va = new_line.get_source_virtual_address() +
+                        new_line.get_op_length() + 
+                        new_line.get_jump_imm();
+
+                    obfurikuristruction * dst_line = get_line_by_source_va(lines, jmp_dst_va);
+
+                    if (dst_line) {
+                        new_line.set_link_label_id(set_label(*dst_line));
+                    }
                 }
                 else if (new_line.get_flags()&obfkst_instruction_has_ip_relocation) {
 
+                    obfurikuristruction * dst_line = get_line_by_source_va(lines, new_line.get_ip_relocation_destination());
+
+                    if (dst_line) {
+                        new_line.set_link_label_id(set_label(*dst_line));
+
+                        new_line.set_ip_relocation_destination(0);
+                        new_line.set_ip_relocation_disp_offset(0);
+                        new_line.set_flags(new_line.get_flags()& (~uint32_t(obfkst_instruction_has_ip_relocation)));
+                    }
                 }
             }
         }
 
+
+        lines.insert(lines.end(), new_lines.begin(), new_lines.end());
 
         lines_correction(this->lines, this->destination_virtual_address);
     }
@@ -242,7 +327,55 @@ bool obfurikuriator::push_code(
 void obfurikuriator::spagetti_code(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
 
     lines_correction(lines, virtual_address);
-    //todo
+
+    struct block_lines {
+        unsigned int order;
+        std::vector<obfurikuristruction> lines;
+        block_lines::block_lines(unsigned int order, std::vector<obfurikuristruction> lines) { this->order = order; this->lines = lines; }
+    };
+    std::vector<block_lines> line_blocks;
+
+
+    //generate blocks of lines
+    for (unsigned int line_idx = 0; line_idx < lines.size(); ) {
+        std::vector<obfurikuristruction> line_block;
+
+
+        for (unsigned int block_lines_counter = 0; line_idx < lines.size(); line_idx++, block_lines_counter++) {
+            if (FUKU_GET_CHANCE(FUKU_GENERATE_NEW_BLOCK_CHANCE)) {
+                obfurikuristruction jmp_instruction;
+                fuku_asm_x86_jmp(jmp_instruction,0);                
+                jmp_instruction.set_link_label_id(set_label(lines[line_idx]));//add jmp to next instruction
+                line_block.push_back(jmp_instruction);
+                break;
+            }
+
+            line_block.push_back(lines[line_idx]); //push line
+        }
+
+
+        line_blocks.push_back(block_lines(line_blocks.size(), line_block)); //push block of lines
+    }
+
+    //rand blocks without first block
+    if (line_blocks.size() > 2) {
+        for (unsigned int r_block = 0; r_block < line_blocks.size(); r_block++) {
+            std::swap(
+                line_blocks[((rand() % (line_blocks.size() - 1)) + 1)],
+                line_blocks[((rand() % (line_blocks.size() - 1)) + 1)]
+            );
+        }
+    }
+
+
+    lines.clear();
+
+    //push lines
+    for (unsigned int r_block = 0; r_block < line_blocks.size(); r_block++) {
+        for (unsigned int r_block_line = 0; r_block_line < line_blocks[r_block].lines.size(); r_block_line++) {
+            lines.push_back(line_blocks[r_block].lines[r_block_line]);
+        }
+    }
 }
 
 void obfurikuriator::lines_correction(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
@@ -260,9 +393,9 @@ void obfurikuriator::lines_correction(std::vector<obfurikuristruction>& lines, u
 
 obfurikuristruction * obfurikuriator::get_line_by_source_va(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
 
-    unsigned int left = 0;
-    unsigned int right = lines.size();
-    unsigned int mid = 0;
+    size_t left = 0;
+    size_t right = lines.size();
+    size_t mid = 0;
 
     while (left < right) {
         mid = left + (right - left) / 2;
@@ -284,9 +417,9 @@ obfurikuristruction * obfurikuriator::get_line_by_source_va(std::vector<obfuriku
 
 obfurikuristruction * obfurikuriator::get_line_by_va(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
 
-    unsigned int left = 0;
-    unsigned int right = lines.size();
-    unsigned int mid = 0;
+    size_t left = 0;
+    size_t right = lines.size();
+    size_t mid = 0;
 
     while (left < right) {
         mid = left + (right - left) / 2;
@@ -307,8 +440,10 @@ obfurikuristruction * obfurikuriator::get_line_by_va(std::vector<obfurikuristruc
 
 obfurikuristruction * obfurikuriator::get_line_by_label_id(unsigned int label_id) {
 
-    if (label_id - 1 >= 0 && label_id - 1 < this->labels_cache.size()) {
-        return this->labels_cache[label_id - 1];
+    if (this->labels_cache.size()) {
+        if (label_id > 0 && label_id <= (this->labels_cache.size() - 1)) {
+            return this->labels_cache[label_id - 1];
+        }
     }
 
     return 0;
@@ -334,13 +469,13 @@ void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
                 if (prefixes_number) {
                     op_code[0] = line.get_op_code()[prefixes_number - 1];
                     op_code[1] = 0xE9;
-                    *(int32_t*)&op_code[2] = line.get_jump_imm();
+                    *(int32_t*)&op_code[2] = line.get_jump_imm() - 3;
 
                     line.set_op_code(op_code, 6);
                 }
                 else {
                     op_code[0] = 0xE9;
-                    *(int32_t*)&op_code[1] = line.get_jump_imm();
+                    *(int32_t*)&op_code[1] = line.get_jump_imm() - 3;
 
                     line.set_op_code(op_code, 5);
                 }
@@ -494,12 +629,12 @@ void obfurikuriator::finalize_jmps(std::vector<obfurikuristruction>& lines) {
 std::vector<uint8_t>  obfurikuriator::lines_to_bin(std::vector<obfurikuristruction>&  lines) {
 
     std::vector<uint8_t> lines_dump;
-    unsigned int dump_size = 0;
+    size_t dump_size = 0;
 
     for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) { dump_size += lines[line_idx].get_op_length(); }
     lines_dump.resize(dump_size);
 
-    unsigned int opcode_caret = 0;
+    size_t opcode_caret = 0;
     for (auto &line : lines) {
         memcpy(&lines_dump.data()[opcode_caret], line.get_op_code(), line.get_op_length());
         opcode_caret += line.get_op_length();
