@@ -1,3 +1,6 @@
 [submodule "shibari"]
 	path = shibari
 	url = https://github.com/jnastarot/shibari.git
+[submodule "enma_pe"]
+	path = enma_pe
+	url = https://github.com/jnastarot/enma_pe.git
