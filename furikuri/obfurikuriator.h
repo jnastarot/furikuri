@@ -61,6 +61,13 @@ class obfurikuriator {
     void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines);
     void obfurikuriator::finalize_jmps(std::vector<obfurikuristruction>& lines);
 
+    void obfurikuriator::build_tables(
+        std::vector<obfurikuristruction>& lines,
+        std::vector<obfkt_association>* association,
+        std::vector<obfkt_relocation>*	relocations,
+        std::vector<obfkt_ip_relocations>*		ip_relocations
+    );
+
     void    obfurikuriator::lines_correction(std::vector<obfurikuristruction>& lines, uint64_t virtual_address);
     obfurikuristruction * obfurikuriator::get_line_by_va(std::vector<obfurikuristruction>& lines, uint64_t virtual_address);
     obfurikuristruction * obfurikuriator::get_line_by_source_va(std::vector<obfurikuristruction>& lines, uint64_t virtual_address);
