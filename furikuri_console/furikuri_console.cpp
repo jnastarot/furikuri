@@ -74,10 +74,10 @@ int main(){
     typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
     for (unsigned int i = 0; i < 1000; i++) {
 
-        obfurikuriator obfuscator;
-        std::vector<obfkt_relocation> relocations;
+        fuku_obfuscator obfuscator;
+        std::vector<ob_fuku_relocation> relocations;
 
-        obfuscator.set_arch(obfkt_arch::obfkt_arch_x32);
+        obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
         obfuscator.set_complexity(5);
         obfuscator.set_number_of_passes(5);

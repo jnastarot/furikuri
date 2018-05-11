@@ -1,19 +1,16 @@
 #include "stdafx.h"
-#include "obfurikuriator.h"
-
-#define FUKU_GENERATE_NEW_BLOCK_CHANCE   20.f
-#define FUKU_MUTATE_LINE_CHANCE		     50.f
-#define FUKU_GENERATE_JUNK_CHANCE		 30.f
-#define FUKU_GET_CHANCE(x) ((rand() % 1000) <= (10*(x))) //0.f - 100.f in
-
-#include "fuku_asm.h"
-#include "obfurikuritation_x86.h"
-#include "obfurikuritation_x64.h"
+#include "fuku_obfuscator.h"
 
 
 
-obfurikuriator::obfurikuriator(){
-    this->arch = obfkt_arch::obfkt_arch_x32;
+
+//#include "fuku_mutation_x86.h"
+//#include "fuku_mutation_x64.h"
+
+
+
+fuku_obfuscator::fuku_obfuscator(){
+    this->arch = ob_fuku_arch::ob_fuku_arch_x32;
 
     this->destination_virtual_address = 0;
 
@@ -28,121 +25,77 @@ obfurikuriator::obfurikuriator(){
 }
 
 
-obfurikuriator::~obfurikuriator(){
+fuku_obfuscator::~fuku_obfuscator(){
 }
 
-void obfurikuriator::set_arch(obfkt_arch arch) {
+void fuku_obfuscator::set_arch(ob_fuku_arch arch) {
     this->arch = arch;
 }
 
-void obfurikuriator::set_destination_virtual_address(uint64_t destination_virtual_address) {
+void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address) {
     this->destination_virtual_address = destination_virtual_address;
 }
 
-void obfurikuriator::set_complexity(unsigned int complexity) {
+void fuku_obfuscator::set_complexity(unsigned int complexity) {
     this->complexity = complexity;
 }
 
-void obfurikuriator::set_number_of_passes(unsigned int number_of_passes) {
+void fuku_obfuscator::set_number_of_passes(unsigned int number_of_passes) {
     this->number_of_passes = number_of_passes;
 }
 
-void obfurikuriator::set_association_table(std::vector<obfkt_association>*	associations) {
+void fuku_obfuscator::set_association_table(std::vector<ob_fuku_association>*	associations) {
     this->association_table = associations;
 }
 
-void obfurikuriator::set_relocation_table(std::vector<obfkt_relocation>* relocations) {
+void fuku_obfuscator::set_relocation_table(std::vector<ob_fuku_relocation>* relocations) {
     this->relocations = relocations;
 }
 
-void obfurikuriator::set_ip_relocation_table(std::vector<obfkt_ip_relocations>* ip_relocations) {
+void fuku_obfuscator::set_ip_relocation_table(std::vector<ob_fuku_ip_relocations>* ip_relocations) {
     this->ip_relocations = ip_relocations;
 }
 
-obfkt_arch   obfurikuriator::get_arch() {
+ob_fuku_arch   fuku_obfuscator::get_arch() {
     return this->arch;
 }
 
-uint64_t     obfurikuriator::get_destination_virtual_address() {
+uint64_t     fuku_obfuscator::get_destination_virtual_address() {
     return this->destination_virtual_address;
 }
 
-unsigned int obfurikuriator::get_complexity() {
+unsigned int fuku_obfuscator::get_complexity() {
     return this->complexity;
 }
 
-unsigned int obfurikuriator::get_number_of_passes() {
+unsigned int fuku_obfuscator::get_number_of_passes() {
     return this->number_of_passes;
 }
 
-std::vector<obfkt_association>*    obfurikuriator::get_association_table() {
+std::vector<ob_fuku_association>*    fuku_obfuscator::get_association_table() {
     return this->association_table;
 }
 
-std::vector<obfkt_relocation>*     obfurikuriator::get_relocation_table() {
+std::vector<ob_fuku_relocation>*     fuku_obfuscator::get_relocation_table() {
     return this->relocations;
 }
 
-std::vector<obfkt_ip_relocations>* obfurikuriator::get_ip_relocation_table() {
+std::vector<ob_fuku_ip_relocations>* fuku_obfuscator::get_ip_relocation_table() {
     return this->ip_relocations;
 }
 
 
-void obfurikuriator::obfuscate_lines(std::vector<obfurikuristruction>& lines,unsigned int recurse_idx) {
-
-    if (recurse_idx == -1) { lines_correction(lines, destination_virtual_address); }
-
-    std::vector<obfurikuristruction> obf_lines;
-
-    //obfuscate
-    for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
-        std::vector<obfurikuristruction> single_line;
-        //single_line.push_back(lines[line_idx]);
-        
-        if (arch == obfkt_arch::obfkt_arch_x32) {
-            obfurikuritation_x86(lines, line_idx, single_line);
-        }
-        else {
-            obfurikuritation_x64(lines, line_idx, single_line);
-        }
-
-        unsigned int recurse_idx_up = 0;
-        if (recurse_idx == -1) {
-            recurse_idx_up = rand() % complexity + 1;
-        }
-        else {
-            recurse_idx_up = recurse_idx - 1;
-        }
-
-        if (recurse_idx_up) {
-            obfuscate_lines(single_line, recurse_idx_up);
-        }
-
-        if (recurse_idx == -1) {
-            single_line[0].set_label_id(lines[line_idx].get_label_id());
-            single_line[0].set_source_virtual_address(lines[line_idx].get_source_virtual_address());
-        }
-        
-
-        obf_lines.insert(obf_lines.end(), single_line.begin(), single_line.end());
-    }
-
-    lines = obf_lines;
-    
-}
-
-
-bool obfurikuriator::analyze_code(
+bool fuku_obfuscator::analyze_code(
     uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
-    std::vector<obfurikuristruction>&  lines,
-    std::vector<obfkt_relocation>*	relocations) {
+    std::vector<fuku_instruction>&  lines,
+    std::vector<ob_fuku_relocation>*	relocations) {
 
     unsigned int current_len = 0;
     unsigned int line_counter = 0;
 
     _CodeInfo code_info = { 0,0, src ,src_len ,
-        arch == obfkt_arch::obfkt_arch_x32 ? _DecodeType::Decode32Bits : _DecodeType::Decode64Bits,
+        arch == ob_fuku_arch::ob_fuku_arch_x32 ? _DecodeType::Decode32Bits : _DecodeType::Decode64Bits,
         0
     };
 
@@ -157,7 +110,7 @@ bool obfurikuriator::analyze_code(
         lines.reserve(instructions_number);
 
         for (const auto &distorm_line : distorm_instructions) {
-            obfurikuristruction line;
+            fuku_instruction line;
 
             line.set_source_virtual_address(virtual_address + distorm_line.addr)
                 .set_virtual_address(virtual_address + distorm_line.addr)
@@ -167,7 +120,7 @@ bool obfurikuriator::analyze_code(
                 .set_tested_flags(distorm_line.testedFlagsMask);
 
             if (distorm_line.flags&FLAG_RIP_RELATIVE) {
-                line.set_flags(line.get_flags() | obfkst_instruction_has_ip_relocation)
+                line.set_flags(line.get_flags() | ob_fuku_instruction_has_ip_relocation)
                     .set_ip_relocation_destination(INSTRUCTION_GET_RIP_TARGET(&distorm_line) + virtual_address)
                     .set_ip_relocation_disp_offset(distorm_line.disp_offset - &src[distorm_line.addr]);
             }
@@ -179,9 +132,9 @@ bool obfurikuriator::analyze_code(
         if (relocations) {
             for (auto reloc : *relocations) { //associate relocs
 
-                obfurikuristruction * line = this->get_line_by_source_va(lines, reloc.virtual_address);
+                fuku_instruction * line = this->get_line_by_source_va(lines, reloc.virtual_address);
                 if (line) {
-                    line->set_flags(line->get_flags() | obfkst_instruction_has_relocation);
+                    line->set_flags(line->get_flags() | ob_fuku_instruction_has_relocation);
                     line->set_relocation_id(reloc.relocation_id);
                     line->set_relocation_imm_offset((uint8_t)(reloc.virtual_address - line->get_virtual_address()));
                 }
@@ -191,9 +144,9 @@ bool obfurikuriator::analyze_code(
 
         for (auto &line : lines) {//jmp set labels
 
-            if (line.get_flags()&obfkst_instruction_has_ip_relocation) { //disp to local code
+            if (line.get_flags()&ob_fuku_instruction_has_ip_relocation) { //disp to local code
 
-                obfurikuristruction * dst_line = this->get_line_by_source_va(lines, line.get_ip_relocation_destination());
+                fuku_instruction * dst_line = this->get_line_by_source_va(lines, line.get_ip_relocation_destination());
 
                 if (dst_line) {
                     line.set_link_label_id(set_label(*dst_line));
@@ -205,7 +158,7 @@ bool obfurikuriator::analyze_code(
                         line.get_op_length() +
                         line.get_jump_imm();
 
-                    obfurikuristruction * dst_line = get_line_by_source_va(lines, jmp_dst_va);
+                    fuku_instruction * dst_line = get_line_by_source_va(lines, jmp_dst_va);
 
                     if (dst_line) {
                         line.set_link_label_id(set_label(*dst_line));
@@ -226,7 +179,7 @@ bool obfurikuriator::analyze_code(
                             line.set_ip_relocation_disp_offset(prefixes_number + 1);
                         }
 
-                        line.set_flags(line.get_flags() | obfkst_instruction_has_ip_relocation);
+                        line.set_flags(line.get_flags() | ob_fuku_instruction_has_ip_relocation);
                         line.set_ip_relocation_destination(jmp_dst_va);
                     }
                 }
@@ -239,25 +192,13 @@ bool obfurikuriator::analyze_code(
     return false;
 }
 
-std::vector<uint8_t> obfurikuriator::obfuscate_code() {
 
-    for (unsigned int passes = 0; passes < number_of_passes; passes++) {
-        obfuscate_lines(this->lines, -1);//obfuscate
-        spagetti_code(lines, this->destination_virtual_address); //mix lines
-    }
-
-    build_tables(this->lines, this->association_table, this->relocations, this->ip_relocations);
-    finalize_jmps(this->lines);
-
-    return lines_to_bin(lines);
-}
-
-bool obfurikuriator::push_code(
+bool fuku_obfuscator::push_code(
     uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
-    std::vector<obfkt_relocation>*	relocations) {
+    std::vector<ob_fuku_relocation>*	relocations) {
 
-    std::vector<obfurikuristruction> new_lines;
+    std::vector<fuku_instruction> new_lines;
 
     if (analyze_code(src, src_len, virtual_address, new_lines, relocations)) {
 
@@ -271,28 +212,28 @@ bool obfurikuriator::push_code(
                         stored_line.get_op_length() +
                         stored_line.get_jump_imm();
 
-                    obfurikuristruction * dst_line = get_line_by_source_va(new_lines, jmp_dst_va);
+                    fuku_instruction * dst_line = get_line_by_source_va(new_lines, jmp_dst_va);
                     
                     if (dst_line) {
                         stored_line.set_link_label_id(set_label(*dst_line));
                     }
                 }
-                else if (stored_line.get_flags()&obfkst_instruction_has_ip_relocation) {
+                else if (stored_line.get_flags()&ob_fuku_instruction_has_ip_relocation) {
 
-                    obfurikuristruction * dst_line = get_line_by_source_va(new_lines, stored_line.get_ip_relocation_destination());
+                    fuku_instruction * dst_line = get_line_by_source_va(new_lines, stored_line.get_ip_relocation_destination());
 
                     if (dst_line) {
                         stored_line.set_link_label_id(set_label(*dst_line));
 
                         stored_line.set_ip_relocation_destination(0);
                         stored_line.set_ip_relocation_disp_offset(0);
-                        stored_line.set_flags(stored_line.get_flags()& (~uint32_t(obfkst_instruction_has_ip_relocation)));
+                        stored_line.set_flags(stored_line.get_flags()& (~uint32_t(ob_fuku_instruction_has_ip_relocation)));
                     }
                 }
             }
         }
 
-        for (auto& new_line : new_lines) {
+        for (auto& new_line : new_lines) {//link new lines with stored lines
 
             if (!new_line.get_link_label_id()) {
 
@@ -302,22 +243,22 @@ bool obfurikuriator::push_code(
                         new_line.get_op_length() + 
                         new_line.get_jump_imm();
 
-                    obfurikuristruction * dst_line = get_line_by_source_va(lines, jmp_dst_va);
+                    fuku_instruction * dst_line = get_line_by_source_va(lines, jmp_dst_va);
 
                     if (dst_line) {
                         new_line.set_link_label_id(set_label(*dst_line));
                     }
                 }
-                else if (new_line.get_flags()&obfkst_instruction_has_ip_relocation) {
+                else if (new_line.get_flags()&ob_fuku_instruction_has_ip_relocation) {
 
-                    obfurikuristruction * dst_line = get_line_by_source_va(lines, new_line.get_ip_relocation_destination());
+                    fuku_instruction * dst_line = get_line_by_source_va(lines, new_line.get_ip_relocation_destination());
 
                     if (dst_line) {
                         new_line.set_link_label_id(set_label(*dst_line));
 
                         new_line.set_ip_relocation_destination(0);
                         new_line.set_ip_relocation_disp_offset(0);
-                        new_line.set_flags(new_line.get_flags()& (~uint32_t(obfkst_instruction_has_ip_relocation)));
+                        new_line.set_flags(new_line.get_flags()& (~uint32_t(ob_fuku_instruction_has_ip_relocation)));
                     }
                 }
             }
@@ -332,27 +273,48 @@ bool obfurikuriator::push_code(
     return false;
 }
 
+std::vector<uint8_t> fuku_obfuscator::obfuscate_code() {
 
-void obfurikuriator::spagetti_code(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
+    fuku_mutation * mutator = (arch == ob_fuku_arch::ob_fuku_arch_x32) ?
+        (fuku_mutation*)(new fuku_mutation_x86(this->complexity, this)) : (fuku_mutation*)(new fuku_mutation_x64(this->complexity, this));
+
+
+    for (unsigned int passes = 0; passes < number_of_passes; passes++) {
+
+        lines_correction(lines, destination_virtual_address);
+        mutator->obfuscate(this->lines);
+
+        spagetti_code(lines, this->destination_virtual_address); //mix lines
+    }
+
+    delete mutator;
+
+    build_tables(this->lines, this->association_table, this->relocations, this->ip_relocations);
+    finalize_jmps(this->lines);
+
+    return lines_to_bin(lines);
+}
+
+void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
 
     lines_correction(lines, virtual_address);
 
     struct block_lines {
         unsigned int order;
-        std::vector<obfurikuristruction> lines;
-        block_lines::block_lines(unsigned int order, std::vector<obfurikuristruction> lines) { this->order = order; this->lines = lines; }
+        std::vector<fuku_instruction> lines;
+        block_lines::block_lines(unsigned int order, std::vector<fuku_instruction> lines) { this->order = order; this->lines = lines; }
     };
     std::vector<block_lines> line_blocks;
 
 
     //generate blocks of lines
     for (unsigned int line_idx = 0; line_idx < lines.size(); ) {
-        std::vector<obfurikuristruction> line_block;
+        std::vector<fuku_instruction> line_block;
 
 
         for (unsigned int block_lines_counter = 0; line_idx < lines.size(); line_idx++, block_lines_counter++) {
             if (FUKU_GET_CHANCE(FUKU_GENERATE_NEW_BLOCK_CHANCE)) {
-                obfurikuristruction jmp_instruction;
+                fuku_instruction jmp_instruction;
                 fuku_asm_x86_jmp(jmp_instruction,0);                
                 jmp_instruction.set_link_label_id(set_label(lines[line_idx]));//add jmp to next instruction
                 line_block.push_back(jmp_instruction);
@@ -387,7 +349,7 @@ void obfurikuriator::spagetti_code(std::vector<obfurikuristruction>& lines, uint
     }
 }
 
-void obfurikuriator::lines_correction(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
+void fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
     uint64_t _virtual_address = virtual_address;
     this->labels_cache.clear();
     this->labels_cache.resize(label_seed - 1);
@@ -400,7 +362,7 @@ void obfurikuriator::lines_correction(std::vector<obfurikuristruction>& lines, u
     }
 }
 
-obfurikuristruction * obfurikuriator::get_line_by_source_va(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
+fuku_instruction * fuku_obfuscator::get_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
 
     size_t left = 0;
     size_t right = lines.size();
@@ -424,7 +386,7 @@ obfurikuristruction * obfurikuriator::get_line_by_source_va(std::vector<obfuriku
     return 0;
 }
 
-obfurikuristruction * obfurikuriator::get_line_by_va(std::vector<obfurikuristruction>& lines, uint64_t virtual_address) {
+fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
 
     size_t left = 0;
     size_t right = lines.size();
@@ -447,7 +409,7 @@ obfurikuristruction * obfurikuriator::get_line_by_va(std::vector<obfurikuristruc
     return 0;
 }
 
-obfurikuristruction * obfurikuriator::get_line_by_label_id(unsigned int label_id) {
+fuku_instruction * fuku_obfuscator::get_line_by_label_id(unsigned int label_id) {
 
     if (this->labels_cache.size()) {
         if (label_id > 0 && label_id <= this->labels_cache.size()) {
@@ -459,11 +421,11 @@ obfurikuristruction * obfurikuriator::get_line_by_label_id(unsigned int label_id
 }
 
 
-void obfurikuriator::build_tables(
-    std::vector<obfurikuristruction>& lines,
-    std::vector<obfkt_association>* association,
-    std::vector<obfkt_relocation>*	relocations,
-    std::vector<obfkt_ip_relocations>*		ip_relocations
+void fuku_obfuscator::build_tables(
+    std::vector<fuku_instruction>& lines,
+    std::vector<ob_fuku_association>* association,
+    std::vector<ob_fuku_relocation>*	relocations,
+    std::vector<ob_fuku_ip_relocations>*		ip_relocations
 ) {
     lines_correction(lines, destination_virtual_address);
 
@@ -476,13 +438,13 @@ void obfurikuriator::build_tables(
 
     for (auto &line : lines) {
         if (association) {																		//association
-            if (line.get_source_virtual_address()) {
+            if (line.get_source_virtual_address() != -1) {
                 association->push_back({ line.get_source_virtual_address(), line.get_virtual_address() });
             }
         }
 
         if (relocations) {																		//relocations
-            if (line.get_flags()&obfkst_instruction_has_relocation) {
+            if (line.get_flags()&ob_fuku_instruction_has_relocation) {
                 if (line.get_relocation_label_id()) {//need fix it 
                     uint8_t op_code[16];
                     memcpy(op_code, line.get_op_code(),16);
@@ -497,8 +459,8 @@ void obfurikuriator::build_tables(
             }
         }
         if (ip_relocations) {
-            if (line.get_flags()&obfkst_instruction_has_ip_relocation && !(line.get_link_label_id())) {				//callouts
-                obfkt_ip_relocations ip_reloc;
+            if (line.get_flags()&ob_fuku_instruction_has_ip_relocation && !(line.get_link_label_id())) {				//callouts
+                ob_fuku_ip_relocations ip_reloc;
 
                 ip_reloc.destination_virtual_address = line.get_ip_relocation_destination();
                 ip_reloc.virtual_address  = line.get_virtual_address();
@@ -511,7 +473,7 @@ void obfurikuriator::build_tables(
     }
 }
 
-void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
+void fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines) {
 
     for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
 
@@ -573,7 +535,7 @@ void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
             case 0xE0: {
 
                 uint8_t new_line_opcode = 0x49;//dec ecx
-                obfurikuristruction new_line;
+                fuku_instruction new_line;
                 new_line.set_source_virtual_address(line.get_source_virtual_address());
                 new_line.set_virtual_address(line.get_virtual_address());
                 new_line.set_op_code(&new_line_opcode, 1);
@@ -592,7 +554,7 @@ void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
             case 0xE1: {
 
                 uint8_t new_line_opcode = 0x49;//dec ecx
-                obfurikuristruction new_line;
+                fuku_instruction new_line;
                 new_line.set_source_virtual_address(line.get_source_virtual_address());
                 new_line.set_virtual_address(line.get_virtual_address());
                 new_line.set_op_code(&new_line_opcode, 1);
@@ -612,7 +574,7 @@ void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
             case 0xE2: {
 
                 uint8_t new_line_opcode = 0x49;//dec ecx
-                obfurikuristruction new_line;
+                fuku_instruction new_line;
                 new_line.set_source_virtual_address(line.get_source_virtual_address());
                 new_line.set_virtual_address(line.get_virtual_address());
                 new_line.set_op_code(&new_line_opcode, 1);
@@ -632,7 +594,7 @@ void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
             case 0xE3: {
                 
                 uint8_t new_line_opcode[2];//or ecx,ecx
-                obfurikuristruction new_line;
+                fuku_instruction new_line;
                 new_line_opcode[0] = 0x09;
                 new_line_opcode[1] = 0xC9;
 
@@ -658,26 +620,34 @@ void obfurikuriator::handle_jmps(std::vector<obfurikuristruction>& lines) {
     }
 }
 
-void obfurikuriator::finalize_jmps(std::vector<obfurikuristruction>& lines) {
+void fuku_obfuscator::finalize_jmps(std::vector<fuku_instruction>& lines) {
 
     for (auto &line : lines) {
 
-        if (!(line.get_flags()&obfkst_instruction_has_relocation)) {
+        if (!(line.get_flags()&ob_fuku_instruction_has_relocation)) {
 
             if (line.get_link_label_id()) {
 
-                if (line.get_flags()&obfkst_instruction_has_ip_relocation) {
+                if (line.get_flags()&ob_fuku_instruction_has_ip_relocation) {
+
+                    uint8_t op_code[16];
+                    memcpy(op_code, line.get_op_code(), 16);
 
                     if (line.get_link_label_id()) {
-                        uint8_t op_code[16];
-                        memcpy(op_code, line.get_op_code(),16);
+                        fuku_instruction * line_destination = get_line_by_label_id(line.get_link_label_id());
 
+                        if (line_destination) {
+                            *(uint32_t*)&op_code[line.get_ip_relocation_disp_offset()] =
+                                (line_destination->get_virtual_address() - line.get_virtual_address() - line.get_op_length());
+                        }
+                    }
+                    else {
                         *(uint32_t*)&op_code[line.get_ip_relocation_disp_offset()] =
                             (line.get_ip_relocation_destination() - line.get_virtual_address() - line.get_op_length());
                     }
                 }
                 else {
-                    obfurikuristruction * line_destination = get_line_by_label_id(line.get_link_label_id());
+                    fuku_instruction * line_destination = get_line_by_label_id(line.get_link_label_id());
 
                     if (line_destination) {
                         line.set_jump_imm(line_destination->get_virtual_address());
@@ -688,7 +658,7 @@ void obfurikuriator::finalize_jmps(std::vector<obfurikuristruction>& lines) {
     }
 }
 
-std::vector<uint8_t>  obfurikuriator::lines_to_bin(std::vector<obfurikuristruction>&  lines) {
+std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(std::vector<fuku_instruction>&  lines) {
 
     std::vector<uint8_t> lines_dump;
     size_t dump_size = 0;
@@ -705,7 +675,7 @@ std::vector<uint8_t>  obfurikuriator::lines_to_bin(std::vector<obfurikuristructi
     return lines_dump;
 }
 
-uint32_t obfurikuriator::set_label(obfurikuristruction& line) {
+uint32_t fuku_obfuscator::set_label(fuku_instruction& line) {
     if (!line.get_label_id()) {
         line.set_label_id(this->label_seed);
         this->label_seed++;
@@ -713,6 +683,6 @@ uint32_t obfurikuriator::set_label(obfurikuristruction& line) {
     return line.get_label_id();
 }
 
-uint32_t obfurikuriator::get_maxlabel() {
+uint32_t fuku_obfuscator::get_maxlabel() {
     return this->label_seed;
 }

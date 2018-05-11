@@ -12,17 +12,23 @@
     <Filter Include="Заголовочные файлы\furikuri">
       <UniqueIdentifier>{47d56a82-b17d-4269-87c2-b1f5200dd68c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator">
       <UniqueIdentifier>{3bb0ab87-e93b-416a-807d-e4ae9cee945a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_instruction">
       <UniqueIdentifier>{1992578b-db89-4276-aca4-97eecbc1c7a3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\obfurikuritation">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm">
+      <UniqueIdentifier>{f1c3563a-955b-4d95-97c0-ea1ec090ea0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation">
       <UniqueIdentifier>{be02e024-84aa-40da-8397-1033a70cfd64}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\obfurikuriator\asm">
-      <UniqueIdentifier>{f1c3563a-955b-4d95-97c0-ea1ec090ea0f}</UniqueIdentifier>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x86">
+      <UniqueIdentifier>{1bed7b29-aa69-4f65-b0f2-ff60b7b0b303}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x64">
+      <UniqueIdentifier>{8c1583e0-a42d-4039-84a1-24d892d64829}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -32,23 +38,23 @@
     <ClInclude Include="furikuri.h">
       <Filter>Заголовочные файлы\furikuri</Filter>
     </ClInclude>
-    <ClInclude Include="obfurikuriator.h">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator</Filter>
-    </ClInclude>
-    <ClInclude Include="obfurikuristruction.h">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction</Filter>
-    </ClInclude>
-    <ClInclude Include="obfurikuritation_x64.h">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuritation</Filter>
-    </ClInclude>
-    <ClInclude Include="obfurikuritation_x86.h">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuritation</Filter>
-    </ClInclude>
     <ClInclude Include="fuku_asm.h">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator\asm</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm</Filter>
     </ClInclude>
-    <ClInclude Include="fuku_asm_jmp.h">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator\asm</Filter>
+    <ClInclude Include="fuku_instruction.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_obfuscator.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_mutation_x64.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_mutation_x86.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x86</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_mutation.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -58,11 +64,20 @@
     <ClCompile Include="furikuri.cpp">
       <Filter>Заголовочные файлы\furikuri</Filter>
     </ClCompile>
-    <ClCompile Include="obfurikuriator.cpp">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator</Filter>
+    <ClCompile Include="fuku_instruction.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_instruction</Filter>
     </ClCompile>
-    <ClCompile Include="obfurikuristruction.cpp">
-      <Filter>Заголовочные файлы\furikuri\obfurikuriator\obfurikuristruction</Filter>
+    <ClCompile Include="fuku_obfuscator.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_mutation_x64.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_mutation_x86.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x86</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_asm.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
