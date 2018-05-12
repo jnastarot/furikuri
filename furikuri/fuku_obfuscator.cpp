@@ -2,13 +2,6 @@
 #include "fuku_obfuscator.h"
 
 
-
-
-//#include "fuku_mutation_x86.h"
-//#include "fuku_mutation_x64.h"
-
-
-
 fuku_obfuscator::fuku_obfuscator(){
     this->arch = ob_fuku_arch::ob_fuku_arch_x32;
 
@@ -317,6 +310,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
                 fuku_instruction jmp_instruction;
                 fuku_asm_x86_jmp(jmp_instruction,0);                
                 jmp_instruction.set_link_label_id(set_label(lines[line_idx]));//add jmp to next instruction
+                jmp_instruction.set_tested_flags(lines[line_idx].get_tested_flags());
                 line_block.push_back(jmp_instruction);
                 break;
             }

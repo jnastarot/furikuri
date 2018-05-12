@@ -2,13 +2,6 @@
 #include "fuku_mutation_x86.h"
 
 
-void fuku_x86_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,std::vector<fuku_instruction>& out_lines);
-void obfurikuritation_x86(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
-
-bool fukutate_add_x86(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
-bool fukutate_sub_x86(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
-
-
 fuku_mutation_x86::fuku_mutation_x86()
 :complexity(1), obfuscator(0){}
 
@@ -27,7 +20,7 @@ void fuku_mutation_x86::obfuscate_lines(std::vector<fuku_instruction>& lines, un
     for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
         std::vector<fuku_instruction> single_line;
     
-        obfurikuritation_x86(lines, line_idx, single_line);
+        fukutation(lines, line_idx, single_line);
 
         unsigned int recurse_idx_up = 0;
         if (recurse_idx == -1) {
@@ -59,32 +52,105 @@ void fuku_mutation_x86::obfuscate(std::vector<fuku_instruction>& lines) {
 
 void fuku_mutation_x86::generate_junk(std::vector<uint8_t>& junk, size_t junk_size) {
 
+
+
     
 }
 
 
 
 
-void obfurikuritation_x86(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
+void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
     std::vector<fuku_instruction>& out_lines) {
 
 
     if (FUKU_GET_CHANCE(FUKU_GENERATE_JUNK_CHANCE)) {
-        fuku_x86_junk(lines, current_line_idx, out_lines);
+        fuku_junk(lines, current_line_idx, out_lines);
     }
 
     if (FUKU_GET_CHANCE(FUKU_MUTATE_LINE_CHANCE)) {
         switch (lines[current_line_idx].get_type()) {
 
+        case I_PUSH: {
+            if (!fukutate_push(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_POP: {
+            if (!fukutate_pop(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+
         case I_ADD: {
-            if (!fukutate_add_x86(lines, current_line_idx, out_lines)) {
+            if (!fukutate_add(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
         case I_SUB: {
-            if (!fukutate_sub_x86(lines, current_line_idx, out_lines)) {
+            if (!fukutate_sub(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_XOR: {
+            if (!fukutate_xor(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_AND: {
+            if (!fukutate_and(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+
+        case I_INC: {
+            if (!fukutate_inc(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_DEC: {
+            if (!fukutate_dec(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_TEST: {
+            if (!fukutate_test(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+        case I_CMP: {
+            if (!fukutate_cmp(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_JMP: {
+            if (!fukutate_jmp(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case I_RET: {
+            if (!fukutate_ret(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
@@ -101,19 +167,61 @@ void obfurikuritation_x86(std::vector<fuku_instruction>& lines, unsigned int cur
     }
 }
 
-bool fukutate_add_x86(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
-    std::vector<fuku_instruction>& out_lines) {
 
-
-    return false;
-}
-bool fukutate_sub_x86(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
-    std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
     return false;
 }
+bool fuku_mutation_x86::fukutate_pop(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
-void fuku_x86_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
+    return false;
+}
+bool fuku_mutation_x86::fukutate_add(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_sub(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_xor(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_and(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_inc(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_dec(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_test(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_cmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_jcc(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_jmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+bool fuku_mutation_x86::fukutate_ret(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    return false;
+}
+
+void fuku_mutation_x86::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
     std::vector<fuku_instruction>& out_lines) {
 
 
