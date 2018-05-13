@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="fuku_asm.h" />
+    <ClInclude Include="fuku_asm_x86.h" />
     <ClInclude Include="fuku_mutation.h" />
     <ClInclude Include="furikuri.h" />
     <ClInclude Include="fuku_obfuscator.h" />
@@ -157,7 +158,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="fuku_asm.cpp" />
+    <ClCompile Include="fuku_asm_x86.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />
     <ClCompile Include="fuku_mutation_x86.cpp" />
     <ClCompile Include="furikuri.cpp" />

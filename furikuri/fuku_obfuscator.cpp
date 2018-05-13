@@ -299,6 +299,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
     };
     std::vector<block_lines> line_blocks;
 
+    fuku_asm_x86 fuku_asm;
 
     //generate blocks of lines
     for (unsigned int line_idx = 0; line_idx < lines.size(); ) {
@@ -307,8 +308,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
 
         for (unsigned int block_lines_counter = 0; line_idx < lines.size(); line_idx++, block_lines_counter++) {
             if (FUKU_GET_CHANCE(FUKU_GENERATE_NEW_BLOCK_CHANCE)) {
-                fuku_instruction jmp_instruction;
-                fuku_asm_x86_jmp(jmp_instruction,0);                
+                fuku_instruction jmp_instruction = fuku_asm.jmp(0);             
                 jmp_instruction.set_link_label_id(set_label(lines[line_idx]));//add jmp to next instruction
                 jmp_instruction.set_tested_flags(lines[line_idx].get_tested_flags());
                 line_block.push_back(jmp_instruction);
