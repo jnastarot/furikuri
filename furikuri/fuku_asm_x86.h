@@ -11,27 +11,6 @@ enum fuku_reg86 {
     r_EDI
 };
 
-enum fuku_condition {
-    no_condition = -1,
-    overflow = 0,
-    no_overflow = 1,
-    below = 2,
-    above_equal = 3,
-    equal = 4,
-    not_equal = 5,
-    below_equal = 6,
-    above = 7,
-    negative = 8,
-    positive = 9,
-    parity_even = 10,
-    parity_odd = 11,
-    less = 12,
-    greater_equal = 13,
-    less_equal = 14,
-    greater = 15,
-};
-
-
 class fuku_immediate86 {
     uint32_t imm_value;
 
@@ -50,12 +29,6 @@ public:
     uint32_t fuku_immediate86::get_imm() const;
 };
 
-enum operand_scale {
-    operand_scale_1 = 0,
-    operand_scale_2 = 1,
-    operand_scale_4 = 2,
-    operand_scale_8 = 3,
-};
 
 class fuku_operand86 {
     uint8_t buf[6];
@@ -88,9 +61,6 @@ class fuku_asm_x86{
     uint8_t bytecode[16];
     uint8_t length;
     uint8_t imm_offset;
-    uint8_t tested_flags;
-    uint8_t modified_flags;
-
 
     void fuku_asm_x86::clear_space();
 
@@ -143,7 +113,6 @@ public:
     fuku_instruction fuku_asm_x86::movsx_w(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::movzx_b(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::movzx_w(fuku_reg86 dst, fuku_operand86& src);
-    fuku_instruction fuku_asm_x86::cmov(fuku_condition cc, fuku_reg86 dst, fuku_operand86& src);
 
     fuku_instruction fuku_asm_x86::cld();
     fuku_instruction fuku_asm_x86::rep_movs();
@@ -166,6 +135,7 @@ public:
     fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::add(fuku_operand86& dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::add(fuku_operand86& dst,  fuku_immediate86& x);
+
     fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, int32_t imm32);
     fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst,  fuku_immediate86& x);
     fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, fuku_operand86& src);

@@ -65,6 +65,9 @@
     <ClInclude Include="fuku_asm_x86.h">
       <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x86</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_asm_x64.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -87,6 +90,9 @@
     </ClCompile>
     <ClCompile Include="fuku_asm_x86.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x86</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_asm_x64.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

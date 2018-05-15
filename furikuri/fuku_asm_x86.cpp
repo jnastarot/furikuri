@@ -128,6 +128,7 @@ const uint8_t* fuku_operand86::get_buf() const {
 uint8_t fuku_operand86::get_length() const {
     return this->len;
 }
+
 uint8_t fuku_operand86::get_disp_offset() const {
     return this->disp_offset;
 }
@@ -144,8 +145,6 @@ void fuku_asm_x86::clear_space() {
     memset(bytecode, 0, sizeof(bytecode));
     this->length = 0;
     this->imm_offset = 0;
-    this->tested_flags = 0;
-    this->modified_flags = 0;
 }
 
 
@@ -209,13 +208,13 @@ void fuku_asm_x86::emit_operand(fuku_reg86 reg, fuku_operand86& adr) {
 fuku_instruction fuku_asm_x86::pushad() {
     clear_space();
     emit_b(0x60);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PUSHA).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::popad() {
     clear_space();
     emit_b(0x61);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_POPA).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::jmp(fuku_reg86 reg) { 
@@ -226,41 +225,55 @@ fuku_instruction fuku_asm_x86::jmp(fuku_operand86& adr) {
     clear_space();
     emit_b(0xFF);
     emit_operand(fuku_reg86::r_ESP, adr);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_JMP).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::jmp(uint32_t offset) {
     clear_space();
     emit_b(0xE9);
     emit_dw(offset);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_JMP).set_modified_flags(0).set_tested_flags(0);
 }
 fuku_instruction fuku_asm_x86::jcc(fuku_condition cond, uint32_t offset) {
     clear_space();
     emit_b(0x0F);
     emit_b(0x80 | cond);
     emit_dw(offset);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+
+    uint8_t di_jcc[] = { 134 , 138 , 143 , 147 , 152 , 156 , 161 , 166 , 170 , 174 , 179 , 183 , 188 , 192 , 197 , 202 };
+
+    uint16_t di_fl_jcc[] = {
+        D_OF , D_OF ,
+        D_CF , D_CF ,
+        D_ZF , D_ZF ,
+        D_CF | D_ZF, D_CF | D_ZF ,
+        D_SF , D_SF ,
+        D_PF , D_PF ,
+        D_SF | D_OF, D_SF | D_OF ,
+        D_ZF | D_SF | D_OF, D_ZF | D_SF | D_OF
+    };
+
+    return fuku_instruction().set_op_code(bytecode, length).set_type(di_jcc[cond]).set_modified_flags(0).set_tested_flags(di_fl_jcc[cond]);
 }
 
 fuku_instruction fuku_asm_x86::cpuid() {
     clear_space();
     emit_b(0x0F);
     emit_b(0xA2);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CPUID).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::pushfd() {
     clear_space();
     emit_b(0x9C);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PUSHF).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::popfd() {
     clear_space();
     emit_b(0x9D);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_POPF).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -274,7 +287,7 @@ fuku_instruction fuku_asm_x86::push( fuku_immediate86& x) {
         emit_b(0x68);
         emit_dw(x);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PUSH).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -282,35 +295,35 @@ fuku_instruction fuku_asm_x86::push_imm32(int32_t imm32) {
     clear_space();
     emit_b(0x68);
     emit_dw(imm32);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PUSH).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::push(fuku_reg86 src) {
     clear_space();
     emit_b(0x50 | src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PUSH).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::push(fuku_operand86& src) {
     clear_space();
     emit_b(0xFF);
     emit_operand(fuku_reg86::r_ESI, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PUSH).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::pop(fuku_reg86 dst) {
     clear_space();
     emit_b(0x58 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_POP).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::pop(fuku_operand86& dst) {
     clear_space();
     emit_b(0x8F);
     emit_operand(fuku_reg86::r_EAX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_POP).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -319,21 +332,21 @@ fuku_instruction fuku_asm_x86::enter( fuku_immediate86& size) {
     emit_b(0xC8);
     emit_w(size);
     emit_b(0);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ENTER).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::leave() {
     clear_space();
     emit_b(0xC9);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_LEAVE).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov_b(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x8A);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov_b(fuku_operand86& dst,  fuku_immediate86& src) {
@@ -341,14 +354,14 @@ fuku_instruction fuku_asm_x86::mov_b(fuku_operand86& dst,  fuku_immediate86& src
     emit_b(0xC6);
     emit_operand(fuku_reg86::r_EAX, dst);
     emit_b(src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov_b(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x88);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov_w(fuku_reg86 dst, fuku_operand86& src) {
@@ -356,7 +369,7 @@ fuku_instruction fuku_asm_x86::mov_w(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x66);
     emit_b(0x8B);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov_w(fuku_operand86& dst, fuku_reg86 src) {
@@ -364,7 +377,7 @@ fuku_instruction fuku_asm_x86::mov_w(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x66);
     emit_b(0x89);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov_w(fuku_operand86& dst, fuku_immediate86& src) {
@@ -374,7 +387,7 @@ fuku_instruction fuku_asm_x86::mov_w(fuku_operand86& dst, fuku_immediate86& src)
     emit_operand(fuku_reg86::r_EAX, dst);
     emit_b(int8_t(src.get_imm() & 0xFF));
     emit_b(int8_t(src.get_imm() >> 8));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -382,7 +395,7 @@ fuku_instruction fuku_asm_x86::mov(fuku_reg86 dst, int32_t imm32) {
     clear_space();
     emit_b(0xB8 | dst);
     emit_dw(imm32);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -390,7 +403,7 @@ fuku_instruction fuku_asm_x86::mov(fuku_reg86 dst, fuku_immediate86& x) {
     clear_space();
     emit_b(0xB8 | dst);
     emit_dw(x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -398,7 +411,7 @@ fuku_instruction fuku_asm_x86::mov(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x8B);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -406,7 +419,7 @@ fuku_instruction fuku_asm_x86::mov(fuku_reg86 dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x89);
     emit_b(0xC0 | src << 3 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov(fuku_operand86& dst, fuku_immediate86& x) {
@@ -414,14 +427,14 @@ fuku_instruction fuku_asm_x86::mov(fuku_operand86& dst, fuku_immediate86& x) {
     emit_b(0xC7);
     emit_operand(fuku_reg86::r_EAX, dst);
     emit_dw(x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::mov(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x89);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOV).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::movsx_b(fuku_reg86 dst, fuku_operand86& src) {
@@ -429,7 +442,7 @@ fuku_instruction fuku_asm_x86::movsx_b(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xBE);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOVSX).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::movsx_w(fuku_reg86 dst, fuku_operand86& src) {
@@ -437,7 +450,7 @@ fuku_instruction fuku_asm_x86::movsx_w(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xBF);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOVSX).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::movzx_b(fuku_reg86 dst, fuku_operand86& src) {
@@ -445,7 +458,7 @@ fuku_instruction fuku_asm_x86::movzx_b(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xB6);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOVZX).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::movzx_w(fuku_reg86 dst, fuku_operand86& src) {
@@ -453,23 +466,14 @@ fuku_instruction fuku_asm_x86::movzx_w(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xB7);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
-}
-
-fuku_instruction fuku_asm_x86::cmov(fuku_condition cc, fuku_reg86 dst, fuku_operand86& src) {
-    clear_space();
-    // Opcode: 0f 40 + cc /r.
-    emit_b(0x0F);
-    emit_b(0x40 + cc);
-    emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOVZX).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::cld() {
     clear_space();
     emit_b(0xFC);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CLD).set_modified_flags(D_DF).set_tested_flags(0);
 }
 
 
@@ -477,7 +481,7 @@ fuku_instruction fuku_asm_x86::rep_movs() {
     clear_space();
     emit_b(0xF3);
     emit_b(0xA5);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MOVS).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -485,14 +489,14 @@ fuku_instruction fuku_asm_x86::rep_stos() {
     clear_space();
     emit_b(0xF3);
     emit_b(0xAB);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_STOS).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::stos() {
     clear_space();
     emit_b(0xAB);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_STOS).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -505,21 +509,21 @@ fuku_instruction fuku_asm_x86::xchg(fuku_reg86 dst, fuku_reg86 src) {
         emit_b(0x87);
         emit_b(0xC0 | src << 3 | dst);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XCHG).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xchg(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x87);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XCHG).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xchg_b(fuku_reg86 reg, fuku_operand86& op) {
     clear_space();
     emit_b(0x86);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XCHG).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xchg_w(fuku_reg86 reg, fuku_operand86& op) {
@@ -527,13 +531,7 @@ fuku_instruction fuku_asm_x86::xchg_w(fuku_reg86 reg, fuku_operand86& op) {
     emit_b(0x66);
     emit_b(0x87);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
-}
-
-fuku_instruction fuku_asm_x86::lock() {
-    clear_space();
-    emit_b(0xF0);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XCHG).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpxchg(fuku_operand86& dst, fuku_reg86 src) {
@@ -541,7 +539,7 @@ fuku_instruction fuku_asm_x86::cmpxchg(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xB1);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMPXCHG).set_modified_flags(D_ZF | D_CF | D_PF | D_AF | D_SF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpxchg_b(fuku_operand86& dst, fuku_reg86 src) {
@@ -549,7 +547,7 @@ fuku_instruction fuku_asm_x86::cmpxchg_b(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xB0);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMPXCHG8B).set_modified_flags(D_ZF | D_CF | D_PF | D_AF | D_SF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpxchg_w(fuku_operand86& dst, fuku_reg86 src) {
@@ -558,7 +556,7 @@ fuku_instruction fuku_asm_x86::cmpxchg_w(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xB1);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMPXCHG16B).set_modified_flags(D_ZF | D_CF | D_PF | D_AF | D_SF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::lfence() {
@@ -566,80 +564,80 @@ fuku_instruction fuku_asm_x86::lfence() {
     emit_b(0x0F);
     emit_b(0xAE);
     emit_b(0xE8);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_LFENCE).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::pause() {
     clear_space();
     emit_b(0xF3);
     emit_b(0x90);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_PAUSE).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::adc(fuku_reg86 dst, int32_t imm32) {
     clear_space();
     emit_arith(2, fuku_operand86(dst), fuku_immediate86(imm32));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::adc(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x13);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x03);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADD).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::add(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x01);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADD).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::add(fuku_operand86& dst, fuku_immediate86& x) {
     clear_space();
     emit_arith(0, dst, x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADD).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, int32_t imm32) {
     and_(dst, fuku_immediate86(imm32));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_AND).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, fuku_immediate86& x) {
     clear_space();
     emit_arith(4, fuku_operand86(dst), x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_AND).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x23);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_AND).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::and_(fuku_operand86& dst, fuku_immediate86& x) {
     clear_space();
     emit_arith(4, dst, x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_AND).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::and_(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x21);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_AND).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpb(fuku_operand86& op, fuku_immediate86& imm8) {
@@ -652,21 +650,21 @@ fuku_instruction fuku_asm_x86::cmpb(fuku_operand86& op, fuku_immediate86& imm8) 
         emit_operand(fuku_reg86::r_EDI, op);  // edi == 7
     }
     emit_b(imm8);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpb(fuku_operand86& op, fuku_reg86 reg) {
     clear_space();
     emit_b(0x38);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpb(fuku_reg86 reg, fuku_operand86& op) {
     clear_space();
     emit_b(0x3A);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpw(fuku_operand86& op, fuku_immediate86& imm16) {
@@ -675,7 +673,7 @@ fuku_instruction fuku_asm_x86::cmpw(fuku_operand86& op, fuku_immediate86& imm16)
     emit_b(0x81);
     emit_operand(fuku_reg86::r_EDI, op);
     emit_w(imm16);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpw(fuku_reg86 reg, fuku_operand86& op) {
@@ -683,7 +681,7 @@ fuku_instruction fuku_asm_x86::cmpw(fuku_reg86 reg, fuku_operand86& op) {
     emit_b(0x66);
     emit_b(0x3B);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpw(fuku_operand86& op, fuku_reg86 reg) {
@@ -691,40 +689,40 @@ fuku_instruction fuku_asm_x86::cmpw(fuku_operand86& op, fuku_reg86 reg) {
     emit_b(0x66);
     emit_b(0x39);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmp(fuku_reg86 reg, int32_t imm32) {
     clear_space();
     emit_arith(7, fuku_operand86(reg), fuku_immediate86(imm32));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmp(fuku_reg86 reg, fuku_operand86& op) {
     clear_space();
     emit_b(0x3B);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmp(fuku_operand86& op, fuku_reg86 reg) {
     clear_space();
     emit_b(0x39);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmp(fuku_operand86& op, fuku_immediate86& imm) {
     clear_space();
     emit_arith(7, op, imm);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpb_al(fuku_operand86& op) {
     clear_space();
     emit_b(0x38);  // CMP r/m8, r8
     emit_operand(fuku_reg86::r_EAX, op);  // eax has same code as register al.
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::cmpw_ax(fuku_operand86& op) {
@@ -732,7 +730,7 @@ fuku_instruction fuku_asm_x86::cmpw_ax(fuku_operand86& op) {
     emit_b(0x66);
     emit_b(0x39);  // CMP r/m16, r16
     emit_operand(fuku_reg86::r_EAX, op);  // eax has same code as register ax.
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CMP).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 
@@ -740,49 +738,49 @@ fuku_instruction fuku_asm_x86::dec_b(fuku_reg86 dst) {
     clear_space();
     emit_b(0xFE);
     emit_b(0xC8 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_DEC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::dec_b(fuku_operand86& dst) {
     clear_space();
     emit_b(0xFE);
     emit_operand(fuku_reg86::r_ECX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_DEC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::dec(fuku_reg86 dst) {
     clear_space();
     emit_b(0x48 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_DEC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::dec(fuku_operand86& dst) {
     clear_space();
     emit_b(0xFF);
     emit_operand(fuku_reg86::r_ECX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_DEC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::cdq() {
     clear_space();
     emit_b(0x99);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_CDQ).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::idiv(fuku_operand86& src) {
     clear_space();
     emit_b(0xF7);
     emit_operand(fuku_reg86::r_EDI, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_IDIV).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::div(fuku_operand86& src) {
     clear_space();
     emit_b(0xF7);
     emit_operand(fuku_reg86::r_ESI, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_DIV).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 
@@ -790,7 +788,7 @@ fuku_instruction fuku_asm_x86::imul(fuku_reg86 reg) {
     clear_space();
     emit_b(0xF7);
     emit_b(0xE8 | reg);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_IMUL).set_modified_flags(D_CF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::imul(fuku_reg86 dst, fuku_operand86& src) {
@@ -798,13 +796,13 @@ fuku_instruction fuku_asm_x86::imul(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xAF);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_IMUL).set_modified_flags(D_CF | D_OF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::imul(fuku_reg86 dst, fuku_reg86 src, int32_t imm32) {
     imul(dst, fuku_operand86(src), imm32);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_IMUL).set_modified_flags(D_CF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::imul(fuku_reg86 dst, fuku_operand86& src, int32_t imm32) {
@@ -819,28 +817,28 @@ fuku_instruction fuku_asm_x86::imul(fuku_reg86 dst, fuku_operand86& src, int32_t
         emit_operand(dst, src);
         emit_dw(imm32);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_IMUL).set_modified_flags(D_CF | D_OF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::inc(fuku_reg86 dst) {
     clear_space();
     emit_b(0x40 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_INC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::inc(fuku_operand86& dst) {
     clear_space();
     emit_b(0xFF);
     emit_operand(fuku_reg86::r_EAX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_INC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::lea(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x8D);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_LEA).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -848,7 +846,7 @@ fuku_instruction fuku_asm_x86::mul(fuku_reg86 src) {
     clear_space();
     emit_b(0xF7);
     emit_b(0xE0 | src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_MUL).set_modified_flags(D_OF | D_CF).set_tested_flags(0);
 }
 
 
@@ -856,14 +854,14 @@ fuku_instruction fuku_asm_x86::neg(fuku_reg86 dst) {
     clear_space();
     emit_b(0xF7);
     emit_b(0xD8 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_NEG).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::neg(fuku_operand86& dst) {
     clear_space();
     emit_b(0xF7);
     emit_operand(fuku_reg86::r_EBX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_NEG).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 
@@ -871,41 +869,41 @@ fuku_instruction fuku_asm_x86::not_(fuku_reg86 dst) {
     clear_space();
     emit_b(0xF7);
     emit_b(0xD0 | dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_NOT).set_modified_flags(0).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::not_(fuku_operand86& dst) {
     clear_space();
     emit_b(0xF7);
     emit_operand(fuku_reg86::r_EDX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_NOT).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::or_(fuku_reg86 dst, int32_t imm32) {
     clear_space();
     emit_arith(1, fuku_operand86(dst), fuku_immediate86(imm32));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_OR).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::or_(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x0B);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_OR).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::or_(fuku_operand86& dst, fuku_immediate86& x) {
     clear_space();
     emit_arith(1, dst, x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_OR).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::or_(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x09);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_OR).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 
@@ -920,7 +918,7 @@ fuku_instruction fuku_asm_x86::rcl(fuku_reg86 dst, uint8_t imm8) {
         emit_b(0xD0 | dst);
         emit_b(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_RCL).set_modified_flags(D_OF | D_CF).set_tested_flags(0);
 }
 
 
@@ -935,7 +933,7 @@ fuku_instruction fuku_asm_x86::rcr(fuku_reg86 dst, uint8_t imm8) {
         emit_b(0xD8 | dst);
         emit_b(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_RCR).set_modified_flags(D_OF | D_CF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::ror(fuku_operand86& dst, uint8_t imm8) {
@@ -949,14 +947,14 @@ fuku_instruction fuku_asm_x86::ror(fuku_operand86& dst, uint8_t imm8) {
         emit_operand(fuku_reg86::r_ECX, dst);
         emit_b(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ROR).set_modified_flags(D_OF | D_CF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::ror_cl(fuku_operand86& dst) {
     clear_space();
     emit_b(0xD3);
     emit_operand(fuku_reg86::r_ECX, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_ROR).set_modified_flags(D_OF | D_CF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::sar(fuku_operand86& dst, uint8_t imm8) {
@@ -970,21 +968,21 @@ fuku_instruction fuku_asm_x86::sar(fuku_operand86& dst, uint8_t imm8) {
         emit_operand(fuku_reg86::r_EDI, dst);
         emit_b(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SAR).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::sar_cl(fuku_operand86& dst) {
     clear_space();
     emit_b(0xD3);
     emit_operand(fuku_reg86::r_EDI, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SAR).set_modified_flags(D_CF | D_OF | D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::sbb(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x1B);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SBB).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shld(fuku_reg86 dst, fuku_reg86 src, uint8_t shift) {
@@ -993,7 +991,7 @@ fuku_instruction fuku_asm_x86::shld(fuku_reg86 dst, fuku_reg86 src, uint8_t shif
     emit_b(0xA4);
     emit_operand(src, fuku_operand86(dst));
     emit_b(shift);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHLD).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_AF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shld_cl(fuku_reg86 dst, fuku_reg86 src) {
@@ -1001,7 +999,7 @@ fuku_instruction fuku_asm_x86::shld_cl(fuku_reg86 dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xA5);
     emit_operand(src, fuku_operand86(dst));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHLD).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_AF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shl(fuku_operand86& dst, uint8_t imm8) {
@@ -1015,14 +1013,14 @@ fuku_instruction fuku_asm_x86::shl(fuku_operand86& dst, uint8_t imm8) {
         emit_operand(fuku_reg86::r_ESP, dst);
         emit_b(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHL).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shl_cl(fuku_operand86& dst) {
     clear_space();
     emit_b(0xD3);
     emit_operand(fuku_reg86::r_ESP, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHL).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shr(fuku_operand86& dst, uint8_t imm8) {
@@ -1036,14 +1034,14 @@ fuku_instruction fuku_asm_x86::shr(fuku_operand86& dst, uint8_t imm8) {
         emit_operand(fuku_reg86::r_EBP, dst);
         emit_b(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHR).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shr_cl(fuku_operand86& dst) {
     clear_space();
     emit_b(0xD3);
     emit_operand(fuku_reg86::r_EBP, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHR).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shrd(fuku_reg86 dst, fuku_reg86 src, uint8_t shift) {
@@ -1052,7 +1050,7 @@ fuku_instruction fuku_asm_x86::shrd(fuku_reg86 dst, fuku_reg86 src, uint8_t shif
     emit_b(0xAC);
     emit_operand(dst, fuku_operand86(src));
     emit_b(shift);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHRD).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::shrd_cl(fuku_operand86& dst, fuku_reg86 src) {
@@ -1060,27 +1058,27 @@ fuku_instruction fuku_asm_x86::shrd_cl(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xAD);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SHRD).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::sub(fuku_operand86& dst, fuku_immediate86& x) {
     clear_space();
     emit_arith(5, dst, x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SUB).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::sub(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x2B);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SUB).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::sub(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x29);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_SUB).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
 
@@ -1098,21 +1096,21 @@ fuku_instruction fuku_asm_x86::test(fuku_reg86 reg, fuku_immediate86& imm) {
         emit_b(0xC0 | reg);
     }
     emit_dw(imm);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test(fuku_reg86 reg, fuku_operand86& op) {
     clear_space();
     emit_b(0x85);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test_b(fuku_reg86 reg, fuku_operand86& op) {
     clear_space();
     emit_b(0x84);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test(fuku_operand86& op, fuku_immediate86& imm) {
@@ -1126,7 +1124,7 @@ fuku_instruction fuku_asm_x86::test(fuku_operand86& op, fuku_immediate86& imm) {
     emit_b(0xF7);
     emit_operand(fuku_reg86::r_EAX, op);
     emit_dw(imm);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test_b(fuku_reg86 reg, fuku_immediate86& imm8) {
@@ -1141,7 +1139,7 @@ fuku_instruction fuku_asm_x86::test_b(fuku_reg86 reg, fuku_immediate86& imm8) {
         emit_b(0xC0 | reg);
         emit_w(imm8);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test_b(fuku_operand86& op, fuku_immediate86& imm8) {
@@ -1152,7 +1150,7 @@ fuku_instruction fuku_asm_x86::test_b(fuku_operand86& op, fuku_immediate86& imm8
     emit_b(0xF6);
     emit_operand(fuku_reg86::r_EAX, op);
     emit_b(imm8);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_immediate86& imm16) {
@@ -1167,7 +1165,7 @@ fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_immediate86& imm16) {
         emit_b(0xC0 | reg);
         emit_w(imm16);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_operand86& op) {
@@ -1175,7 +1173,7 @@ fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_operand86& op) {
     emit_b(0x66);
     emit_b(0x85);
     emit_operand(reg, op);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::test_w(fuku_operand86& op, fuku_immediate86& imm16) {
@@ -1187,33 +1185,33 @@ fuku_instruction fuku_asm_x86::test_w(fuku_operand86& op, fuku_immediate86& imm1
     emit_b(0xF7);
     emit_operand(fuku_reg86::r_EAX, op);
     emit_w(imm16);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_TEST).set_modified_flags(D_SF | D_ZF | D_PF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, int32_t imm32) {
     clear_space();
     emit_arith(6, fuku_operand86(dst), fuku_immediate86(imm32));
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XOR).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x33);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XOR).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xor_(fuku_operand86& dst, fuku_reg86 src) {
     clear_space();
     emit_b(0x31);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XOR).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::xor_(fuku_operand86& dst, fuku_immediate86& x) {
     clear_space();
     emit_arith(6, dst, x);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_XOR).set_modified_flags(D_CF | D_SF | D_ZF | D_PF | D_OF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::bt(fuku_operand86& dst, fuku_reg86 src) {
@@ -1221,7 +1219,7 @@ fuku_instruction fuku_asm_x86::bt(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xA3);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_BT).set_modified_flags(D_CF | D_ZF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::bts(fuku_operand86& dst, fuku_reg86 src) {
@@ -1229,7 +1227,7 @@ fuku_instruction fuku_asm_x86::bts(fuku_operand86& dst, fuku_reg86 src) {
     emit_b(0x0F);
     emit_b(0xAB);
     emit_operand(src, dst);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_BTS).set_modified_flags(D_CF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::bsr(fuku_reg86 dst, fuku_operand86& src) {
@@ -1237,7 +1235,7 @@ fuku_instruction fuku_asm_x86::bsr(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xBD);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_BSR).set_modified_flags(D_ZF).set_tested_flags(0);
 }
 
 fuku_instruction fuku_asm_x86::bsf(fuku_reg86 dst, fuku_operand86& src) {
@@ -1245,28 +1243,28 @@ fuku_instruction fuku_asm_x86::bsf(fuku_reg86 dst, fuku_operand86& src) {
     emit_b(0x0F);
     emit_b(0xBC);
     emit_operand(dst, src);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_BSF).set_modified_flags(D_ZF).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::hlt() {
     clear_space();
     emit_b(0xF4);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_HLT).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::int3() {
     clear_space();
     emit_b(0xCC);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_INT_3).set_modified_flags(0).set_tested_flags(0);
 }
 
 
 fuku_instruction fuku_asm_x86::nop() {
     clear_space();
     emit_b(0x90);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_NOT).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -1280,7 +1278,7 @@ fuku_instruction fuku_asm_x86::ret(int imm16) {
         emit_b(imm16 & 0xFF);
         emit_b((imm16 >> 8) & 0xFF);
     }
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_RET).set_modified_flags(0).set_tested_flags(0);
 }
 
 
@@ -1288,5 +1286,5 @@ fuku_instruction fuku_asm_x86::ud2() {
     clear_space();
     emit_b(0x0F);
     emit_b(0x0B);
-    return fuku_instruction().set_op_code(bytecode, length).set_modified_flags(0).set_tested_flags(0);
+    return fuku_instruction().set_op_code(bytecode, length).set_type(I_UD2).set_modified_flags(0).set_tested_flags(0);
 }
