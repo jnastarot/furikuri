@@ -342,6 +342,7 @@ void fuku_asm_x64::emit_operand(int code, fuku_operand64& adr) {
     bytecode[length] = adr.get_buf()[0] | code << 3;
 
     for (unsigned i = 1; i < _length; i++) { bytecode[length + i] = adr.get_buf()[i]; }
+    length += _length;
 }
 
 void fuku_asm_x64::arithmetic_op(uint8_t opcode, fuku_reg64 reg, fuku_operand64& op, int size) {
@@ -445,12 +446,12 @@ void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode,
     }
     else if (dst == fuku_reg64::r_RAX) {
         emit_b(0x05 | (subcode << 3));
-        emit_b(src.get_imm() & 0xFF);
+        emit_dw(src.get_imm());
     }
     else {
         emit_b(0x81);
         emit_modrm(subcode, dst);
-        emit_b(src.get_imm() & 0xFF);
+        emit_dw(src.get_imm());
     }
 }
 
@@ -466,7 +467,7 @@ void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode, fuku_operand64& dst,
     else {
         emit_b(0x81);
         emit_operand(subcode, dst);
-        emit_b(src.get_imm() & 0xFF);
+        emit_dw(src.get_imm());
     }
 }
 

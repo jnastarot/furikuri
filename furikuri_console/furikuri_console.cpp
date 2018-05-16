@@ -51,7 +51,10 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-   
+    fuku_instruction line = fuku_asm_x64().emit_add(
+        fuku_operand64(fuku_reg64::r_RCX, operand_scale::operand_scale_2, 0x12345678),fuku_immediate64(0xDEADDEAD),4);
+
+
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
     for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {

@@ -16,6 +16,7 @@ e.mail..: jnastarot@yandex.ru
 ---
 
 <h3 align="center">Third Party</h3>
-
 [shibari project](https://github.com/jnastarot/shibari)<br>
-[distorm](https://github.com/gdabah/distorm)
+[enma pe](https://github.com/jnastarot/enma_pe)<br>
+[distorm](https://github.com/gdabah/distorm)<br>
+[v8 assambler(Ia32\x64)](https://github.com/v8/v8)
