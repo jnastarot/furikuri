@@ -36,6 +36,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64">
       <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_graph_spider">
+      <UniqueIdentifier>{67518992-ebe3-4cb6-822b-515e3ec8745f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -68,6 +71,9 @@
     <ClInclude Include="fuku_asm_x64.h">
       <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_graph_spider.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_graph_spider</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -93,6 +99,9 @@
     </ClCompile>
     <ClCompile Include="fuku_asm_x64.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_graph_spider.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_graph_spider</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,6 +11,8 @@ class fuku_mutation;
 #include "fuku_obfuscator.h"
 #include "fuku_asm.h"
 
+#include "fuku_graph_spider.h"
+
 class furikuri
 {
 public:
