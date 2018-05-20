@@ -12,6 +12,9 @@
     <Filter Include="Заголовочные файлы\furikuri">
       <UniqueIdentifier>{47d56a82-b17d-4269-87c2-b1f5200dd68c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_graph_spider">
+      <UniqueIdentifier>{67518992-ebe3-4cb6-822b-515e3ec8745f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator">
       <UniqueIdentifier>{3bb0ab87-e93b-416a-807d-e4ae9cee945a}</UniqueIdentifier>
     </Filter>
@@ -20,6 +23,12 @@
     </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm">
       <UniqueIdentifier>{f1c3563a-955b-4d95-97c0-ea1ec090ea0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x86">
+      <UniqueIdentifier>{92714ac7-5b5a-4ed7-8f54-6d1f6c7ed4ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64">
+      <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
     </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation">
       <UniqueIdentifier>{be02e024-84aa-40da-8397-1033a70cfd64}</UniqueIdentifier>
@@ -30,14 +39,8 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_mutation\x64">
       <UniqueIdentifier>{8c1583e0-a42d-4039-84a1-24d892d64829}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x86">
-      <UniqueIdentifier>{92714ac7-5b5a-4ed7-8f54-6d1f6c7ed4ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_obfuscator\fuku_asm\x64">
-      <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_graph_spider">
-      <UniqueIdentifier>{67518992-ebe3-4cb6-822b-515e3ec8745f}</UniqueIdentifier>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_protector">
+      <UniqueIdentifier>{b1ec361b-10a5-4861-b39b-f8c1d18bb7d1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +77,9 @@
     <ClInclude Include="fuku_graph_spider.h">
       <Filter>Заголовочные файлы\furikuri\fuku_graph_spider</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_protector.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -102,6 +108,9 @@
     </ClCompile>
     <ClCompile Include="fuku_graph_spider.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_graph_spider</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_protector.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -12,6 +12,7 @@ class fuku_mutation;
 #include "fuku_asm.h"
 
 #include "fuku_graph_spider.h"
+#include "fuku_protector.h"
 
 class furikuri
 {

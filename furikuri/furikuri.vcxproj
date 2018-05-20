@@ -152,6 +152,7 @@
     <ClInclude Include="fuku_asm_x86.h" />
     <ClInclude Include="fuku_graph_spider.h" />
     <ClInclude Include="fuku_mutation.h" />
+    <ClInclude Include="fuku_protector.h" />
     <ClInclude Include="furikuri.h" />
     <ClInclude Include="fuku_obfuscator.h" />
     <ClInclude Include="fuku_instruction.h" />
@@ -165,6 +166,7 @@
     <ClCompile Include="fuku_graph_spider.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />
     <ClCompile Include="fuku_mutation_x86.cpp" />
+    <ClCompile Include="fuku_protector.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />
     <ClCompile Include="fuku_instruction.cpp" />

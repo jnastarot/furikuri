@@ -51,7 +51,12 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
+    shibari_module module(std::string("..\\..\\app for test\\loader.exe"));
+    shibari_linker(std::vector<shibari_module*>(), &module).link_modules();
 
+    fuku_graph_spider(&module).decode_module();
+
+    /*
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
     for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {
@@ -115,7 +120,7 @@ int main(){
         printf("good!\n");
         delete[] __obf_unpacker_;
     }
-
+    */
     return 0;
 }
 
