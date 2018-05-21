@@ -4,7 +4,7 @@
 class fuku_mutation_x86 : 
     public fuku_mutation {
 
-    unsigned int complexity;
+    ob_fuku_sensitivity settings;
     fuku_obfuscator * obfuscator;
 
     void fuku_mutation_x86::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,std::vector<fuku_instruction>& out_lines);
@@ -26,8 +26,7 @@ class fuku_mutation_x86 :
     void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     void fuku_mutation_x86::obfuscate_lines(std::vector<fuku_instruction>& lines, unsigned int recurse_idx);
 public:
-    fuku_mutation_x86::fuku_mutation_x86();
-    fuku_mutation_x86::fuku_mutation_x86(unsigned int complexity, fuku_obfuscator * obfuscator);
+    fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, fuku_obfuscator * obfuscator);
     fuku_mutation_x86::~fuku_mutation_x86();
 
     void fuku_mutation_x86::obfuscate(std::vector<fuku_instruction>& lines);

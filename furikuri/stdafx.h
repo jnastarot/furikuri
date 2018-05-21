@@ -26,9 +26,6 @@ using namespace std;
 #include "enma_pe\enma_pe\enma_pe.h"
 #include "shibari\shibari\shibari.h"
 
-#define FUKU_GENERATE_NEW_BLOCK_CHANCE   20.f
-#define FUKU_MUTATE_LINE_CHANCE		     30.f
-#define FUKU_GENERATE_JUNK_CHANCE		 30.f
 #define FUKU_GET_RAND(_min,_max) (_min + (rand()%((_max) - (_min))))
 #define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(0,1000) <= (10*(x))) //0.f - 100.f in
 

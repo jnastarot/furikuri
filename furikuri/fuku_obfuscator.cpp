@@ -9,8 +9,11 @@ fuku_obfuscator::fuku_obfuscator(){
 
     this->label_seed = 1;
 
-    this->complexity = 1;
-    this->number_of_passes = 1;
+    this->settings.complexity       = 1;
+    this->settings.number_of_passes = 2;
+    this->settings.junk_chance      = 10.f;
+    this->settings.block_chance     = 10.f;
+    this->settings.mutate_chance    = 10.f;
 
     this->association_table = 0; 
     this->relocations       = 0;
@@ -29,12 +32,8 @@ void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtu
     this->destination_virtual_address = destination_virtual_address;
 }
 
-void fuku_obfuscator::set_complexity(unsigned int complexity) {
-    this->complexity = complexity;
-}
-
-void fuku_obfuscator::set_number_of_passes(unsigned int number_of_passes) {
-    this->number_of_passes = number_of_passes;
+void fuku_obfuscator::set_settings(const ob_fuku_sensitivity& settings) {
+    memcpy(&this->settings,&settings,sizeof(ob_fuku_sensitivity));
 }
 
 void fuku_obfuscator::set_association_table(std::vector<ob_fuku_association>*	associations) {
@@ -45,26 +44,21 @@ void fuku_obfuscator::set_relocation_table(std::vector<ob_fuku_relocation>* relo
     this->relocations = relocations;
 }
 
-void fuku_obfuscator::set_ip_relocation_table(std::vector<ob_fuku_ip_relocations>* ip_relocations) {
+void fuku_obfuscator::set_ip_relocation_table(std::vector<ob_fuku_ip_relocation>* ip_relocations) {
     this->ip_relocations = ip_relocations;
 }
 
-ob_fuku_arch   fuku_obfuscator::get_arch() {
+ob_fuku_arch   fuku_obfuscator::get_arch() const {
     return this->arch;
 }
 
-uint64_t     fuku_obfuscator::get_destination_virtual_address() {
+uint64_t     fuku_obfuscator::get_destination_virtual_address() const {
     return this->destination_virtual_address;
 }
 
-unsigned int fuku_obfuscator::get_complexity() {
-    return this->complexity;
+ob_fuku_sensitivity fuku_obfuscator::get_settings() const {
+    return this->settings;
 }
-
-unsigned int fuku_obfuscator::get_number_of_passes() {
-    return this->number_of_passes;
-}
-
 std::vector<ob_fuku_association>*    fuku_obfuscator::get_association_table() {
     return this->association_table;
 }
@@ -73,7 +67,7 @@ std::vector<ob_fuku_relocation>*     fuku_obfuscator::get_relocation_table() {
     return this->relocations;
 }
 
-std::vector<ob_fuku_ip_relocations>* fuku_obfuscator::get_ip_relocation_table() {
+std::vector<ob_fuku_ip_relocation>* fuku_obfuscator::get_ip_relocation_table() {
     return this->ip_relocations;
 }
 
@@ -82,7 +76,7 @@ bool fuku_obfuscator::analyze_code(
     uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
     std::vector<fuku_instruction>&  lines,
-    std::vector<ob_fuku_relocation>*	relocations) {
+    const std::vector<ob_fuku_relocation>*	relocations) {
 
     unsigned int current_len = 0;
     unsigned int line_counter = 0;
@@ -189,7 +183,7 @@ bool fuku_obfuscator::analyze_code(
 bool fuku_obfuscator::push_code(
     uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
-    std::vector<ob_fuku_relocation>*	relocations) {
+    const std::vector<ob_fuku_relocation>*	relocations) {
 
     std::vector<fuku_instruction> new_lines;
 
@@ -269,10 +263,10 @@ bool fuku_obfuscator::push_code(
 std::vector<uint8_t> fuku_obfuscator::obfuscate_code() {
 
     fuku_mutation * mutator = (arch == ob_fuku_arch::ob_fuku_arch_x32) ?
-        (fuku_mutation*)(new fuku_mutation_x86(this->complexity, this)) : (fuku_mutation*)(new fuku_mutation_x64(this->complexity, this));
+        (fuku_mutation*)(new fuku_mutation_x86(settings, this)) : (fuku_mutation*)(new fuku_mutation_x64(settings, this));
 
 
-    for (unsigned int passes = 0; passes < number_of_passes; passes++) {
+    for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
         lines_correction(lines, destination_virtual_address);
         mutator->obfuscate(this->lines);
@@ -307,7 +301,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
 
 
         for (unsigned int block_lines_counter = 0; line_idx < lines.size(); line_idx++, block_lines_counter++) {
-            if (FUKU_GET_CHANCE(FUKU_GENERATE_NEW_BLOCK_CHANCE)) {
+            if (FUKU_GET_CHANCE(settings.block_chance)) {
                 fuku_instruction jmp_instruction = fuku_asm.jmp(0);             
                 jmp_instruction.set_link_label_id(set_label(lines[line_idx]));//add jmp to next instruction
                 jmp_instruction.set_tested_flags(lines[line_idx].get_tested_flags());
@@ -419,7 +413,7 @@ void fuku_obfuscator::build_tables(
     std::vector<fuku_instruction>& lines,
     std::vector<ob_fuku_association>* association,
     std::vector<ob_fuku_relocation>*	relocations,
-    std::vector<ob_fuku_ip_relocations>*		ip_relocations
+    std::vector<ob_fuku_ip_relocation>*		ip_relocations
 ) {
     lines_correction(lines, destination_virtual_address);
 
@@ -454,7 +448,7 @@ void fuku_obfuscator::build_tables(
         }
         if (ip_relocations) {
             if (line.get_flags()&ob_fuku_instruction_has_ip_relocation && !(line.get_link_label_id())) {				//callouts
-                ob_fuku_ip_relocations ip_reloc;
+                ob_fuku_ip_relocation ip_reloc;
 
                 ip_reloc.destination_virtual_address = line.get_ip_relocation_destination();
                 ip_reloc.virtual_address  = line.get_virtual_address();
@@ -677,6 +671,6 @@ uint32_t fuku_obfuscator::set_label(fuku_instruction& line) {
     return line.get_label_id();
 }
 
-uint32_t fuku_obfuscator::get_maxlabel() {
+uint32_t fuku_obfuscator::get_maxlabel() const {
     return this->label_seed;
 }

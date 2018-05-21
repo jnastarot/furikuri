@@ -2,11 +2,8 @@
 #include "fuku_mutation_x86.h"
 
 
-fuku_mutation_x86::fuku_mutation_x86()
-:complexity(1), obfuscator(0){}
-
-fuku_mutation_x86::fuku_mutation_x86(unsigned int complexity, fuku_obfuscator * obfuscator)
-: complexity(complexity), obfuscator(obfuscator){}
+fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, fuku_obfuscator * obfuscator)
+: settings(settings), obfuscator(obfuscator){}
 
 fuku_mutation_x86::~fuku_mutation_x86() {
 
@@ -24,7 +21,7 @@ void fuku_mutation_x86::obfuscate_lines(std::vector<fuku_instruction>& lines, un
 
         unsigned int recurse_idx_up = 0;
         if (recurse_idx == -1) {
-            recurse_idx_up = rand() % complexity + 1;
+            recurse_idx_up = rand() % settings.complexity + 1;
         }
         else {
             recurse_idx_up = recurse_idx - 1;
@@ -64,11 +61,11 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
     std::vector<fuku_instruction>& out_lines) {
 
 
-    if (FUKU_GET_CHANCE(FUKU_GENERATE_JUNK_CHANCE)) {
+    if (FUKU_GET_CHANCE(settings.junk_chance)) {
         fuku_junk(lines, current_line_idx, out_lines);
     }
 
-    if (FUKU_GET_CHANCE(FUKU_MUTATE_LINE_CHANCE)) {
+    if (FUKU_GET_CHANCE(settings.mutate_chance)) {
         switch (lines[current_line_idx].get_type()) {
 
         case I_PUSH: {

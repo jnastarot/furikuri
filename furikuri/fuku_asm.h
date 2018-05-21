@@ -1,5 +1,11 @@
 #pragma once
 
+/* 
+    rewrited from 
+        https://github.com/v8/v8
+*/
+
+
 enum fuku_condition {
     no_condition = -1,
     overflow = 0,

@@ -51,7 +51,7 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    shibari_module module(std::string("..\\..\\app for test\\loader.exe"));
+    shibari_module module(std::string("..\\..\\app for test\\Project12.exe"));
     shibari_linker(std::vector<shibari_module*>(), &module).link_modules();
 
     fuku_graph_spider(&module).decode_module();

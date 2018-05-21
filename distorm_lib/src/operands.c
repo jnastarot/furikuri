@@ -426,7 +426,7 @@ static int operands_extract_modrm(_CodeInfo* ci,
 
 			/* 5 is a special case - only 32 bits displacement, or RIP relative. */
 			di->dispSize = 32;
-            di->disp_offset = ci->code;
+            di->disp_offset = (uint8_t*)ci->code;
 
 			if (!read_stream_safe_sint(ci, (int64_t*)&di->disp, sizeof(int32_t))) return FALSE;
 

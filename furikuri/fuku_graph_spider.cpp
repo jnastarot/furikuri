@@ -20,7 +20,8 @@ bool fuku_graph_spider::decode_module() {
     std::vector<uint32_t> entries = get_code_entries();
     std::map<uint32_t, uint8_t> decoded_items;
     std::vector<uint8_t> v_module;
-
+    std::vector<_DInst> distorm_instructions;
+    
     if (pe_image_io(this->module->get_image()).read(v_module,
         this->module->get_image().get_last_section()->get_virtual_address() +
         this->module->get_image().get_last_section()->get_virtual_size()) == enma_io_code::enma_io_data_not_present) {
@@ -28,8 +29,10 @@ bool fuku_graph_spider::decode_module() {
         return false;
     }
 
+    distorm_instructions.resize(v_module.size());
+
     while (entries.size()) {
-        if (!decode_entries(entries, decoded_items, v_module)) {
+        if (!decode_entries(entries, decoded_items, v_module, distorm_instructions)) {
             return false;
         }
     }
@@ -110,7 +113,8 @@ std::vector<uint32_t> fuku_graph_spider::get_code_entries() {
 
 
 bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
-    std::vector<uint8_t>& v_module) {
+    std::vector<uint8_t>& v_module,
+    std::vector<_DInst>& di_buf) {
 
     uint32_t entry_rva = entries[0];
     entries.erase(entries.begin());
@@ -125,28 +129,23 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
         DF_STOP_ON_RET | DF_STOP_ON_UNC_BRANCH | DF_STOP_ON_INT
     };
 
-    std::vector<_DInst> distorm_instructions;
     unsigned int instructions_number = 0;
-    distorm_instructions.resize(v_module.size() - entry_rva);
-
-    _DecodeResult di_result = distorm_decompose64(&code_info, distorm_instructions.data(), v_module.size() - entry_rva, &instructions_number);
-    distorm_instructions.resize(instructions_number);
+    _DecodeResult di_result = distorm_decompose64(&code_info, di_buf.data(), v_module.size() - entry_rva, &instructions_number);
 
     if (di_result != _DecodeResult::DECRES_SUCCESS) {
         return false;
     }
 
 
-
-    for (auto& di_item : distorm_instructions) { 
-        decoded_items[di_item.addr] = di_item.size; 
+    for (uint32_t di_idx = 0; di_idx < instructions_number; di_idx++) {
+        decoded_items[di_buf[di_idx].addr] = di_buf[di_idx].size;
     }
 
-    for (auto& di_item : distorm_instructions) {
-        switch (di_item.opcode) {
+    for (uint32_t di_idx = 0; di_idx < instructions_number; di_idx++) {
+        switch (di_buf[di_idx].opcode) {
             case I_JMP:case I_CALL: {                                                           //uncondition jump
-                if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_item)) == decoded_items.end()) {
-                    entries.push_back(INSTRUCTION_GET_TARGET(&di_item));
+                if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
+                    entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
                 }
                 break;
             }
@@ -156,8 +155,8 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
             case I_JP:  case I_JS: case I_JZ:
             case I_JCXZ:case I_JECXZ:case I_JRCXZ: {
 
-                if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_item)) == decoded_items.end()) {
-                    entries.push_back(INSTRUCTION_GET_TARGET(&di_item));
+                if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
+                    entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
                 }
                 break;
             }
