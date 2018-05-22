@@ -3,7 +3,7 @@
 
 fuku_instruction::fuku_instruction(){
 
-    memset(op_code, 0, sizeof(op_code));
+    memset(op_code, 0, 16);
 
     this->op_length     = 0;
     this->op_pref_size  = 0;

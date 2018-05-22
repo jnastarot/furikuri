@@ -2,7 +2,7 @@
 
 class fuku_graph_spider{
     shibari_module * module;
-    std::vector<shibari_module_symbol_info> code_placement;
+    fuku_code_list code_list;
 
     bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries,
         std::map<uint32_t, uint8_t>& decoded_items,
@@ -17,7 +17,7 @@ public:
 
     bool fuku_graph_spider::decode_module();
 public:
-    const std::vector<shibari_module_symbol_info>& fuku_graph_spider::get_code_placement() const;
+    const fuku_code_list& fuku_graph_spider::get_code_list() const;
 
 };
 

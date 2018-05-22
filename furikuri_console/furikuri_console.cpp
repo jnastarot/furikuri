@@ -51,10 +51,35 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    shibari_module module(std::string("..\\..\\app for test\\Project12.exe"));
+    shibari_module module(std::string("..\\..\\app for test\\linked_programm.exe"));
     shibari_linker(std::vector<shibari_module*>(), &module).link_modules();
+    std::vector<uint8_t> out_image;
 
-    fuku_graph_spider(&module).decode_module();
+    fuku_graph_spider graph_spider(&module);
+    graph_spider.decode_module();
+    //graph_spider.get_code_list()
+    fuku_code_list code_list;
+    code_list.func_starts.push_back(0x1000);
+    code_list.code_placement.push_back({0x1000, 0x2A});
+    code_list.func_starts.push_back(0x10F9);
+    code_list.code_placement.push_back({0x10F9, 0x124});
+
+    code_list.func_starts.push_back(0x10DF);
+    code_list.code_placement.push_back({ 0x10DF, 0x10E7 - 0x10DF });
+
+    code_list.func_starts.push_back(0x1407);
+    code_list.code_placement.push_back({ 0x1407, 0x1440 - 0x1407 });
+
+    fuku_protector(&module, { 0 , 0 , 10.f , 10.f , 10.f }, graph_spider.get_code_list()).protect_module();
+    shibari_builder(module, true, out_image);
+
+    FILE* hTargetFile;
+    fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
+
+    if (hTargetFile) {
+        fwrite(out_image.data(), out_image.size(), 1, hTargetFile);
+        fclose(hTargetFile);
+    }
 
     /*
     uint8_t * data_ = new uint8_t[0x1000];

@@ -14,6 +14,11 @@ struct ob_fuku_sensitivity {
     float mutate_chance; //0.f - 100.f chance of mutation line
 };
 
+struct fuku_code_list {
+    std::vector<uint32_t> func_starts;
+    std::vector<shibari_module_symbol_info> code_placement;
+};
+
 #include "fuku_instruction.h"
 #include "fuku_mutation.h"
 #include "fuku_obfuscator.h"

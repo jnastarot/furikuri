@@ -13,7 +13,9 @@ fuku_graph_spider::~fuku_graph_spider()
 
 
 bool fuku_graph_spider::decode_module() {
-    code_placement.clear();
+    code_list.code_placement.clear();
+    code_list.func_starts.clear();
+
     if (!this->module) { return false; }
 
 
@@ -22,6 +24,8 @@ bool fuku_graph_spider::decode_module() {
     std::vector<uint8_t> v_module;
     std::vector<_DInst> distorm_instructions;
     
+    code_list.func_starts = entries;
+
     if (pe_image_io(this->module->get_image()).read(v_module,
         this->module->get_image().get_last_section()->get_virtual_address() +
         this->module->get_image().get_last_section()->get_virtual_size()) == enma_io_code::enma_io_data_not_present) {
@@ -44,20 +48,20 @@ bool fuku_graph_spider::decode_module() {
 }
 
 
-const std::vector<shibari_module_symbol_info>& fuku_graph_spider::get_code_placement() const {
-    return code_placement;
+const fuku_code_list& fuku_graph_spider::get_code_list() const {
+    return code_list;
 }
 
 void fuku_graph_spider::link_map(std::map<uint32_t, uint8_t>& decoded_items) {
 
     for (auto& item : decoded_items) {
 
-        if (!code_placement.size()) {
-            code_placement.push_back({ item.first , item.second });
+        if (!code_list.code_placement.size()) {
+            code_list.code_placement.push_back({ item.first , item.second });
             continue;
         }
         else {
-            auto& zone = code_placement[code_placement.size() - 1];
+            auto& zone = code_list.code_placement[code_list.code_placement.size() - 1];
 
             if (zone.symbol_info_rva <= item.first &&
                 zone.symbol_info_rva + zone.symbol_info_size >= item.first) {
@@ -66,7 +70,7 @@ void fuku_graph_spider::link_map(std::map<uint32_t, uint8_t>& decoded_items) {
                     ((item.first + item.second) - zone.symbol_info_rva);
             }
             else {
-                code_placement.push_back({ item.first , item.second });
+                code_list.code_placement.push_back({ item.first , item.second });
             }
         }
     }
@@ -143,9 +147,27 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
 
     for (uint32_t di_idx = 0; di_idx < instructions_number; di_idx++) {
         switch (di_buf[di_idx].opcode) {
-            case I_JMP:case I_CALL: {                                                           //uncondition jump
-                if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
-                    entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
+
+            case I_CALL: {
+                if (v_module[di_buf[di_idx].addr] == 0xE8) {
+                    auto item = std::find(code_list.func_starts.begin(), code_list.func_starts.end(), INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
+
+                    if (item == code_list.func_starts.end()) {
+                        code_list.func_starts.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
+                    }
+
+                    if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
+                        entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
+                    }
+                }
+                break;
+            }
+
+            case I_JMP: {                                                           //uncondition jump
+                if (v_module[di_buf[di_idx].addr] == 0xE9) {
+                    if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
+                        entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
+                    }
                 }
                 break;
             }
