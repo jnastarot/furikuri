@@ -21,14 +21,17 @@ class fuku_instruction {
     uint8_t	 ip_relocation_disp_offset; //offset to reloc disp (e\r)ip relative
 
     //relocations
-    uint32_t relocation_id;	            //set if has reloc from initialize reloc table					
-    uint8_t	 relocation_imm_offset;     //offset to reloc imm
-    
+    uint32_t relocation_f_id;	            //set if has reloc from initialize reloc table					
+    uint8_t	 relocation_f_imm_offset;     //offset to reloc imm
+    uint32_t relocation_s_id;	            //set if has reloc from initialize reloc table					
+    uint8_t	 relocation_s_imm_offset;     //offset to reloc imm
+
+
     //labels
     uint32_t label_id;			    // != 0 if has own label
     uint32_t link_label_id;         // != 0 if has link label
-    uint32_t relocation_label_id;   // != 0 if has label on destination instruction in array
-
+    uint32_t relocation_f_label_id;   // != 0 if has label on destination instruction in array
+    uint32_t relocation_s_label_id;   // != 0 if has label on destination instruction in array
 
     uint32_t flags; //ob_fuku_flags
 
@@ -52,13 +55,17 @@ public:
     fuku_instruction&  fuku_instruction::set_ip_relocation_destination(uint64_t dst_va);
     fuku_instruction&  fuku_instruction::set_ip_relocation_disp_offset(uint8_t offset);
 
-    fuku_instruction&  fuku_instruction::set_relocation_id(uint32_t id);
-    fuku_instruction&  fuku_instruction::set_relocation_imm_offset(uint8_t offset);
+    fuku_instruction&  fuku_instruction::set_relocation_f_id(uint32_t id);
+    fuku_instruction&  fuku_instruction::set_relocation_f_imm_offset(uint8_t offset);
+    fuku_instruction&  fuku_instruction::set_relocation_s_id(uint32_t id);
+    fuku_instruction&  fuku_instruction::set_relocation_s_imm_offset(uint8_t offset);
+
 
     fuku_instruction&  fuku_instruction::set_label_id(uint32_t id);
     fuku_instruction&  fuku_instruction::set_link_label_id(uint32_t id);
-    fuku_instruction&  fuku_instruction::set_relocation_label_id(uint32_t id);
-     
+    fuku_instruction&  fuku_instruction::set_relocation_f_label_id(uint32_t id);
+    fuku_instruction&  fuku_instruction::set_relocation_s_label_id(uint32_t id);
+
     fuku_instruction&  fuku_instruction::set_flags(uint32_t flags);
 
     fuku_instruction&  fuku_instruction::set_type(uint16_t type);
@@ -75,12 +82,15 @@ public:
     uint64_t fuku_instruction::get_ip_relocation_destination() const;
     uint8_t	 fuku_instruction::get_ip_relocation_disp_offset() const;
 
-    uint32_t fuku_instruction::get_relocation_id() const;
-    uint8_t	 fuku_instruction::get_relocation_imm_offset() const;
+    uint32_t fuku_instruction::get_relocation_f_id() const;
+    uint8_t	 fuku_instruction::get_relocation_f_imm_offset() const;
+    uint32_t fuku_instruction::get_relocation_s_id() const;
+    uint8_t	 fuku_instruction::get_relocation_s_imm_offset() const;
 
     uint32_t fuku_instruction::get_label_id() const;
     uint32_t fuku_instruction::get_link_label_id() const;
-    uint32_t fuku_instruction::get_relocation_label_id() const;
+    uint32_t fuku_instruction::get_relocation_f_label_id() const;
+    uint32_t fuku_instruction::get_relocation_s_label_id() const;
 
     uint32_t fuku_instruction::get_flags() const;
 

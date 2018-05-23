@@ -28,9 +28,20 @@ struct fuku_code_list {
 #include "fuku_protector.h"
 
 class furikuri {
+    std::vector<shibari_module*> extended_modules;
+    shibari_module* main_module;
 
 public:
     furikuri::furikuri();
     furikuri::~furikuri();
+
+    bool furikuri::fuku_protect(const ob_fuku_sensitivity& settings, std::vector<uint8_t>& out_image, fuku_code_list * _code_list = 0);
+public:
+    void furikuri::set_main_module(shibari_module* module);
+    void furikuri::add_extended_module(shibari_module* module);
+
+public:
+    std::vector<shibari_module*>& furikuri::get_extended_modules();
+    shibari_module* furikuri::get_main_module();
 };
 

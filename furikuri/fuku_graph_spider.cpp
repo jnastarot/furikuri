@@ -130,7 +130,7 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
     
     _CodeInfo code_info = { entry_rva,0, &v_module[entry_rva] , v_module.size() - entry_rva,
         this->module->get_image().is_x32_image() ? _DecodeType::Decode32Bits : _DecodeType::Decode64Bits,
-        DF_STOP_ON_RET | DF_STOP_ON_UNC_BRANCH | DF_STOP_ON_INT
+        DF_STOP_ON_RET | DF_STOP_ON_INT
     };
 
     unsigned int instructions_number = 0;
@@ -164,7 +164,8 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
             }
 
             case I_JMP: {                                                           //uncondition jump
-                if (v_module[di_buf[di_idx].addr] == 0xE9) {
+                if (v_module[di_buf[di_idx].addr] == 0xE9 || v_module[di_buf[di_idx].addr] == 0xEB) {
+
                     if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
                         entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));
                     }
@@ -176,6 +177,7 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
             case I_JL: case I_JLE: case I_JNO: case I_JNP: case I_JNS: case I_JNZ: case I_JO: 
             case I_JP:  case I_JS: case I_JZ:
             case I_JCXZ:case I_JECXZ:case I_JRCXZ: {
+
 
                 if (decoded_items.find(INSTRUCTION_GET_TARGET(&di_buf[di_idx])) == decoded_items.end()) {
                     entries.push_back(INSTRUCTION_GET_TARGET(&di_buf[di_idx]));

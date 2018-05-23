@@ -23,6 +23,7 @@ fuku_protector::~fuku_protector()
 
 
 bool fuku_protector::protect_module() {
+    calc_zones();
 
     if (start_initialize_zones()) {
         pe_image_io image_io(module->get_image(), enma_io_mode_allow_expand);
@@ -50,6 +51,41 @@ bool fuku_protector::protect_module() {
     }
 
     return false;
+}
+
+void    fuku_protector::calc_zones() {
+    std::sort(code_list.func_starts.begin(), code_list.func_starts.end());
+
+    for (size_t func_idx = 0; func_idx < code_list.func_starts.size(); func_idx++) {
+        uint32_t func = code_list.func_starts[func_idx];
+
+        if ((func_idx + 1) < code_list.func_starts.size()) {
+            if ((func + 5) > code_list.func_starts[func_idx + 1]) {
+                code_list.func_starts.erase(code_list.func_starts.begin() + func_idx);
+                func_idx--;
+                continue;
+            }
+        }
+
+        for (size_t zone_idx = 0; zone_idx < code_list.code_placement.size(); zone_idx++) {
+            auto& zone = code_list.code_placement[zone_idx];
+
+            if (func >= zone.symbol_info_rva && func < zone.symbol_info_rva + zone.symbol_info_size &&
+                func+5 > zone.symbol_info_rva + zone.symbol_info_size) {
+                code_list.func_starts.erase(code_list.func_starts.begin() + func_idx);
+                func_idx--;
+
+                if (zone.symbol_info_size < 5) {
+                    code_list.code_placement.erase(code_list.code_placement.begin() + zone_idx);
+                }
+                else {
+                    zone.symbol_info_size = func - zone.symbol_info_rva;
+                }
+
+                break;
+            }
+        }
+    }
 }
 
 bool fuku_protector::start_initialize_zones() {
@@ -134,7 +170,10 @@ bool    fuku_protector::finish_initialize_zones() {
         }
     }
 
+    
+
     for (auto func : code_list.func_starts) {
+
         ob_fuku_association * dst_func_assoc = find_assoc(func + base_address);
         if (dst_func_assoc) {
             auto _jmp = fuku_asm.jmp(dst_func_assoc->virtual_address - (func + base_address) - 5);
@@ -179,7 +218,7 @@ bool    fuku_protector::finish_initialize_zones() {
     return true;
 }
 
-void                  fuku_protector::sort_assoc() {
+void fuku_protector::sort_assoc() {
     std::sort(assoc_table.begin(), assoc_table.end(), [](ob_fuku_association& lhs, ob_fuku_association& rhs) {
         return lhs.prev_virtual_address < rhs.prev_virtual_address;
     });

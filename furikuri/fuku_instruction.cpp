@@ -11,11 +11,14 @@ fuku_instruction::fuku_instruction(){
     this->virtual_address = 0;                               
     this->ip_relocation_destination = 0;
     this->ip_relocation_disp_offset = 0;
-    this->relocation_id         = 0;
-    this->relocation_imm_offset = 0;                       
+    this->relocation_f_id         = 0;
+    this->relocation_f_imm_offset = 0;   
+    this->relocation_s_id         = 0;
+    this->relocation_s_imm_offset = 0;
     this->label_id            = 0;
     this->link_label_id       = 0;
-    this->relocation_label_id = 0;
+    this->relocation_f_label_id = 0;
+    this->relocation_s_label_id = 0;
     this->flags               = 0;
     this->type               = 0;
     this->modified_flags     = 0;
@@ -40,11 +43,14 @@ fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
     this->virtual_address   = line.virtual_address;
     this->ip_relocation_destination = line.ip_relocation_destination;
     this->ip_relocation_disp_offset = line.ip_relocation_disp_offset;
-    this->relocation_id     = line.relocation_id;
-    this->relocation_imm_offset = line.relocation_imm_offset;
+    this->relocation_f_id           = line.relocation_f_id;
+    this->relocation_f_imm_offset = line.relocation_f_imm_offset;
+    this->relocation_s_id         = line.relocation_s_id;
+    this->relocation_s_imm_offset = line.relocation_s_imm_offset;
     this->label_id          = line.label_id;
     this->link_label_id     = line.link_label_id;
-    this->relocation_label_id = line.relocation_label_id;
+    this->relocation_f_label_id = line.relocation_f_label_id;
+    this->relocation_s_label_id = line.relocation_s_label_id;
     this->flags             = line.flags;
     this->type              = line.type;
     this->modified_flags    = line.modified_flags;
@@ -172,13 +178,26 @@ fuku_instruction&  fuku_instruction::set_ip_relocation_disp_offset(uint8_t offse
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_id(uint32_t id) {
-    this->relocation_id = id;
+fuku_instruction&  fuku_instruction::set_relocation_f_id(uint32_t id) {
+    this->relocation_f_id = id;
 
     return *this;
 }
-fuku_instruction&  fuku_instruction::set_relocation_imm_offset(uint8_t offset) {
-    this->relocation_imm_offset = offset;
+
+fuku_instruction&  fuku_instruction::set_relocation_f_imm_offset(uint8_t offset) {
+    this->relocation_f_imm_offset = offset;
+
+    return *this;
+}
+
+fuku_instruction&  fuku_instruction::set_relocation_s_id(uint32_t id) {
+    this->relocation_s_id = id;
+
+    return *this;
+}
+
+fuku_instruction&  fuku_instruction::set_relocation_s_imm_offset(uint8_t offset) {
+    this->relocation_s_imm_offset = offset;
 
     return *this;
 }
@@ -193,8 +212,15 @@ fuku_instruction&  fuku_instruction::set_link_label_id(uint32_t id) {
 
     return *this;
 }
-fuku_instruction&  fuku_instruction::set_relocation_label_id(uint32_t id) {
-    this->relocation_label_id = id;
+
+fuku_instruction&  fuku_instruction::set_relocation_f_label_id(uint32_t id) {
+    this->relocation_f_label_id = id;
+
+    return *this;
+}
+
+fuku_instruction&  fuku_instruction::set_relocation_s_label_id(uint32_t id) {
+    this->relocation_s_label_id = id;
 
     return *this;
 }
@@ -251,11 +277,17 @@ uint8_t	 fuku_instruction::get_ip_relocation_disp_offset() const {
     return this->ip_relocation_disp_offset;
 }
 
-uint32_t fuku_instruction::get_relocation_id() const {
-    return this->relocation_id;
+uint32_t fuku_instruction::get_relocation_f_id() const {
+    return this->relocation_f_id;
 }
-uint8_t	 fuku_instruction::get_relocation_imm_offset() const {
-    return this->relocation_imm_offset;
+uint8_t	 fuku_instruction::get_relocation_f_imm_offset() const {
+    return this->relocation_f_imm_offset;
+}
+uint32_t fuku_instruction::get_relocation_s_id() const {
+    return this->relocation_s_id;
+}
+uint8_t	 fuku_instruction::get_relocation_s_imm_offset() const {
+    return this->relocation_s_imm_offset;
 }
 
 uint32_t fuku_instruction::get_label_id() const {
@@ -264,9 +296,15 @@ uint32_t fuku_instruction::get_label_id() const {
 uint32_t fuku_instruction::get_link_label_id() const {
     return this->link_label_id;
 }
-uint32_t fuku_instruction::get_relocation_label_id() const {
-    return this->relocation_label_id;
+
+uint32_t fuku_instruction::get_relocation_f_label_id() const {
+    return this->relocation_f_label_id;
 }
+
+uint32_t fuku_instruction::get_relocation_s_label_id() const {
+    return this->relocation_s_label_id;
+}
+
 
 uint32_t fuku_instruction::get_flags() const {
     return this->flags;

@@ -56,7 +56,8 @@ class fuku_obfuscator {
     void    fuku_obfuscator::finalize_jmps(std::vector<fuku_instruction>& lines);
 
     fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
-    fuku_instruction * fuku_obfuscator::get_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
+    fuku_instruction * fuku_obfuscator::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
+    fuku_instruction * fuku_obfuscator::get_direct_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     fuku_instruction * fuku_obfuscator::get_line_by_label_id(unsigned int label_id);
     std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(std::vector<fuku_instruction>&  lines);
 public:
