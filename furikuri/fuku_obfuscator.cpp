@@ -81,7 +81,7 @@ bool fuku_obfuscator::analyze_code(
     unsigned int current_len = 0;
     unsigned int line_counter = 0;
 
-    _CodeInfo code_info = { 0,0, src ,src_len ,
+    _CodeInfo code_info = { 0,0, src ,(int)src_len ,
         arch == ob_fuku_arch::ob_fuku_arch_x32 ? _DecodeType::Decode32Bits : _DecodeType::Decode64Bits,
         0
     };
@@ -164,13 +164,13 @@ bool fuku_obfuscator::analyze_code(
                             (line.get_op_code()[prefixes_number] == 0x0f &&
                             (line.get_op_code()[prefixes_number + 1] & 0xf0) == 0x80)
                             ) { //far jcc
-                            line.set_ip_relocation_disp_offset(prefixes_number + 2);
+                            line.set_ip_relocation_disp_offset((uint8_t)prefixes_number + 2);
                         }
                         else if (
                             line.get_op_code()[prefixes_number] == 0xE9 ||
                             line.get_op_code()[prefixes_number] == 0xE8
                             ) {	   //jmp \ call
-                            line.set_ip_relocation_disp_offset(prefixes_number + 1);
+                            line.set_ip_relocation_disp_offset((uint8_t)prefixes_number + 1);
                         }
 
                         line.set_flags(line.get_flags() | ob_fuku_instruction_has_ip_relocation);
@@ -662,13 +662,13 @@ void fuku_obfuscator::finalize_jmps(std::vector<fuku_instruction>& lines) {
 
                     if (line_destination) {
                         *(uint32_t*)&op_code[line.get_ip_relocation_disp_offset()] =
-                            (line_destination->get_virtual_address() - line.get_virtual_address() - line.get_op_length());
+                            uint32_t(line_destination->get_virtual_address() - line.get_virtual_address() - line.get_op_length());
                         line.set_op_code(op_code, line.get_op_length());
                     }
                 }
                 else {
                     *(uint32_t*)&op_code[line.get_ip_relocation_disp_offset()] =
-                        (line.get_ip_relocation_destination() - line.get_virtual_address() - line.get_op_length());
+                        uint32_t(line.get_ip_relocation_destination() - line.get_virtual_address() - line.get_op_length());
                     line.set_op_code(op_code, line.get_op_length());
                 }
             }
@@ -687,15 +687,25 @@ void fuku_obfuscator::finalize_jmps(std::vector<fuku_instruction>& lines) {
             memcpy(op_code, line.get_op_code(), 16);
 
             if (line.get_relocation_f_label_id()) {
-
-                *(uint32_t*)&op_code[line.get_relocation_f_imm_offset()] =
-                    get_line_by_label_id(line.get_relocation_f_label_id())->get_virtual_address();             
+                if (arch == ob_fuku_arch::ob_fuku_arch_x32) {
+                    *(uint32_t*)&op_code[line.get_relocation_f_imm_offset()] =
+                        uint32_t(get_line_by_label_id(line.get_relocation_f_label_id())->get_virtual_address());
+                }
+                else {
+                    *(uint64_t*)&op_code[line.get_relocation_f_imm_offset()] =
+                        uint64_t(get_line_by_label_id(line.get_relocation_f_label_id())->get_virtual_address());
+                }
             }
 
             if (line.get_relocation_s_label_id()) {
-
-                *(uint32_t*)&op_code[line.get_relocation_s_imm_offset()] =
-                    get_line_by_label_id(line.get_relocation_s_label_id())->get_virtual_address();
+                if (arch == ob_fuku_arch::ob_fuku_arch_x32) {
+                    *(uint32_t*)&op_code[line.get_relocation_s_imm_offset()] =
+                        uint32_t(get_line_by_label_id(line.get_relocation_s_label_id())->get_virtual_address());
+                }
+                else {
+                    *(uint64_t*)&op_code[line.get_relocation_s_imm_offset()] =
+                        uint64_t(get_line_by_label_id(line.get_relocation_s_label_id())->get_virtual_address());
+                }
             }
 
             line.set_op_code(op_code, line.get_op_length());

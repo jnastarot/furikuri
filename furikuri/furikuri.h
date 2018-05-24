@@ -24,6 +24,8 @@ struct fuku_code_list {
 #include "fuku_obfuscator.h"
 #include "fuku_asm.h"
 
+#include "fuku_dbg_info.h"
+
 #include "fuku_graph_spider.h"
 #include "fuku_protector.h"
 

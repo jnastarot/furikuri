@@ -42,6 +42,24 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_asm\x64">
       <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_dbg_info">
+      <UniqueIdentifier>{e2046fc9-1775-4911-943d-a11ecec9e5a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_dbg_info\fuku_tds">
+      <UniqueIdentifier>{1ccebe1c-37c9-4137-9c2b-6a6077451fa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_dbg_info\fuku_pdb">
+      <UniqueIdentifier>{1f4190dd-5d7a-43c4-8db6-cc4dd5b51e0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map">
+      <UniqueIdentifier>{315d4f5b-cd5d-4ca9-92c8-10586ca48f38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map\bolrand">
+      <UniqueIdentifier>{750ed0a3-45af-4184-a806-313996952718}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map\msvc">
+      <UniqueIdentifier>{40b42aa9-6851-47b5-bde7-364512ae3286}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -80,6 +98,24 @@
     <ClInclude Include="fuku_protector.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_dbg_info.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_map.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_pdb.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_pdb</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_tds.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_tds</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_msvc_map.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map\msvc</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_bolrand_map.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map\bolrand</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -111,6 +147,21 @@
     </ClCompile>
     <ClCompile Include="fuku_protector.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_protector</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_map.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_pdb.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_pdb</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_tds.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_tds</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_msvc_map.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map\msvc</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_bolrand_map.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_dbg_info\fuku_map\bolrand</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

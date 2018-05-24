@@ -9,7 +9,7 @@ class fuku_protector {
     fuku_code_list code_list;
 
     void                  fuku_protector::sort_assoc();
-    ob_fuku_association * fuku_protector::find_assoc(uint32_t rva);
+    ob_fuku_association * fuku_protector::find_assoc(uint64_t rva);
 
     void    fuku_protector::calc_zones();
     bool    fuku_protector::start_initialize_zones();

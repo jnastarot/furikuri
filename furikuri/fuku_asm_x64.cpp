@@ -159,7 +159,7 @@ bool fuku_immediate64::is_imm_32() const {
     return !(imm_value & 0xFFFFFFFF00000000);
 }
 bool fuku_immediate64::is_imm_64() const {
-    return (imm_value & 0xFFFFFFFF00000000);
+    return (imm_value & 0xFFFFFFFF00000000) != 0;
 }
 uint64_t fuku_immediate64::get_imm() const {
     return imm_value;
@@ -446,12 +446,12 @@ void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode,
     }
     else if (dst == fuku_reg64::r_RAX) {
         emit_b(0x05 | (subcode << 3));
-        emit_dw(src.get_imm());
+        emit_dw(uint32_t(src.get_imm()));
     }
     else {
         emit_b(0x81);
         emit_modrm(subcode, dst);
-        emit_dw(src.get_imm());
+        emit_dw(uint32_t(src.get_imm()));
     }
 }
 
@@ -467,7 +467,7 @@ void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode, fuku_operand64& dst,
     else {
         emit_b(0x81);
         emit_operand(subcode, dst);
-        emit_dw(src.get_imm());
+        emit_dw(uint32_t(src.get_imm()));
     }
 }
 

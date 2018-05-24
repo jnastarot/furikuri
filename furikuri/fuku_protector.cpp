@@ -176,7 +176,7 @@ bool    fuku_protector::finish_initialize_zones() {
 
         ob_fuku_association * dst_func_assoc = find_assoc(func + base_address);
         if (dst_func_assoc) {
-            auto _jmp = fuku_asm.jmp(dst_func_assoc->virtual_address - (func + base_address) - 5);
+            auto _jmp = fuku_asm.jmp( uint32_t(dst_func_assoc->virtual_address - (func + base_address) - 5));
 
             if (image_io.set_image_offset(func).write(
                 _jmp.get_op_code(), _jmp.get_op_length()) != enma_io_success) {
@@ -187,20 +187,20 @@ bool    fuku_protector::finish_initialize_zones() {
     }
 
     for (auto& reloc : reloc_table) {
-        image_relocs.add_item(reloc.virtual_address - base_address, reloc.relocation_id);
+        image_relocs.add_item(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
     }
 
     {
         ob_fuku_association * ep_assoc = find_assoc(module->get_image().get_entry_point() + base_address);
         if (ep_assoc) {
-            module->get_image().set_entry_point(ep_assoc->virtual_address - base_address);
+            module->get_image().set_entry_point(uint32_t(ep_assoc->virtual_address - base_address));
         }
     }
 
     for (auto& ext_ep : module->get_module_entrys()) {
         ob_fuku_association * ext_ep_assoc = find_assoc(ext_ep.entry_point_rva + base_address);
         if (ext_ep_assoc) {
-            ext_ep.entry_point_rva = ext_ep_assoc->virtual_address - base_address;
+            ext_ep.entry_point_rva = uint32_t(ext_ep_assoc->virtual_address - base_address);
         }
     }
 
@@ -211,7 +211,7 @@ bool    fuku_protector::finish_initialize_zones() {
 
         ob_fuku_association * item_assoc = find_assoc(export_item.get_rva() + base_address);
         if (item_assoc) {
-            export_item.set_rva(item_assoc->virtual_address - base_address);
+            export_item.set_rva(uint32_t(item_assoc->virtual_address - base_address));
         }
     }
 
@@ -224,7 +224,7 @@ void fuku_protector::sort_assoc() {
     });
 }
 
-ob_fuku_association * fuku_protector::find_assoc(uint32_t rva) {
+ob_fuku_association * fuku_protector::find_assoc(uint64_t rva) {
 
     size_t left = 0;
     size_t right = assoc_table.size();

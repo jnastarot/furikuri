@@ -128,7 +128,7 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
         return true;
     }
     
-    _CodeInfo code_info = { entry_rva,0, &v_module[entry_rva] , v_module.size() - entry_rva,
+    _CodeInfo code_info = { entry_rva,0, &v_module[entry_rva] , int(v_module.size() - entry_rva),
         this->module->get_image().is_x32_image() ? _DecodeType::Decode32Bits : _DecodeType::Decode64Bits,
         DF_STOP_ON_RET | DF_STOP_ON_INT
     };

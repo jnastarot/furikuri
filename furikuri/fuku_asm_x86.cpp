@@ -19,10 +19,10 @@ bool fuku_immediate86::is_imm_8() const {
     return !(imm_value & 0xFFFFFF00);
 }
 bool fuku_immediate86::is_imm_16() const {
-    return !(imm_value & 0xFFFF0000);
+    return (imm_value & 0xFFFF0000) == 0;
 }
 bool fuku_immediate86::is_imm_32() const {
-    return (imm_value & 0xFFFF0000);
+    return (imm_value & 0xFFFF0000) != 0;
 }
 
 uint32_t fuku_immediate86::get_imm() const{
