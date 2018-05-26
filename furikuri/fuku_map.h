@@ -17,23 +17,23 @@ enum fuku_map_public_class {
 
 struct fuku_map_segment {
     std::string            segment_name;
-    uint32_t               segment_id;
-    uint32_t               segment_start;
-    uint32_t               segment_length;
+    uint64_t               segment_id;
+    uint64_t               segment_start;
+    uint64_t               segment_length;
     fuku_map_segment_class segment_class;
 };
 
 struct fuku_map_public {
     std::string           public_name;
     std::string           public_module_name;
-    uint32_t              section_id;
-    uint32_t              public_start;
+    uint64_t              segment_id;
+    uint64_t              public_start;
     fuku_map_public_class public_class;
 };
 
 struct fuku_map_entry_point {
-    uint32_t              section_id;
-    uint32_t              public_start;
+    uint64_t              segment_id;
+    uint64_t              public_start;
 };
 
 enum fuku_map_result {
@@ -42,6 +42,11 @@ enum fuku_map_result {
     map_result_io_error, //error with opening or reading
 };
 
+enum fuku_map_type {
+    map_type_msvc,
+    map_type_bolrand,
+    map_type_unknown,
+};
 
 class fuku_msvc_map;
 class fuku_bolrand_map;
@@ -55,6 +60,7 @@ class fuku_map{
     uint32_t time_stamp; //-1 if not present in map file
 
     fuku_map_result result;
+    fuku_map_type   type;
 
     bool    fuku_map::hexstring_to_value(const std::string& hex_string, uint64_t& value);
     bool    fuku_map::address_string_to_values(const std::string& address_string, uint64_t& section_num, uint64_t& offset);
@@ -69,6 +75,7 @@ public:
     fuku_map_result fuku_map::load_from_text(const std::string& map_text);
 public:
     fuku_map_result fuku_map::get_result() const;
+    fuku_map_type   fuku_map::get_type() const;
 
     const std::vector<fuku_map_segment>& fuku_map::get_segments() const;
     const std::vector<fuku_map_public>&  fuku_map::get_publics() const;

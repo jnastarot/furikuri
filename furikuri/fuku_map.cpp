@@ -8,6 +8,7 @@ fuku_map::fuku_map() {
     base_address = 0;
     time_stamp = -1;
     result = fuku_map_result::map_resule_ok;
+    type   = fuku_map_type::map_type_unknown;
 }
 
 fuku_map::~fuku_map()
@@ -85,10 +86,12 @@ fuku_map_result fuku_map::load_from_text(const std::string& map_text) {
     }
 
     if (bolrand_signs > msvc_signs) {
-
+        fuku_bolrand_map(raw_map, *this);
+        type = fuku_map_type::map_type_bolrand;
     }
     else {
-
+        fuku_msvc_map(raw_map, *this);
+        type = fuku_map_type::map_type_msvc;
     }
 
 
@@ -99,6 +102,10 @@ fuku_map_result fuku_map::load_from_text(const std::string& map_text) {
 
 fuku_map_result fuku_map::get_result() const {
     return result;
+}
+
+fuku_map_type   fuku_map::get_type() const {
+    return type;
 }
 
 const std::vector<fuku_map_segment>& fuku_map::get_segments() const {
