@@ -28,7 +28,7 @@ fuku_msvc_map::~fuku_msvc_map() {};
 void fuku_msvc_map::parse_line(uint32_t line_idx, std::vector<std::string> &line, fuku_map& map) {
 
     if (this->parse_context == msvc_map_context_none) {
-        if (line.size() == 4 && line[0] == "entry" && line[1] == "point" && line[2] == "is") {
+        if (line.size() == 4 && line[0] == "entry" && line[1] == "point" && line[2] == "at") {
             map.address_string_to_values(line[3], map.entry_point.segment_id, map.entry_point.public_start);
             return;
         }
@@ -44,7 +44,14 @@ void fuku_msvc_map::parse_line(uint32_t line_idx, std::vector<std::string> &line
             return;
         }
         else if (line.size() == 5 && line[0] == "Preferred" && line[1] == "load" && line[2] == "address" && line[3] == "is") {
-            map.hexstring_to_value(line[1], map.base_address);
+            map.hexstring_to_value(line[4], map.base_address);
+            return;
+        }
+        else if (line.size() >= 3 && line[0] == "Timestamp" && line[1] == "is") {
+            uint64_t lont_ts;
+            map.hexstring_to_value(line[2], lont_ts);
+
+            map.time_stamp = uint32_t(lont_ts);
             return;
         }
     }
@@ -101,6 +108,11 @@ void fuku_msvc_map::parse_line(uint32_t line_idx, std::vector<std::string> &line
                 item.public_module_name = line[line.size() - 1];
 
                 map.publics.push_back(item);
+                return;
+            }
+            else {
+                this->parse_context = msvc_map_context_none;
+                parse_line(line_idx, line, map);
                 return;
             }
         }
