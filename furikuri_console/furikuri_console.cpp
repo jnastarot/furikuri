@@ -51,8 +51,8 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    fuku_map map;
-    map.load_from_file("..\\..\\app for test\\swhtest.map");
+    fuku_tds tds;
+    tds.load_from_file("..\\..\\app for test\\project.tds");
 
     shibari_module module(std::string("..\\..\\app for test\\directx9_test.exe"));
     shibari_linker(std::vector<shibari_module*>(), &module).link_modules();
