@@ -20,4 +20,6 @@ e.mail..: jnastarot@yandex.ru
 [shibari project](https://github.com/jnastarot/shibari)<br>
 [enma pe](https://github.com/jnastarot/enma_pe)<br>
 [distorm](https://github.com/gdabah/distorm)<br>
-[v8 assambler(Ia32\x64)](https://github.com/v8/v8)
+[v8 assambler(Ia32\x64)](https://github.com/v8/v8)<br>
+[denisenkomik.narod.ru tds parser](http://denisenkomik.narod.ru/main.cpp)
+

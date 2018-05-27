@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "fuku_tds.h"
 
+/*
+   rewrited code from
+ http://denisenkomik.narod.ru/main.cpp
+*/
 
 #define TD_CLASS_MASK 0xFFFFFE00
 #define TD_TYPE_MASK  (~TD_CLASS_MASK)
@@ -429,6 +433,532 @@ enum tds_virt_tbl_desctiptor_type
 };
 
 
+
+struct tds_header {
+    uint32_t magic;
+    uint32_t subsection_offset;
+};
+
+struct tds_subsection_dir_item {
+    uint16_t type; // SubSectTypes
+    uint16_t index;
+    uint32_t offset;
+    uint32_t size;
+};
+
+struct tds_subsection_dir {
+    uint32_t unknown1;
+    uint32_t num;
+    uint32_t unknown2;
+    uint32_t unknown3;
+    tds_subsection_dir_item items[1];
+};
+
+struct tds_module_segment {
+    uint16_t index;
+    uint16_t flags;
+    uint32_t start;
+    uint32_t end;
+};
+
+struct tds_module_subsection {
+    uint16_t overlay_num; // ?
+    uint16_t lib_index; // ?
+    uint16_t segments_count;
+    uint16_t unknown1;
+    uint16_t name;
+    uint16_t time; // ?
+    uint32_t unknown2;
+    uint32_t unknown3;
+    uint32_t unknown4;
+    uint32_t unknown5;
+    tds_module_segment segments[1];
+};
+
+
+#pragma pack(2)
+struct tds_scompiler {
+    uint32_t machine_and_compiler_flags;
+    uint8_t  compiler_name_len;
+    char     compiler_name[1];
+};
+
+struct tds_sregister {
+    uint32_t type;
+    uint16_t _register;
+    uint32_t name;
+    uint32_t browser_offset;
+};
+
+struct tds_sconst {
+    uint32_t type;
+    uint32_t name;
+    uint32_t browser_offset;
+    char value[1];
+};
+
+struct tds_sudt {
+    uint32_t type;
+    uint32_t name;
+    uint32_t browser_offset;
+};
+
+struct tds_ssearch {
+    uint32_t offset;
+    uint16_t segment;
+    uint16_t code_symbols;
+    uint16_t data_symbols;
+    uint32_t first_data;
+    uint16_t unknown1;
+};
+
+struct tds_sgproc_ref {
+    uint32_t unknown1;
+    uint32_t type;
+    uint32_t name;
+    uint32_t browser_offset;
+    uint32_t offset;
+    uint16_t segment;
+    uint32_t unknown2;
+};
+
+struct tds_sgdata_ref {
+    uint32_t unknown1;
+    uint32_t type;
+    uint32_t name;
+    uint32_t browser_offset;
+    uint32_t offset;
+    uint16_t segment;
+};
+
+struct tds_spconstant {
+    uint32_t type;
+    uint16_t _property;
+    uint32_t name;
+    uint32_t browser_offset;
+    char     value[1];
+};
+
+struct tds_sbprel32 {
+    uint32_t ebp_offset;
+    uint16_t type;
+    uint16_t unknown1;
+    uint16_t name;
+    uint16_t unknown2;
+    uint16_t unknown3;
+    uint16_t unknown4;
+};
+
+struct tds_sdata32 {
+    uint32_t offset;
+    uint16_t segment;
+    uint16_t flags;
+    uint32_t type;
+    uint32_t name;
+    uint32_t browser_offset;
+};
+
+struct tds_sproc32 {
+    uint32_t parent;
+    uint32_t end;
+    uint32_t next;
+    uint32_t proc_size;
+    uint32_t unknown1;
+    uint32_t debug_proc_size;
+    uint32_t start;
+    uint16_t segment;
+    uint16_t unknown2;
+    uint16_t type;
+    uint16_t unknown3;
+    uint16_t name;
+    uint32_t unknown4;
+    uint16_t unknown5;
+    // for global only
+    uint8_t linker_name_len;
+    char linker_name[1];
+};
+
+struct tds_sblock32 {
+    uint32_t parent;
+    uint32_t end;
+    uint32_t size;
+    uint32_t start;
+    uint16_t segment;
+    uint32_t name;
+};
+
+struct tds_swith32 {
+    uint32_t parent;
+    uint32_t code_length;
+    uint32_t procedure_offset;
+    uint16_t segment;
+    uint16_t flags;
+    uint32_t type;
+    uint32_t name;
+    uint32_t var_offset;
+};
+
+struct tds_sentry32 {
+    uint32_t offset;
+    uint16_t segment;
+};
+
+struct tds_sopt_var32 {
+    uint16_t num;
+
+    struct {
+        uint32_t start;
+        uint32_t size;
+        uint16_t _register;
+    } items[1];
+};
+
+struct tds_sproc_ret32 {
+    uint32_t offset;
+    uint16_t lenght;
+};
+
+
+
+struct tds_ssave_regs32 {
+    uint16_t mask; // 7 = EBX EDI ESI; 1 = EBX; 6 = EDI, ESI; 5 = EBX ESI
+    uint32_t ebp_offset;
+};
+
+
+struct tds_modifier {
+    uint16_t mod;
+    uint32_t type;
+};
+
+struct tds_pointer {
+    uint16_t ptr_type_mod;
+    uint32_t points_to;
+    // valid only for member or method pointers
+    uint16_t format;
+    uint32_t _class;
+};
+
+// T_ARRAY
+struct tds_array {
+    uint32_t element_type;
+    uint32_t indexer_type;
+    uint32_t name;
+    // Next goes variable length ArraySize and NumElements fields
+};
+
+// T_CLASS
+// T_STRUCT
+struct tds_class {
+    uint16_t num_members; // number of members
+    uint32_t field_index; // reference to FIELDLIST description of fields
+    uint16_t flags;
+    uint32_t containing_class;
+    uint32_t derivation_list;
+    uint32_t vtable;
+    uint32_t name;
+    // next goes variable length field Size (size of instance)
+};
+
+struct tds_union {
+    uint16_t num_members;
+    uint32_t field_index;
+    uint16_t flags;
+    uint32_t containing_class;
+    uint32_t name;
+    // next goes variable length field Size (size of instance)
+};
+
+struct tds_enum {
+    uint16_t count;
+    uint32_t type;
+    uint32_t fields;
+    uint32_t _class;
+    uint32_t name;
+};
+
+struct tds_procedure {
+    uint32_t type;
+    uint16_t call_type;
+    uint16_t params;
+    uint32_t arg_list;
+};
+
+// T_MFUNCTION = 0x9, /*[Type 32][Class 32][This 32][CallType 16][Params 16][Args 32][Adjust 32]*/
+struct tds_member_function {
+    uint32_t type;
+    uint32_t _class;
+    uint32_t _this;
+    uint16_t call_type;
+    uint16_t params;
+    uint32_t arg_list;
+    uint32_t adjust;
+};
+
+
+struct tds_bclass {
+    uint32_t index;
+    uint16_t access;
+    uint16_t offset;
+};
+
+struct tds_vbclass {
+    uint32_t base;
+    uint32_t virtual_base;
+    uint16_t access;
+    uint16_t virt_base_ptr_offset;
+    uint16_t unknown1; // 0x8001
+    uint16_t virt_base_index;
+};
+
+struct tds_enumerate {
+    uint16_t attribs;
+    uint32_t name;
+    uint32_t browser_offset;
+};
+
+struct tds_member {
+    uint32_t type;
+    uint16_t access;
+    uint32_t name;
+    uint32_t browser_offset;
+    uint16_t offset;
+};
+
+struct tds_static_member {
+    uint32_t type;
+    uint16_t access;
+    uint32_t name;
+    uint32_t browser_offset;
+};
+
+struct tds_method {
+    uint16_t count;
+    uint32_t index;
+    uint32_t name;
+};
+
+struct tds_nest_type {
+    uint32_t index;
+    uint32_t name;
+    uint32_t browser_offset;
+};
+
+struct tds_global_sym_header {
+    uint16_t sym_hash;
+    uint16_t addr_hash;
+    uint32_t cb_symbols;
+    uint32_t cb_sym_hash;
+    uint32_t cb_addr_hash;
+    uint32_t c_udts;
+    uint32_t c_others;
+    uint32_t total;
+    uint32_t c_name_spaces;
+};
+
+// T_METHODLIST 0x7
+struct tds_method_lstitem {
+    uint16_t access_storage;
+    uint32_t type;
+    uint32_t browser_offset;
+    uint32_t vtab_offset; // only for virtual and introducing virtual
+};
+
+struct tds_escaped_field {
+    const char * ptr;
+    size_t size;
+};
+
+void fuku_tds::ParseModules(const uint8_t * start, const uint8_t * end) {
+
+    const tds_module_subsection * mod_ss = (const tds_module_subsection *)start;
+
+    for (uint32_t seg_idx = 0; seg_idx < mod_ss->segments_count;seg_idx++) {
+
+        fuku_tds_segment segment;
+        segment.segment_name = get_name_by_id(mod_ss->name);
+        segment.segment_id = mod_ss->segments[seg_idx].index;
+        segment.segment_start = mod_ss->segments[seg_idx].start;
+        segment.segment_size = mod_ss->segments[seg_idx].end;
+
+        this->segments.push_back(segment);
+    }
+}
+
+void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end) {
+
+    const uint8_t * pos = start;
+    const tds_ssearch * symbolSearch;
+
+    uint32_t codes = 0;
+    uint32_t datas = 0;
+
+    bool inProc;
+    while (pos != end) {
+
+        uint32_t size = *(uint16_t*)pos; pos += sizeof(uint16_t);
+        uint32_t type = *(uint16_t*)pos; pos += sizeof(uint16_t);
+
+        switch (type & 0xFF00) {
+        case 0:
+            switch (type & 0xFF) {
+            case S_CONST: {
+                const tds_sconst * _const = (const tds_sconst *)pos;
+
+                fuku_tds_const const_item;
+                const_item.const_name = get_name_by_id(_const->name);
+                const_item.const_size = size - offsetof(tds_sconst, value) - 2;
+                const_item.value.resize(const_item.const_size);
+                memcpy(const_item.value.data(), _const->value, const_item.const_size);
+
+                this->consts.push_back(const_item);
+                break;
+            }
+            case S_PCONSTANT: {
+                const tds_spconstant * _const = (const tds_spconstant *)pos;
+
+                fuku_tds_const const_item;
+                const_item.const_name = get_name_by_id(_const->name);
+                const_item.const_size = size - offsetof(tds_spconstant, value) - 2;
+                const_item.value.resize(const_item.const_size);
+                memcpy(const_item.value.data(), _const->value, const_item.const_size);
+
+                this->consts.push_back(const_item);
+                break;
+            }
+            default:
+                break;
+            }
+            break;
+        case 0x100:
+            break;
+        case 0x200:
+            switch (type & 0xFF) {
+            case S_LDATA: {
+                const tds_sdata32 * data = (const tds_sdata32 *)pos;
+                fuku_tds_data data_item;
+                data_item.data_name = get_name_by_id(data->name);
+                data_item.segment_id = data->segment;
+                data_item.data_start = data->offset;
+
+                this->datas.push_back(data_item);
+                break;
+            }
+            case S_GDATA: {
+                const tds_sdata32 * data = (const tds_sdata32 *)pos;
+                fuku_tds_data data_item;
+                data_item.data_name = get_name_by_id(data->name);
+                data_item.segment_id = data->segment;
+                data_item.data_start = data->offset;
+
+                this->datas.push_back(data_item);
+                break;
+            }
+            case S_LPROC: {
+                const tds_sproc32 * proc = (const tds_sproc32 *)pos;
+
+                fuku_tds_function func;
+                func.function_name = get_name_by_id(proc->name);
+                func.segment_id = proc->segment;
+                func.function_start = proc->start;
+                func.function_end = proc->start + proc->proc_size;
+
+                this->functions.push_back(func);
+
+                inProc = true;
+                codes++;
+                break;
+            }
+            case S_GPROC: {
+                const tds_sproc32 * proc = (const tds_sproc32 *)pos;
+
+                fuku_tds_function func;
+                func.function_name = get_name_by_id(proc->name);
+                func.segment_id = proc->segment;
+                func.function_start = proc->start;
+                func.function_end = proc->start + proc->proc_size;
+
+                this->functions.push_back(func);
+
+                inProc = true;
+                codes++;
+                break;
+            }
+            default:
+                break;
+            }
+            break;
+        default:
+            break;
+        }
+        pos += size - 2;
+    }
+}
+
+void fuku_tds::ParseAlignSym(uint8_t * start, uint8_t * end, int moduleIndex) {
+    uint8_t * pos = start;
+    uint32_t unknown1 = *(uint32_t*)pos; pos += sizeof(uint32_t);
+    ParseSymbols(pos, end);
+}
+
+
+
+void fuku_tds::ParseGlobalSym(uint8_t * start) {
+
+    const tds_global_sym_header * hdr = (tds_global_sym_header*)(start);
+    const uint8_t * pos = start + sizeof(tds_global_sym_header);
+    ParseSymbols(pos, pos + hdr->cb_symbols);
+}
+
+void fuku_tds::parse_src_module(uint8_t * start, uint8_t * end) {
+
+    const uint8_t * pos = start;
+    uint16_t number_files = *(uint16_t*)pos; pos += sizeof(uint16_t);
+    uint16_t number_ranges = *(uint16_t*)pos; pos += sizeof(uint16_t);
+    const uint32_t * filesOffsets = (const uint32_t *)(pos);
+    const uint32_t * ranges = (const uint32_t *)(pos + 4 * number_files);
+    const uint16_t * segs = (const uint16_t *)(pos + 4 * number_files + 8 * number_ranges);
+
+    for (uint32_t file_idx = 0; file_idx < number_files; file_idx++) {
+
+        pos = start + filesOffsets[file_idx];
+        uint16_t num_file_ranges = *(uint16_t*)pos; pos += sizeof(uint16_t);
+        int name = *(uint32_t*)pos; pos += sizeof(uint32_t);
+
+        const uint32_t* numbersOffsets = (const uint32_t*)(pos);
+        const uint32_t* fileRanges = (const uint32_t*)(pos + 4 * num_file_ranges);
+
+        fuku_tds_linenumbers base_linenumbers;
+        base_linenumbers.file_name = get_name_by_id(name);
+
+        for (uint32_t range_idx = 0; range_idx < num_file_ranges; range_idx++) {
+
+            pos = start + numbersOffsets[range_idx];
+            uint16_t segment_id = *(uint16_t*)pos; pos += sizeof(uint16_t);
+            uint16_t lines_number = *(uint16_t*)pos; pos += sizeof(uint16_t);
+
+            fuku_tds_linenumbers_block linenumbers_block;
+            linenumbers_block.segment_id  = segment_id;
+            linenumbers_block.block_start = fileRanges[range_idx * 2];
+            linenumbers_block.block_end   = fileRanges[range_idx * 2 + 1];
+        
+            const uint32_t * offsets = (const uint32_t *)(pos);
+            const uint16_t * lineNumbers = (const uint16_t *)(pos + 4 * lines_number);
+
+            for (uint32_t lines_idx = 0; lines_idx < lines_number; lines_idx++) {
+                linenumbers_block.line_numbers[lineNumbers[lines_idx]] = offsets[lines_idx]; 
+            }
+
+            base_linenumbers.blocks.push_back(linenumbers_block);
+        }
+
+        this->linenumbers.push_back(base_linenumbers);
+    }
+}
+
+
+/*
+
 std::string get_type_name(uint32_t type) {
     std::string ret;
 
@@ -598,35 +1128,44 @@ std::string ptrmod_to_string(uint32_t type) {
     }
 }
 
-const char * methodStorToString(int type)
-{
+std::string methodstor_to_string(uint32_t type) {
+
     switch (type)
     {
-    case MST_NONE: return "vanilla";
-    case MST_VIRTUAL: return "virtual";
-    case MST_STATIC: return "static";
-    case MST_FRIEND: return "friend";
-    case MST_INTRODUCING_VIRTUAL: return "introducing virtual";
-    case MST_PURE_VIRTUAL: return "pure virtual";
-    case MST_PURE_INTRODUCING_VIRTUAL: return "pure introducing virtual";
-    default:
-        throw 0;
+    case MST_NONE: { return "vanilla"; }
+    case MST_VIRTUAL: { return "virtual"; }
+    case MST_STATIC: { return "static"; }
+    case MST_FRIEND: { return "friend"; }
+    case MST_INTRODUCING_VIRTUAL: { return "introducing virtual"; }
+    case MST_PURE_VIRTUAL: { return "pure virtual"; }
+    case MST_PURE_INTRODUCING_VIRTUAL: { return "pure introducing virtual"; }
+    default: {
+        return std::string();
+    }
+        
     }
 }
 
-void PrintEscapedField(tds_escaped_field fld)
-{
+std::string PrintEscapedField(tds_escaped_field fld) {
+
+    std::string ret;
+    char esc_buf[20] = { 0 };
+
     switch (fld.size)
     {
     case 2:
-        cout << *reinterpret_cast<const unsigned short*>(fld.ptr);
+        _itoa_s(*(uint16_t*)&fld.ptr, esc_buf, 16);
+        ret = esc_buf;
         break;
     case 4:
-        cout << *reinterpret_cast<const unsigned int*>(fld.ptr);
+        _itoa_s(*(uint32_t*)&fld.ptr, esc_buf, 16);
+        ret = esc_buf;
         break;
     default:
-        throw 0;
+        break;
     }
+
+    return ret;
 }
 
 void PrintStructFlags(unsigned flags)
@@ -675,266 +1214,9 @@ inline tds_escaped_field EatEscapedField(const uint8_t *& pos)
     }
 }
 
-void fuku_tds::PrintSymbolSearch(const tds_ssearch * ss)
-{
-    cout << ss->segment << ':' << ss->offset << "  CodeSyms: " << ss->code_symbols << "  DataSyms " << ss->data_symbols << "  FirstData: " << ss->first_data;
-}
 
-void fuku_tds::PrintGlobalProcRef(const tds_sgproc_ref * p)
-{
-    cout << p->unknown1 << "  type: ";
-    cout << get_type_name(p->type);
-    cout << "  " << p->segment << ":" << p->offset << "  " << get_name_by_id(p->name) << " [" << p->name << "]  Browser offset: " << p->browser_offset;
-}
+void fuku_tds::ParseArray(const uint8_t * start) {
 
-void fuku_tds::PrintGlobalDataRef(const tds_sgdata_ref * d)
-{
-    cout << d->unknown1 << "  type: ";
-    cout << get_type_name(d->type);
-    cout << "  " << d->segment << ":" << d->offset << "  " << get_name_by_id(d->name) << " [" << d->name << "]  Browser offset: " << d->browser_offset;
-}
-
-void fuku_tds::PrintCompiler(const tds_scompiler * comp)
-{
-    cout << "Compiler: ";
-    for (int i = 0; i < comp->compiler_name_len; i++) {
-        cout << comp->compiler_name[i];
-    }
-}
-
-void fuku_tds::PrintSConst(const tds_sconst * c) {
-    cout << "Type: " << c->type << "  Name: [" << c->name << "]";
-}
-
-void fuku_tds::PrintSUdt(const tds_sudt * u) {
-    cout << "Type: " << u->type << " Name: [" << u->name << "]";
-}
-
-void fuku_tds::PrintSUsing(const uint8_t * u)
-{
-    short num = *reinterpret_cast<const short*>(u);
-    u += 2;
-    cout << endl;
-    while (num--)
-    {
-        int name = *reinterpret_cast<const int*>(u);
-        u += 4;
-        cout << "  [" << name << "]" << endl;
-    }
-}
-
-void fuku_tds::PrintSPConstant(const tds_spconstant * c)
-{
-    cout << "  Type: " << c->type << "  Name: " << get_name_by_id(c->name) << " [" << c->name << "]  Property: " << c->_property << "  Browser offset: " << c->browser_offset;
-}
-
-void fuku_tds::PrintSBPRel32(const tds_sbprel32 * bp)
-{
-    cout << "  type: " << bp->type << "  [EBP+" << bp->ebp_offset << "]  Name: " << get_name_by_id(bp->name) << " [" << bp->name << "]";
-}
-
-void fuku_tds::PrintSData32(const tds_sdata32 * dat)
-{
-    cout << "  type: " << dat->type << "  " << dat->segment << ":" << dat->offset << "  " << get_name_by_id(dat->name) << " [" << dat->name << "]  Browser offset: " << dat->browser_offset << endl;
-    cout << "    flags: " << dat->flags << endl;
-}
-
-void fuku_tds::PrintSProc32(const tds_sproc32 * proc, size_t size)
-{
-    cout << endl << "  " << proc->segment << ":" << proc->start << "-" << proc->start + proc->size1 - 1 << "  " << get_name_by_id(proc->name) << " [" << proc->name << "]" << endl;
-    cout << "  Debug: " << proc->segment << ":" << proc->start << "-" << proc->start + proc->size << "  Type: " << proc->type << endl;
-    cout << "  Parent: " << proc->parent << "  End: " << proc->end << "  Next: " << proc->next << endl;
-
-    if (size > (size_t)((char*)&proc->linker_name_len - (char*)proc)) {
-        cout << "  Linker name: '";
-        for (int i = 0; i < proc->linker_name_len; i++)
-            cout << proc->linker_name[i];
-        cout << "'";
-    }
-}
-
-void fuku_tds::PrintSBlock32(const tds_sblock32 * b)
-{
-    cout << "  Parent: " << b->parent << "  End: " << b->end << "  " << b->segment << ":" << b->start << "-" << (b->start + b->size - 1) << "  " << get_name_by_id(b->name) << " [" << b->name << "]";
-}
-
-void fuku_tds::PrintSWith32(const tds_swith32 * w)
-{
-    cout << "Parent: " << w->parent << "  Segment: " << w->segment << "  Procedure Offset: " << w->procedure_offset << endl;
-    cout << "  Code Length: " << w->code_length << "  Flags: " << w->flags << endl;
-    cout << "  Type: " << w->type << "  Name: " << get_name_by_id(w->name) << " [" << w->name << "]" << endl;
-    cout << "  Var Offset: " << w->var_offset << endl;
-}
-
-void fuku_tds::PrintSEntry32(const tds_sentry32 * e)
-{
-    cout << "   " << e->segment << ":" << e->offset;
-}
-
-
-void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end) {
-
-    const uint8_t * pos = start;
-    const tds_ssearch * symbolSearch;
-
-    int codes = 0;
-    int datas = 0;
-    bool inProc;
-    while (pos != end) {
-
-        int size = *(uint16_t*)pos; pos += sizeof(uint16_t);
-        int type = *(uint16_t*)pos; pos += sizeof(uint16_t);
-
-        cout << "  ";
-
-        switch (type & 0xFF00) {
-        case 0:
-            switch (type & 0xFF) {
-            case S_COMPILE:
-                PrintCompiler(reinterpret_cast<const tds_scompiler *>(pos));
-                break;
-            case S_CONST:
-                PrintSConst(reinterpret_cast<const tds_sconst *>(pos));
-                break;
-            case S_UDT:
-                PrintSUdt(reinterpret_cast<const tds_sudt *>(pos));
-                break;
-            case S_SSEARCH:
-                symbolSearch = reinterpret_cast<const tds_ssearch *>(pos);
-                PrintSymbolSearch(symbolSearch);
-                break;
-            case S_END:
-                inProc = false;
-                break;
-            case S_GPROCREF:
-                PrintGlobalProcRef(reinterpret_cast<const tds_sgproc_ref *>(pos));
-                break;
-            case S_GDATAREF:
-                PrintGlobalDataRef(reinterpret_cast<const tds_sgdata_ref *>(pos));
-                break;
-            case S_USING:
-                PrintSUsing(pos);
-                break;
-            case S_PCONSTANT:
-                PrintSPConstant(reinterpret_cast<const tds_spconstant *>(pos));
-                break;
-            default:
-                break;
-            }
-            break;
-        case 0x100:
-            throw 0;
-        case 0x200:
-            switch (type & 0xFF)
-            {
-            case S_BPREL:
-                PrintSBPRel32(reinterpret_cast<const tds_sbprel32 *>(pos));
-                break;
-            case S_LDATA:
-                PrintSData32(reinterpret_cast<const tds_sdata32 *>(pos));
-                datas++;
-                break;
-            case S_GDATA:
-                PrintSData32(reinterpret_cast<const tds_sdata32 *>(pos));
-                datas++;
-                break;
-            case S_LPROC:
-                PrintSProc32(reinterpret_cast<const tds_sproc32 *>(pos), size - 2);
-                inProc = true;
-                codes++;
-                break;
-            case S_GPROC:
-                PrintSProc32(reinterpret_cast<const tds_sproc32 *>(pos), size - 2);
-                inProc = true;
-                codes++;
-                break;
-            case S_BLOCK:
-                PrintSBlock32(reinterpret_cast<const tds_sblock32 *>(pos));
-                break;
-            case S_WITH:
-                PrintSWith32(reinterpret_cast<const tds_swith32 *>(pos));
-                break;
-            case S_ENTRY:
-                PrintSEntry32(reinterpret_cast<const tds_sentry32 *>(pos));
-                break;
-            case S_SLINK:
-                cout << "Offset: " << *reinterpret_cast<const int*>(pos);
-                break;
-            default:
-                break;
-            }
-            break;
-        default:
-            break;
-        }
-        cout << endl;
-        pos += size - 2;
-    }
-}
-
-void fuku_tds::ParseAlignSym(uint8_t * start, uint8_t * end, int moduleIndex) {
-    uint8_t * pos = start;
-    int Unknown1 = *(uint32_t*)pos; pos += sizeof(uint32_t);
-    ParseSymbols(pos, end);
-}
-
-
-
-void fuku_tds::ParseGlobalSym(uint8_t * start) {
-
-    const tds_global_sym_header * hdr = (tds_global_sym_header*)(start);
-    const uint8_t * pos = start + sizeof(tds_global_sym_header);
-    ParseSymbols(pos, pos + hdr->cb_symbols);
-}
-
-void fuku_tds::ParseSrcModule(uint8_t * start, uint8_t * end) {
-
-    const uint8_t * pos = start;
-    cout << "Segment ranges:" << endl;
-    short numFiles = *(uint16_t*)pos; pos += sizeof(uint16_t);
-    short numRanges = *(uint16_t*)pos; pos += sizeof(uint16_t);
-    const int * filesOffsets = reinterpret_cast<const int*>(pos);
-    const int * ranges = reinterpret_cast<const int*>(pos + 4 * numFiles);
-    const short * segs = reinterpret_cast<const short*>(pos + 4 * numFiles + 8 * numRanges);
-    for (int r = 0; r < numRanges; r++)
-    {
-        cout << "  " << segs[r] << ":" << ranges[r * 2] << "-" << ranges[r * 2 + 1] << endl;
-    }
-    cout << "Source files:" << endl;
-    for (int f = 0; f < numFiles; f++)
-    {
-        pos = start + filesOffsets[f];
-        int offset = pos - this->tds_data.data();
-        short numFileRanges = *(uint16_t*)pos; pos += sizeof(uint16_t);
-        int name = *(uint32_t*)pos; pos += sizeof(uint32_t);
-        cout << "  File: " << get_name_by_id(name) << " [" << name << "]  Offset: " << offset << endl;
-        const int* numbersOffsets = reinterpret_cast<const int*>(pos);
-        const int* fileRanges = reinterpret_cast<const int*>(pos + 4 * numFileRanges);
-        for (int r = 0; r < numFileRanges; r++)
-        {
-            pos = start + numbersOffsets[r];
-            short seg = *(uint16_t*)pos; pos += sizeof(uint16_t);
-            cout << "  Range: " << seg << ":" << fileRanges[r * 2] << "-" << fileRanges[r * 2 + 1] << endl;
-            short linesNum = *(uint16_t*)pos; pos += sizeof(uint16_t);
-            cout << "    Line numbers:";
-            const int * offsets = reinterpret_cast<const int*>(pos);
-            const short * lineNumbers = reinterpret_cast<const short*>(pos + 4 * linesNum);
-            for (int l = 0; l < linesNum; l++)
-            {
-                if (l % 4 == 0)
-                {
-                    cout << endl;
-                    cout << "    ";
-                }
-                cout << dec << lineNumbers[l] << ":" << hex << offsets[l] << "  ";
-            }
-            cout << endl;
-        }
-    }
-}
-
-void fuku_tds::ParseArray(const uint8_t * start)
-{
     const tds_array * arr = reinterpret_cast<const tds_array *>(start);
     const uint8_t * pos = start + sizeof(tds_array);
     cout << "  Type: " << arr->element_type << "  Indexed by: " << arr->indexer_type << "  Name: " << arr->name << endl;
@@ -960,8 +1242,10 @@ void fuku_tds::ParseStruct(const uint8_t * start, unsigned type)
         pos += sizeof(tds_class);
 
         size = EatEscapedField(pos);
-        if (cls->flags & ~CF_VALID_FLAGS)
-            throw 0;
+        if (cls->flags & ~CF_VALID_FLAGS) {
+            return;
+        }
+
         if (1)
         {
             cout << "  Fields: " << cls->num_members << "  FieldIdx: " << cls->field_index << "  Name: " << get_name_by_id(cls->name) << " [" << cls->name << "]" << endl;
@@ -1019,11 +1303,12 @@ void fuku_tds::ParseVirtTblShape(const uint8_t * start)
         case VTDT_NEAR32: cout << "near32"; break;
         case VTDT_FAR32: cout << "far32"; break;
         default:
-            throw 0;
+            break;
         }
         cout << endl;
     }
 }
+
 
 void fuku_tds::ParseArgList(const uint8_t * start)
 {
@@ -1152,7 +1437,8 @@ void fuku_tds::ParseMethodList(const uint8_t * start, const uint8_t * end) {
 
         const tds_method_lstitem * met = reinterpret_cast<const tds_method_lstitem *>(pos);
         cout << "  Type: " << met->type << "  Access: " << access_to_string(met->access_storage) << "  Prop: " <<
-            methodStorToString(METHOD_STORAGE_FIELD(met->access_storage));
+            methodstor_to_string(METHOD_STORAGE_FIELD(met->access_storage));
+
         if (METHOD_STORAGE_FIELD(met->access_storage) == MST_VIRTUAL || METHOD_STORAGE_FIELD(met->access_storage) == MST_INTRODUCING_VIRTUAL ||
             METHOD_STORAGE_FIELD(met->access_storage) == MST_PURE_VIRTUAL || METHOD_STORAGE_FIELD(met->access_storage) == MST_PURE_INTRODUCING_VIRTUAL)
         {
@@ -1164,8 +1450,11 @@ void fuku_tds::ParseMethodList(const uint8_t * start, const uint8_t * end) {
             pos += 10;
         }
         cout << "  Browser offset: " << met->browser_offset << endl;
-        if (METHOD_FLAGS_FIELD(met->access_storage) & ~MDF_VALID_FLAGS)
-            throw 0;
+
+        if (METHOD_FLAGS_FIELD(met->access_storage) & ~MDF_VALID_FLAGS) {
+            return;
+        }
+
         cout << "  Default1: " << (met->access_storage & MDF_DEFAULT1 ? "yes" : "no") <<
             "  Overloaded operator: " << (met->access_storage & MDF_OPERATOR_OVERLOAD ? "yes" : "no") <<
             "  Conversion operator: " << (met->access_storage & MDF_CONVERSION_OPERATOR ? "yes" : "no") << endl;
@@ -1288,7 +1577,7 @@ void fuku_tds::ParseGlobalTypes(uint8_t * start) {
         if (1)
             cout << endl;
     }
-}
+}*/
 
 
 
@@ -1361,27 +1650,46 @@ fuku_tds_result fuku_tds::load_from_data(const std::vector<uint8_t>& tds_data) {
         }
     }
 
+
     for (uint32_t i = 0; i < s_section_dir->num; i++) {
         const tds_subsection_dir_item * current_item = &items[i];
 
         switch (current_item->type) {
+        
+        case sst_module: {
+            ParseModules(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size]);
 
-        case sst_alignsym:
-            ParseAlignSym(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size], 
+            break;
+        }
+
+        case sst_alignsym: {
+            ParseAlignSym(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size],
                 current_item->index);
 
             break;
-        case sst_srcmodule:
-            ParseSrcModule(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size]);
-            break;
-        case sst_globalsym:
-            ParseGlobalSym(&this->tds_data.data()[current_item->offset]);
-            break;
-        case sst_globaltypes:
-            ParseGlobalTypes(&this->tds_data.data()[current_item->offset]);
+        }
+
+        case sst_srcmodule: {
+            parse_src_module(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size]);
             break;
         }
+
+        case sst_globalsym: {
+            ParseGlobalSym(&this->tds_data.data()[current_item->offset]);
+            break;
+        }
+        case sst_globaltypes: {
+            //  ParseGlobalTypes(&this->tds_data.data()[current_item->offset]);
+            break;
+        }
+
+        default: {
+            break;
+        }
+        }
     }
+
+    return fuku_tds_result::tds_result_ok;
 }
 
 void fuku_tds::load_names(uint8_t * names_ptr) {
