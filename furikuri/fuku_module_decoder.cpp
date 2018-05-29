@@ -1,18 +1,18 @@
 #include "stdafx.h"
-#include "fuku_graph_spider.h"
+#include "fuku_module_decoder.h"
 
 
-fuku_graph_spider::fuku_graph_spider(shibari_module * module)
-    :module(module){}
+fuku_module_decoder::fuku_module_decoder(shibari_module * module, std::string module_path)
+    :module(module), module_path(module_path){}
 
 
-fuku_graph_spider::~fuku_graph_spider()
+fuku_module_decoder::~fuku_module_decoder()
 {
 }
 
 
 
-bool fuku_graph_spider::decode_module() {
+bool fuku_module_decoder::decode_module() {
     code_list.code_placement.clear();
     code_list.func_starts.clear();
 
@@ -48,11 +48,7 @@ bool fuku_graph_spider::decode_module() {
 }
 
 
-const fuku_code_list& fuku_graph_spider::get_code_list() const {
-    return code_list;
-}
-
-void fuku_graph_spider::link_map(std::map<uint32_t, uint8_t>& decoded_items) {
+void fuku_module_decoder::link_map(std::map<uint32_t, uint8_t>& decoded_items) {
 
     for (auto& item : decoded_items) {
 
@@ -77,7 +73,7 @@ void fuku_graph_spider::link_map(std::map<uint32_t, uint8_t>& decoded_items) {
 }
 
 
-std::vector<uint32_t> fuku_graph_spider::get_code_entries() {
+std::vector<uint32_t> fuku_module_decoder::get_code_entries() {
     std::vector<uint32_t> entries;
     pe_image_io image_io(this->module->get_image());
 
@@ -116,7 +112,7 @@ std::vector<uint32_t> fuku_graph_spider::get_code_entries() {
 }
 
 
-bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
+bool fuku_module_decoder::decode_entries(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
     std::vector<uint8_t>& v_module,
     std::vector<_DInst>& di_buf) {
 
@@ -189,4 +185,63 @@ bool fuku_graph_spider::decode_entries(std::vector<uint32_t>& entries, std::map<
     }
 
     return true;
+}
+
+bool fuku_module_decoder::try_decode_debug_info(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
+    std::vector<uint8_t>& v_module) {
+
+
+    if (decode_tds(entries, decoded_items, v_module)) {
+        return true;
+    }
+    else if (decode_pdb(entries, decoded_items, v_module)) {
+        return true;
+    }
+    else if (decode_map(entries, decoded_items, v_module)) {
+        return true;
+    }
+
+    return false;
+}
+
+
+bool fuku_module_decoder::decode_tds(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
+    std::vector<uint8_t>& v_module) {
+
+    if (module->get_image_debug().size() == 1 && module->get_image_debug().get_items()[0].get_type() == 0) {
+        fuku_tds tds;
+        fuku_code_list code_list;
+        /*
+            if (tds.load_from_data(module.get_image_debug().get_items()[0].get_item_data()) == tds_result_ok) {
+
+                for (auto& func : tds.get_functions()) {
+                    if (func.segment_id == 1) {
+                        if (func.function_size >= 5) {
+                            code_list.func_starts.push_back(
+                                module.get_image().get_section_by_idx(0)->get_virtual_address() + func.function_start);
+
+                            code_list.code_placement.push_back({
+                                module.get_image().get_section_by_idx(0)->get_virtual_address() + func.function_start, func.function_size });
+                        }
+                    }
+                }
+            }
+
+            */
+    }
+
+    return false;
+}
+
+bool fuku_module_decoder::decode_pdb(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
+    std::vector<uint8_t>& v_module) {
+
+    return false;
+}
+
+bool fuku_module_decoder::decode_map(std::vector<uint32_t>& entries, std::map<uint32_t, uint8_t>& decoded_items,
+    std::vector<uint8_t>& v_module) {
+
+
+    return false;
 }

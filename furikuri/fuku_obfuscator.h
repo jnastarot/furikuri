@@ -29,7 +29,10 @@ class fuku_obfuscator {
     ob_fuku_sensitivity settings;
 
     unsigned int label_seed;
-    std::vector<fuku_instruction*> labels_cache;
+    std::vector<uint32_t> labels_cache;
+    std::vector<uint32_t> jumps_idx_cache;
+    std::vector<uint32_t> ip_rel_idx_cache;
+
     std::vector<fuku_instruction>  lines;
 
     std::vector<ob_fuku_association>*     association_table;
@@ -53,7 +56,7 @@ class fuku_obfuscator {
 
     void    fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     void    fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines);
-    void    fuku_obfuscator::finalize_jmps(std::vector<fuku_instruction>& lines);
+    void    fuku_obfuscator::finalize_jmps();
 
     fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     fuku_instruction * fuku_obfuscator::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);

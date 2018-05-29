@@ -24,9 +24,9 @@ struct fuku_code_list {
 #include "fuku_obfuscator.h"
 #include "fuku_asm.h"
 
-#include "fuku_dbg_info.h"
+#include "fuku_debug_info.h"
 
-#include "fuku_graph_spider.h"
+#include "fuku_module_decoder.h"
 #include "fuku_protector.h"
 
 class furikuri {
@@ -39,8 +39,8 @@ public:
 
     bool furikuri::fuku_protect(const ob_fuku_sensitivity& settings, std::vector<uint8_t>& out_image, fuku_code_list * _code_list = 0);
 public:
-    void furikuri::set_main_module(shibari_module* module);
-    void furikuri::add_extended_module(shibari_module* module);
+    bool furikuri::set_main_module(shibari_module* module,std::string module_path = "");
+    bool furikuri::add_extended_module(shibari_module* module, std::string module_path = "");
 
 public:
     std::vector<shibari_module*>& furikuri::get_extended_modules();

@@ -173,6 +173,11 @@ fuku_instruction&  fuku_instruction::set_ip_relocation_destination(uint64_t dst_
 }
 
 fuku_instruction&  fuku_instruction::set_ip_relocation_disp_offset(uint8_t offset) {
+
+    if (offset > 8) {
+        __debugbreak();
+    }
+
     this->ip_relocation_disp_offset = offset;
 
     return *this;

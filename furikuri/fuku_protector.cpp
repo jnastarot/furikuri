@@ -95,30 +95,65 @@ bool fuku_protector::start_initialize_zones() {
 
         uint64_t base_address = module->get_image().get_image_base();
 
+        struct _bind_part_code {
+            uint32_t rva_code_part;
+            std::vector<uint8_t> code_buffer;
+            std::vector<ob_fuku_relocation> fuku_code_relocs;
+        };
+
+        std::vector<_bind_part_code> bind_part_code;
+
         module->get_image_relocations().sort();
 
-        for (auto& code : code_list.code_placement) {
-            std::vector<uint8_t> code_buffer;
+        std::sort(code_list.code_placement.begin(), code_list.code_placement.end(), [](shibari_module_symbol_info& lhs, shibari_module_symbol_info& rhs) {
+            return lhs.symbol_info_rva < rhs.symbol_info_rva;
+        });
 
-            if (image_io.set_image_offset(code.symbol_info_rva).read(code_buffer, code.symbol_info_size) != enma_io_success) {
+        uint32_t top_reloc_idx = 0;
+
+        for (auto& code : code_list.code_placement) {
+            _bind_part_code part_code;
+
+            part_code.rva_code_part = code.symbol_info_rva;
+
+            if (image_io.set_image_offset(code.symbol_info_rva).read(part_code.code_buffer, code.symbol_info_size) != enma_io_success) {
                 return false;
             }
 
-            std::vector<relocation_item> image_code_relocs;
-            module->get_image_relocations().get_items_by_segment(image_code_relocs, code.symbol_info_rva, code.symbol_info_size);
-            module->get_image_relocations().erase_all_items_in_zone(code.symbol_info_rva, code.symbol_info_size);
+            auto& relocations = module->get_image_relocations().get_items();
 
-            std::vector<ob_fuku_relocation> fuku_code_relocs;
+            for (uint32_t reloc_idx = top_reloc_idx; reloc_idx < relocations.size(); reloc_idx++, top_reloc_idx++) {
+                auto& reloc_item = relocations[reloc_idx];
 
-            for (auto& code_reloc : image_code_relocs) {
-                fuku_code_relocs.push_back({ code_reloc.relative_virtual_address + base_address, code_reloc.relocation_id });
+                if (reloc_item.relative_virtual_address > code.symbol_info_rva) {
+                    if (reloc_item.relative_virtual_address < (code.symbol_info_rva + code.symbol_info_size)) {
+                        part_code.fuku_code_relocs.push_back({ 
+                            reloc_item.relative_virtual_address + base_address, reloc_item.relocation_id
+                        });
+
+                        relocations.erase(relocations.begin() + reloc_idx);
+
+                        reloc_idx--;
+                        top_reloc_idx--;
+                    }
+                    else {
+                        break;
+                    }
+                }
             }
 
-            obfuscator.push_code(code_buffer.data(), code.symbol_info_size, 
-                module->get_image().get_image_base() + code.symbol_info_rva, &fuku_code_relocs);
+            bind_part_code.push_back(part_code);
 
             image_io.set_image_offset(code.symbol_info_rva).memory_set(code.symbol_info_size, 0);
         }
+
+        uint32_t idddd = 0;
+        for (auto& part_code : bind_part_code) {
+            idddd++;
+            obfuscator.push_code(part_code.code_buffer.data(), part_code.code_buffer.size(),
+                module->get_image().get_image_base() + part_code.rva_code_part, &part_code.fuku_code_relocs);
+        }
+
 
         return true;
     }

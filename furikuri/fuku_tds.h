@@ -30,7 +30,8 @@ struct fuku_tds_function {
     std::string function_name;
     uint32_t segment_id;
     uint32_t function_start;
-    uint32_t function_end;
+    uint32_t function_size;
+    uint32_t function_debug_size;
 };
 
 struct fuku_tds_data {
@@ -62,17 +63,15 @@ class fuku_tds {
     std::vector<fuku_tds_data>     datas;
     std::vector<fuku_tds_const>    consts;
     
-    fuku_tds_result result;
-
     std::string fuku_tds::get_name_by_id(uint32_t id) const;
     uint32_t fuku_tds::get_id_by_name(const std::string &name) const;
 
     void fuku_tds::load_names(uint8_t * names_ptr);
 
-    void fuku_tds::ParseModules(const uint8_t * start, const uint8_t * end);
-    void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end);
-    void fuku_tds::ParseAlignSym(uint8_t * start, uint8_t * end, int moduleIndex);
-    void fuku_tds::ParseGlobalSym(uint8_t * start);
+    void fuku_tds::parse_modules(const uint8_t * start, const uint8_t * end);
+    void fuku_tds::parse_symbols(const uint8_t * start, const uint8_t * end);
+    void fuku_tds::parse_alignsym(uint8_t * start, uint8_t * end, int moduleIndex);
+    void fuku_tds::parse_globalsym(uint8_t * start);
     void fuku_tds::parse_src_module(uint8_t * start, uint8_t * end); //linenumbers
 public:
     fuku_tds::fuku_tds();
@@ -81,6 +80,10 @@ public:
     fuku_tds_result fuku_tds::load_from_file(const std::string& tds_path);
     fuku_tds_result fuku_tds::load_from_data(const std::vector<uint8_t>& tds_data);
 public:
-    
+    const std::vector<fuku_tds_segment>&     fuku_tds::get_segments() const;
+    const std::vector<fuku_tds_linenumbers>& fuku_tds::get_linenumbers() const;
+    const std::vector<fuku_tds_function>&    fuku_tds::get_functions() const;
+    const std::vector<fuku_tds_data>&        fuku_tds::get_datas() const;
+    const std::vector<fuku_tds_const>&       fuku_tds::get_consts() const;
 };
 

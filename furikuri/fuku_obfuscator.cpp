@@ -197,47 +197,49 @@ bool fuku_obfuscator::push_code(
     if (analyze_code(src, src_len, virtual_address, new_lines, relocations)) {
 
 
-        for (auto& stored_line : lines) {  //link stored lines with new lines
+        for (auto&jump_idx : jumps_idx_cache) {
+            auto& jump_line = lines[jump_idx];
 
-            if (!stored_line.get_link_label_id()) {
- 
-                 if (stored_line.get_flags()&ob_fuku_instruction_has_ip_relocation) {
+            if (!jump_line.get_link_label_id()) {
+                uint64_t jmp_dst_va = jump_line.get_source_virtual_address() +
+                    jump_line.get_op_length() +
+                    jump_line.get_jump_imm();
 
-                    fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, stored_line.get_ip_relocation_destination());
+                fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, jmp_dst_va);
 
-                    if (dst_line) {
-     
-                        stored_line.set_link_label_id(set_label(*dst_line));
-                    }
-                } else if(stored_line.is_jump()) {
-                    uint64_t jmp_dst_va = stored_line.get_source_virtual_address() +
-                        stored_line.get_op_length() +
-                        stored_line.get_jump_imm();
-
-                    fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, jmp_dst_va);
-
-                    if (dst_line) {
-  
-                        stored_line.set_link_label_id(set_label(*dst_line));
-                    }
+                if (dst_line) {
+                    jump_line.set_link_label_id(set_label(*dst_line));
                 }
             }
         }
 
-        for (auto& new_line : new_lines) {//link new lines with stored lines
+        for (auto&ip_rel_idx : ip_rel_idx_cache) {
+            auto& ip_rel_line = lines[ip_rel_idx];
+
+            if (!ip_rel_line.get_link_label_id()) {
+                fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, ip_rel_line.get_ip_relocation_destination());
+
+                if (dst_line) {
+                    ip_rel_line.set_link_label_id(set_label(*dst_line));
+                }
+            }
+        }
+
+        for (uint32_t new_line_idx = 0; new_line_idx < new_lines.size(); new_line_idx++) {//link new lines with stored lines
+            auto& new_line = new_lines[new_line_idx];
 
             if (!new_line.get_link_label_id()) {
 
                  if (new_line.get_flags()&ob_fuku_instruction_has_ip_relocation) {
+                     ip_rel_idx_cache.push_back(lines.size() + new_line_idx);
 
                     fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_ip_relocation_destination());
 
                     if (dst_line) {
-                        if (dst_line->get_source_virtual_address() == 0x4167CA) { __debugbreak(); }
-
                         new_line.set_link_label_id(set_label(*dst_line));
                     }
                 } else if (new_line.is_jump()) {
+                    jumps_idx_cache.push_back(lines.size() + new_line_idx);
 
                     uint64_t jmp_dst_va = new_line.get_source_virtual_address() +
                         new_line.get_op_length() +
@@ -246,8 +248,6 @@ bool fuku_obfuscator::push_code(
                     fuku_instruction * dst_line = get_direct_line_by_source_va(lines, jmp_dst_va);
 
                     if (dst_line) {
-                        if (dst_line->get_source_virtual_address() == 0x4167CA) { __debugbreak(); }
-
                         new_line.set_link_label_id(set_label(*dst_line));
                     }
                 }           
@@ -256,8 +256,6 @@ bool fuku_obfuscator::push_code(
 
 
         lines.insert(lines.end(), new_lines.begin(), new_lines.end());
-
-        lines_correction(this->lines, this->destination_virtual_address);
     }
 
     return false;
@@ -279,9 +277,9 @@ std::vector<uint8_t> fuku_obfuscator::obfuscate_code() {
 
     delete mutator;
 
+    
+    finalize_jmps();
     build_tables(this->lines, this->association_table, this->relocations, this->ip_relocations);
-    finalize_jmps(this->lines);
-
     return lines_to_bin(lines);
 }
 
@@ -299,7 +297,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
     fuku_asm_x86 fuku_asm;
 
     //generate blocks of lines
-    for (unsigned int line_idx = 0; line_idx < lines.size(); ) {
+    for (uint32_t line_idx = 0; line_idx < lines.size(); ) {
         std::vector<fuku_instruction> line_block;
 
 
@@ -345,11 +343,13 @@ void fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uin
     this->labels_cache.clear();
     this->labels_cache.resize(label_seed - 1);
 
-    for (auto &line : lines) {
+
+    for (uint32_t line_idx = 0; line_idx < lines.size(); line_idx++) {
+        auto &line = lines[line_idx];
         line.set_virtual_address(_virtual_address);
         _virtual_address += line.get_op_length();
 
-        if (line.get_label_id()) { labels_cache[line.get_label_id() - 1] = &line; }
+        if (line.get_label_id()) { labels_cache[line.get_label_id() - 1] = line_idx; }
     }
 }
 
@@ -430,7 +430,7 @@ fuku_instruction * fuku_obfuscator::get_line_by_label_id(unsigned int label_id) 
 
     if (this->labels_cache.size()) {
         if (label_id > 0 && label_id <= this->labels_cache.size()) {
-            return this->labels_cache[label_id - 1];
+            return &this->lines[this->labels_cache[label_id - 1]];
         }
     }
 
@@ -646,7 +646,7 @@ void fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines) {
     }
 }
 
-void fuku_obfuscator::finalize_jmps(std::vector<fuku_instruction>& lines) {
+void fuku_obfuscator::finalize_jmps() {
 
     for (auto &line : lines) {
 

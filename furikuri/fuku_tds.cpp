@@ -563,19 +563,14 @@ struct tds_sproc32 {
     uint32_t end;
     uint32_t next;
     uint32_t proc_size;
-    uint32_t unknown1;
+    uint32_t debug_start;
     uint32_t debug_proc_size;
     uint32_t start;
     uint16_t segment;
-    uint16_t unknown2;
-    uint16_t type;
-    uint16_t unknown3;
+    uint32_t type;
+    uint8_t  nearfar;
+    uint8_t  reserved;
     uint16_t name;
-    uint32_t unknown4;
-    uint16_t unknown5;
-    // for global only
-    uint8_t linker_name_len;
-    char linker_name[1];
 };
 
 struct tds_sblock32 {
@@ -769,7 +764,7 @@ struct tds_escaped_field {
     size_t size;
 };
 
-void fuku_tds::ParseModules(const uint8_t * start, const uint8_t * end) {
+void fuku_tds::parse_modules(const uint8_t * start, const uint8_t * end) {
 
     const tds_module_subsection * mod_ss = (const tds_module_subsection *)start;
 
@@ -785,15 +780,11 @@ void fuku_tds::ParseModules(const uint8_t * start, const uint8_t * end) {
     }
 }
 
-void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end) {
+void fuku_tds::parse_symbols(const uint8_t * start, const uint8_t * end) {
 
     const uint8_t * pos = start;
     const tds_ssearch * symbolSearch;
 
-    uint32_t codes = 0;
-    uint32_t datas = 0;
-
-    bool inProc;
     while (pos != end) {
 
         uint32_t size = *(uint16_t*)pos; pos += sizeof(uint16_t);
@@ -861,12 +852,10 @@ void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end) {
                 func.function_name = get_name_by_id(proc->name);
                 func.segment_id = proc->segment;
                 func.function_start = proc->start;
-                func.function_end = proc->start + proc->proc_size;
+                func.function_size = proc->proc_size;
+                func.function_debug_size = proc->debug_proc_size;
 
                 this->functions.push_back(func);
-
-                inProc = true;
-                codes++;
                 break;
             }
             case S_GPROC: {
@@ -876,12 +865,10 @@ void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end) {
                 func.function_name = get_name_by_id(proc->name);
                 func.segment_id = proc->segment;
                 func.function_start = proc->start;
-                func.function_end = proc->start + proc->proc_size;
+                func.function_size = proc->proc_size;
+                func.function_debug_size = proc->debug_proc_size;
 
                 this->functions.push_back(func);
-
-                inProc = true;
-                codes++;
                 break;
             }
             default:
@@ -895,19 +882,19 @@ void fuku_tds::ParseSymbols(const uint8_t * start, const uint8_t * end) {
     }
 }
 
-void fuku_tds::ParseAlignSym(uint8_t * start, uint8_t * end, int moduleIndex) {
+void fuku_tds::parse_alignsym(uint8_t * start, uint8_t * end, int moduleIndex) {
     uint8_t * pos = start;
     uint32_t unknown1 = *(uint32_t*)pos; pos += sizeof(uint32_t);
-    ParseSymbols(pos, end);
+    parse_symbols(pos, end);
 }
 
 
 
-void fuku_tds::ParseGlobalSym(uint8_t * start) {
+void fuku_tds::parse_globalsym(uint8_t * start) {
 
     const tds_global_sym_header * hdr = (tds_global_sym_header*)(start);
     const uint8_t * pos = start + sizeof(tds_global_sym_header);
-    ParseSymbols(pos, pos + hdr->cb_symbols);
+    parse_symbols(pos, pos + hdr->cb_symbols);
 }
 
 void fuku_tds::parse_src_module(uint8_t * start, uint8_t * end) {
@@ -1592,6 +1579,7 @@ fuku_tds::~fuku_tds()
 
 fuku_tds_result fuku_tds::load_from_file(const std::string& tds_path) {
 
+    fuku_tds_result result;
     std::vector<uint8_t> data;
 
     FILE* hfile;
@@ -1624,6 +1612,15 @@ fuku_tds_result fuku_tds::load_from_file(const std::string& tds_path) {
 }
 
 fuku_tds_result fuku_tds::load_from_data(const std::vector<uint8_t>& tds_data) {
+
+    this->names_pool.clear();
+    this->tds_data.clear();
+    this->segments.clear();
+    this->linenumbers.clear();
+    this->functions.clear();
+    this->datas.clear();
+    this->consts.clear();
+
     this->tds_data = tds_data;
 
     if (tds_data.size() < 0x100) { return fuku_tds_result::tds_result_error; }
@@ -1657,13 +1654,13 @@ fuku_tds_result fuku_tds::load_from_data(const std::vector<uint8_t>& tds_data) {
         switch (current_item->type) {
         
         case sst_module: {
-            ParseModules(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size]);
+            parse_modules(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size]);
 
             break;
         }
 
         case sst_alignsym: {
-            ParseAlignSym(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size],
+            parse_alignsym(&this->tds_data.data()[current_item->offset], &this->tds_data.data()[current_item->offset + current_item->size],
                 current_item->index);
 
             break;
@@ -1675,7 +1672,7 @@ fuku_tds_result fuku_tds::load_from_data(const std::vector<uint8_t>& tds_data) {
         }
 
         case sst_globalsym: {
-            ParseGlobalSym(&this->tds_data.data()[current_item->offset]);
+            parse_globalsym(&this->tds_data.data()[current_item->offset]);
             break;
         }
         case sst_globaltypes: {
@@ -1688,6 +1685,48 @@ fuku_tds_result fuku_tds::load_from_data(const std::vector<uint8_t>& tds_data) {
         }
         }
     }
+
+    std::sort(segments.begin(), segments.end(), [](fuku_tds_segment& lhs, fuku_tds_segment& rhs) {
+
+        if (lhs.segment_id < rhs.segment_id) {
+            return true;
+        }
+        else if (lhs.segment_id == rhs.segment_id &&
+            lhs.segment_start < rhs.segment_start) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    });
+
+    std::sort(functions.begin(), functions.end(), [](fuku_tds_function& lhs, fuku_tds_function& rhs) {
+
+        if (lhs.segment_id < rhs.segment_id) {
+            return true;
+        }
+        else if (lhs.segment_id == rhs.segment_id &&
+            lhs.function_start < rhs.function_start) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    });
+
+    std::sort(datas.begin(), datas.end(), [](fuku_tds_data& lhs, fuku_tds_data& rhs) {
+
+        if (lhs.segment_id < rhs.segment_id) {
+            return true;
+        }
+        else if (lhs.segment_id == rhs.segment_id &&
+            lhs.data_start < rhs.data_start) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    });
 
     return fuku_tds_result::tds_result_ok;
 }
@@ -1726,4 +1765,24 @@ uint32_t fuku_tds::get_id_by_name(const std::string &name) const {
     }
 
     return -1;
+}
+
+const std::vector<fuku_tds_segment>&     fuku_tds::get_segments() const {
+    return this->segments;
+}
+
+const std::vector<fuku_tds_linenumbers>& fuku_tds::get_linenumbers() const {
+    return this->linenumbers;
+}
+
+const std::vector<fuku_tds_function>&    fuku_tds::get_functions() const {
+    return this->functions;
+}
+
+const std::vector<fuku_tds_data>&        fuku_tds::get_datas() const {
+    return this->datas;
+}
+
+const std::vector<fuku_tds_const>&       fuku_tds::get_consts() const {
+    return this->consts;
 }
