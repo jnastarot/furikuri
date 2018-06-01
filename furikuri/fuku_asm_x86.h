@@ -132,9 +132,12 @@ public:
     fuku_instruction fuku_asm_x86::adc(fuku_reg86 dst, int32_t imm32);
     fuku_instruction fuku_asm_x86::adc(fuku_reg86 dst, fuku_operand86& src);
 
+    fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_operand86& src);
+    fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_immediate86& imm);
     fuku_instruction fuku_asm_x86::add(fuku_operand86& dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::add(fuku_operand86& dst,  fuku_immediate86& x);
+    
 
     fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, int32_t imm32);
     fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst,  fuku_immediate86& x);

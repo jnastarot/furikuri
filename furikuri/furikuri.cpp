@@ -47,22 +47,16 @@ bool furikuri::fuku_protect(const ob_fuku_sensitivity& settings,std::vector<uint
 
 bool furikuri::set_main_module(shibari_module* module, std::string module_path) {
     if (module) {
-        if (fuku_module_decoder(module, module_path).decode_module()) {
-            this->main_module = module;
-
-            return true;
-        }
+        this->main_module = module;
+        return true;
     }
     return false;
 }
 
 bool furikuri::add_extended_module(shibari_module* module, std::string module_path) {
     if (module) {
-        if (fuku_module_decoder(module, module_path).decode_module()) {
-            this->extended_modules.push_back(module);
-
-            return true;
-        }
+       this->extended_modules.push_back(module);
+       return true;
     }
     return false;
 }

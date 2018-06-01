@@ -211,9 +211,48 @@ bool fuku_mutation_x86::fukutate_jcc(std::vector<fuku_instruction>& lines, unsig
 }
 bool fuku_mutation_x86::fukutate_jmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
+    auto& target_line = lines[current_line_idx];
+
+    if (target_line.get_op_code()[0] == 0xE9) {
+
+        fuku_instruction l_push = f_asm.push_imm32(0); //push 00000000
+        l_push.set_flags(ob_fuku_instruction_has_relocation);
+
+        l_push.set_relocation_f_imm_offset(1);
+        l_push.set_relocation_f_id(0);
+
+        if (target_line.get_link_label_id()) { //internal jmp
+            l_push.set_relocation_f_label_id(target_line.get_link_label_id());
+        }
+        else { //external jmp
+            l_push.set_relocation_f_destination(target_line.get_ip_relocation_destination());
+        }
+
+        out_lines.push_back(l_push);
+        out_lines.push_back(f_asm.ret(0));//ret
+        return true;
+    }
+
     return false;
 }
 bool fuku_mutation_x86::fukutate_ret(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    auto& target_line = lines[current_line_idx];
+
+    if (target_line.get_op_code()[0] == 0xC3) { //ret
+
+        out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP,4)));//lea esp,[esp + (4 + stack_offset)]
+        out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP,-4)));           //jmp [esp - (4 + stack_offset)] 
+
+        return true;
+
+    } else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
+        uint16_t ret_stack = *(uint16_t*)target_line.get_op_code()[1];
+        out_lines.push_back(f_asm.add(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP,4 + ret_stack)));//lea esp,[esp + (4 + stack_offset)]
+        out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, - 4 - ret_stack)));          //jmp [esp - (4 + stack_offset)] 
+        
+        return true;
+    }
 
     return false;
 }

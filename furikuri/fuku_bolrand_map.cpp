@@ -123,8 +123,7 @@ void fuku_bolrand_map::parse_line(uint32_t line_idx, std::vector<std::string> &l
                         return;
                     }
                 }
-
-                item.public_class = fuku_map_public_class::map_public_class_unknown;
+           
                 item.public_name = line[1];
 
                 publics.push_back(item);
@@ -150,6 +149,22 @@ void fuku_bolrand_map::post_process_map(fuku_map& map) {
                 _pub.public_start < detailed_segment.segment_start + detailed_segment.segment_length) {
 
                 _pub.public_module_name = detailed_segment.segment_name;
+            }
+        }
+    }
+
+    for (auto& pub : publics) {
+        if (segments[pub.segment_id-1].segment_class == map_segment_class_code) {
+            if (pub.public_name.find("..")) {
+                if (pub.public_name.find("...")) {
+                    pub.public_class = fuku_map_public_class::map_public_class_code;
+                }
+                else {
+                    pub.public_class = fuku_map_public_class::map_public_class_data;
+                }
+            }
+            else {
+                pub.public_class = fuku_map_public_class::map_public_class_code;
             }
         }
     }

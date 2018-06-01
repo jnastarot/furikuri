@@ -20,13 +20,13 @@ struct fuku_code_list {
 };
 
 #include "fuku_instruction.h"
+#include "fuku_asm.h"
 #include "fuku_mutation.h"
 #include "fuku_obfuscator.h"
-#include "fuku_asm.h"
+
 
 #include "fuku_debug_info.h"
 
-#include "fuku_module_decoder.h"
 #include "fuku_protector.h"
 
 class furikuri {

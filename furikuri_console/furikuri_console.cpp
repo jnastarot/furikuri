@@ -58,7 +58,10 @@ int main(){
     if (fuku.set_main_module(&module)) {
         std::vector<uint8_t> out_image;
         
-        if (fuku.fuku_protect({ 1,1,10.f,10.f,10.f }, out_image)) {
+        module.get_code_symbols().push_back({ 0x1BC28C , 0x53 });
+
+
+        if (fuku.fuku_protect({ 1,2,30.f,30.f,30.f }, out_image)) {
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
 

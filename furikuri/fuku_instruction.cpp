@@ -13,8 +13,10 @@ fuku_instruction::fuku_instruction(){
     this->ip_relocation_disp_offset = 0;
     this->relocation_f_id         = 0;
     this->relocation_f_imm_offset = 0;   
+    this->relocation_f_destination = 0;
     this->relocation_s_id         = 0;
     this->relocation_s_imm_offset = 0;
+    this->relocation_s_destination = 0;
     this->label_id            = 0;
     this->link_label_id       = 0;
     this->relocation_f_label_id = 0;
@@ -45,8 +47,10 @@ fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
     this->ip_relocation_disp_offset = line.ip_relocation_disp_offset;
     this->relocation_f_id           = line.relocation_f_id;
     this->relocation_f_imm_offset = line.relocation_f_imm_offset;
+    this->relocation_f_destination = line.relocation_f_destination;
     this->relocation_s_id         = line.relocation_s_id;
     this->relocation_s_imm_offset = line.relocation_s_imm_offset;
+    this->relocation_s_destination = line.relocation_s_destination;
     this->label_id          = line.label_id;
     this->link_label_id     = line.link_label_id;
     this->relocation_f_label_id = line.relocation_f_label_id;
@@ -195,6 +199,12 @@ fuku_instruction&  fuku_instruction::set_relocation_f_imm_offset(uint8_t offset)
     return *this;
 }
 
+fuku_instruction&  fuku_instruction::set_relocation_f_destination(uint64_t dst) {
+    this->relocation_f_destination = dst;
+
+    return *this;
+}
+
 fuku_instruction&  fuku_instruction::set_relocation_s_id(uint32_t id) {
     this->relocation_s_id = id;
 
@@ -203,6 +213,12 @@ fuku_instruction&  fuku_instruction::set_relocation_s_id(uint32_t id) {
 
 fuku_instruction&  fuku_instruction::set_relocation_s_imm_offset(uint8_t offset) {
     this->relocation_s_imm_offset = offset;
+
+    return *this;
+}
+
+fuku_instruction&  fuku_instruction::set_relocation_s_destination(uint64_t dst) {
+    this->relocation_s_destination = dst;
 
     return *this;
 }
@@ -288,13 +304,18 @@ uint32_t fuku_instruction::get_relocation_f_id() const {
 uint8_t	 fuku_instruction::get_relocation_f_imm_offset() const {
     return this->relocation_f_imm_offset;
 }
+uint64_t fuku_instruction::get_relocation_f_destination() const {
+    return this->relocation_f_destination;
+}
 uint32_t fuku_instruction::get_relocation_s_id() const {
     return this->relocation_s_id;
 }
 uint8_t	 fuku_instruction::get_relocation_s_imm_offset() const {
     return this->relocation_s_imm_offset;
 }
-
+uint64_t fuku_instruction::get_relocation_s_destination() const {
+    return this->relocation_s_destination;
+}
 uint32_t fuku_instruction::get_label_id() const {
     return this->label_id;
 }

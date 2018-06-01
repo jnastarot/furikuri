@@ -4,6 +4,7 @@
 class fuku_mutation_x86 : 
     public fuku_mutation {
 
+    fuku_asm_x86 f_asm;
     ob_fuku_sensitivity settings;
     fuku_obfuscator * obfuscator;
 

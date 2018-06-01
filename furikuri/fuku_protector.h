@@ -11,7 +11,6 @@ class fuku_protector {
     void                  fuku_protector::sort_assoc();
     ob_fuku_association * fuku_protector::find_assoc(uint64_t rva);
 
-    void    fuku_protector::calc_zones();
     bool    fuku_protector::start_initialize_zones();
     bool    fuku_protector::finish_initialize_zones();
 public:

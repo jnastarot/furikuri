@@ -39,9 +39,6 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_asm\x64">
       <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_module_decoder">
-      <UniqueIdentifier>{67518992-ebe3-4cb6-822b-515e3ec8745f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info">
       <UniqueIdentifier>{e2046fc9-1775-4911-943d-a11ecec9e5a7}</UniqueIdentifier>
     </Filter>
@@ -110,9 +107,6 @@
     <ClInclude Include="fuku_bolrand_map.h">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand</Filter>
     </ClInclude>
-    <ClInclude Include="fuku_module_decoder.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_module_decoder</Filter>
-    </ClInclude>
     <ClInclude Include="fuku_debug_info.h">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info</Filter>
     </ClInclude>
@@ -159,9 +153,6 @@
     </ClCompile>
     <ClCompile Include="fuku_bolrand_map.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand</Filter>
-    </ClCompile>
-    <ClCompile Include="fuku_module_decoder.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_module_decoder</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

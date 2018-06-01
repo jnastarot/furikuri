@@ -22,9 +22,12 @@ class fuku_instruction {
 
     //relocations
     uint32_t relocation_f_id;	            //set if has reloc from initialize reloc table					
-    uint8_t	 relocation_f_imm_offset;     //offset to reloc imm
+    uint8_t	 relocation_f_imm_offset;       //offset to reloc imm
+    uint64_t relocation_f_destination;      //destination address va where references         
+
     uint32_t relocation_s_id;	            //set if has reloc from initialize reloc table					
-    uint8_t	 relocation_s_imm_offset;     //offset to reloc imm
+    uint8_t	 relocation_s_imm_offset;       //offset to reloc imm
+    uint64_t relocation_s_destination;      //destination address va where references         
 
 
     //labels
@@ -57,9 +60,10 @@ public:
 
     fuku_instruction&  fuku_instruction::set_relocation_f_id(uint32_t id);
     fuku_instruction&  fuku_instruction::set_relocation_f_imm_offset(uint8_t offset);
+    fuku_instruction&  fuku_instruction::set_relocation_f_destination(uint64_t dst);
     fuku_instruction&  fuku_instruction::set_relocation_s_id(uint32_t id);
     fuku_instruction&  fuku_instruction::set_relocation_s_imm_offset(uint8_t offset);
-
+    fuku_instruction&  fuku_instruction::set_relocation_s_destination(uint64_t dst);
 
     fuku_instruction&  fuku_instruction::set_label_id(uint32_t id);
     fuku_instruction&  fuku_instruction::set_link_label_id(uint32_t id);
@@ -84,8 +88,10 @@ public:
 
     uint32_t fuku_instruction::get_relocation_f_id() const;
     uint8_t	 fuku_instruction::get_relocation_f_imm_offset() const;
+    uint64_t fuku_instruction::get_relocation_f_destination() const;
     uint32_t fuku_instruction::get_relocation_s_id() const;
     uint8_t	 fuku_instruction::get_relocation_s_imm_offset() const;
+    uint64_t fuku_instruction::get_relocation_s_destination() const;
 
     uint32_t fuku_instruction::get_label_id() const;
     uint32_t fuku_instruction::get_link_label_id() const;

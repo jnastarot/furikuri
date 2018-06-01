@@ -587,11 +587,19 @@ fuku_instruction fuku_asm_x86::adc(fuku_reg86 dst, fuku_operand86& src) {
     return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADC).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
 }
 
+fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_reg86 src) {
+    return add(dst, fuku_operand86(src));
+}
+
 fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_operand86& src) {
     clear_space();
     emit_b(0x03);
     emit_operand(dst, src);
     return fuku_instruction().set_op_code(bytecode, length).set_type(I_ADD).set_modified_flags(D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF).set_tested_flags(0);
+}
+
+fuku_instruction fuku_asm_x86::add(fuku_reg86 dst, fuku_immediate86& imm) { 
+    return add(fuku_operand86(dst), imm);
 }
 
 fuku_instruction fuku_asm_x86::add(fuku_operand86& dst, fuku_reg86 src) {
