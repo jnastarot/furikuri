@@ -123,7 +123,7 @@ bool fuku_obfuscator::analyze_code(
                 if (line) {
                     line->set_flags(line->get_flags() | ob_fuku_instruction_has_relocation);
 
-                    if (line->get_relocation_f_imm_offset()) {
+                    if (!line->get_relocation_f_imm_offset()) {
                         line->set_relocation_f_id(reloc.relocation_id);
                         line->set_relocation_f_imm_offset((uint8_t)(reloc.virtual_address - line->get_virtual_address()));
 
@@ -133,9 +133,7 @@ bool fuku_obfuscator::analyze_code(
                         else {
                             line->set_relocation_f_destination(*(uint64_t*)&line->get_op_code()[line->get_relocation_f_imm_offset()]);
                         }
-                    }
-
-                    if (line->get_relocation_s_imm_offset()) {
+                    }else if (!line->get_relocation_s_imm_offset()) {
                         line->set_relocation_s_id(reloc.relocation_id);
                         line->set_relocation_s_imm_offset((uint8_t)(reloc.virtual_address - line->get_virtual_address()));
 

@@ -135,29 +135,30 @@ bool    fuku_protector::finish_initialize_zones() {
     
     uint64_t base_address = module->get_image().get_image_base();
 
+    for (auto& reloc : image_relocs.get_items()) {
+        reloc.data = 0;
+        if (image_io.set_image_offset(reloc.relative_virtual_address).read(
+            &reloc.data, module->get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
+
+            return false;
+        }
+        reloc.data = this->module->get_image().va_to_rva(reloc.data);
+    }
+
+
     for (auto& code : code_list.code_placement) {
         for (auto& reloc : image_relocs.get_items()) {
 
-            uint64_t rel_dst = 0;
-            image_io.set_image_offset(reloc.relative_virtual_address).read(&rel_dst, sizeof(rel_dst));
+            if (reloc.data  > code.symbol_info_rva &&
+                reloc.data < (code.symbol_info_rva + code.symbol_info_size)) {
 
-
-            if (image_io.set_image_offset(reloc.relative_virtual_address).read(
-                &rel_dst, module->get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
-
-                return false;
-            }
-
-            if (rel_dst > code.symbol_info_rva &&
-                rel_dst < (code.symbol_info_rva + code.symbol_info_size)) {
-
-                ob_fuku_association * assoc = find_assoc(rel_dst);
+                ob_fuku_association * assoc = find_assoc(this->module->get_image().rva_to_va(reloc.data));
 
                 if (assoc) {
-                    rel_dst = assoc->virtual_address;
+                    reloc.data = assoc->virtual_address;
 
                     if (image_io.set_image_offset(reloc.relative_virtual_address).write(
-                        &rel_dst, module->get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
+                        &reloc.data, module->get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
 
                         return false;
                     }

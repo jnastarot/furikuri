@@ -58,7 +58,9 @@ int main(){
     if (fuku.set_main_module(&module)) {
         std::vector<uint8_t> out_image;
         
-        module.get_code_symbols().push_back({ 0x1BC28C , 0x53 });
+
+        auto& symbols_code = module.get_code_symbols();
+        symbols_code.push_back({ 0x1BC28C , 0x53 });
 
 
         if (fuku.fuku_protect({ 1,2,30.f,30.f,30.f }, out_image)) {
