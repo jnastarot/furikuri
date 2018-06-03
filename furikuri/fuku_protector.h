@@ -1,8 +1,7 @@
 #pragma once
 class fuku_protector {
-    std::vector<ob_fuku_association>   assoc_table;
-    std::vector<ob_fuku_relocation>    reloc_table;
-    std::vector<ob_fuku_ip_relocation> ip_reloc_table;
+    std::vector<ob_fuku_association>   association_table;
+    std::vector<ob_fuku_relocation>    relocation_table;
     fuku_obfuscator obfuscator;
     
     shibari_module * module;

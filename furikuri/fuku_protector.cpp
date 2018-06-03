@@ -10,9 +10,8 @@ fuku_protector::fuku_protector(shibari_module * module, const ob_fuku_sensitivit
         module->get_image().is_x32_image() ? ob_fuku_arch::ob_fuku_arch_x32 : ob_fuku_arch::ob_fuku_arch_x64
     );
     obfuscator.set_settings(settings);
-    obfuscator.set_association_table(&assoc_table);
-    obfuscator.set_relocation_table(&reloc_table);
-    obfuscator.set_ip_relocation_table(&ip_reloc_table);
+    obfuscator.set_association_table(&association_table);
+    obfuscator.set_relocation_table(&relocation_table);
 }
 
 
@@ -186,7 +185,7 @@ bool    fuku_protector::finish_initialize_zones() {
         }
     }
 
-    for (auto& reloc : reloc_table) {
+    for (auto& reloc : relocation_table) {
         image_relocs.add_item(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
     }
 
@@ -219,7 +218,7 @@ bool    fuku_protector::finish_initialize_zones() {
 }
 
 void fuku_protector::sort_assoc() {
-    std::sort(assoc_table.begin(), assoc_table.end(), [](ob_fuku_association& lhs, ob_fuku_association& rhs) {
+    std::sort(association_table.begin(), association_table.end(), [](ob_fuku_association& lhs, ob_fuku_association& rhs) {
         return lhs.prev_virtual_address < rhs.prev_virtual_address;
     });
 }
@@ -227,16 +226,16 @@ void fuku_protector::sort_assoc() {
 ob_fuku_association * fuku_protector::find_assoc(uint64_t rva) {
 
     size_t left = 0;
-    size_t right = assoc_table.size();
+    size_t right = association_table.size();
     size_t mid = 0;
 
     while (left < right) {
         mid = left + (right - left) / 2;
 
-        if (assoc_table[mid].prev_virtual_address == rva) {
-            return &assoc_table[mid];
+        if (association_table[mid].prev_virtual_address == rva) {
+            return &association_table[mid];
         }
-        else if (assoc_table[mid].prev_virtual_address > rva) {
+        else if (association_table[mid].prev_virtual_address > rva) {
             right = mid;
         }
         else {

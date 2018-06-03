@@ -51,7 +51,7 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    shibari_module module(std::string("..\\..\\app for test\\Project1.exe"));
+    shibari_module module(std::string("..\\..\\app for test\\swhtest.exe"));
 
     furikuri fuku;
 
@@ -60,10 +60,11 @@ int main(){
         
 
         auto& symbols_code = module.get_code_symbols();
-        symbols_code.push_back({ 0x1BC28C , 0x53 });
+        symbols_code.push_back({ 0x1110 , 0x123 });
+        symbols_code.push_back({ 0x14A0 , 0x87 });
+        
 
-
-        if (fuku.fuku_protect({ 1,2,30.f,30.f,30.f }, out_image)) {
+        if (fuku.fuku_protect({ 1,2,90.f,90.f,90.f }, out_image)) {
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
 
