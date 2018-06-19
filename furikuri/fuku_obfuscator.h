@@ -49,6 +49,7 @@ class fuku_obfuscator {
     void    fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines);
     void    fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     void    fuku_obfuscator::finalize_code();
+    void    fuku_obfuscator::useless_flags_profiler(); 
 
     fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     fuku_instruction * fuku_obfuscator::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);

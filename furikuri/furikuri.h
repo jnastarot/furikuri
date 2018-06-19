@@ -23,10 +23,8 @@ struct fuku_code_list {
 #include "fuku_asm.h"
 #include "fuku_mutation.h"
 #include "fuku_obfuscator.h"
-
-
+#include "fuku_virtual_machine.h"
 #include "fuku_debug_info.h"
-
 #include "fuku_protector.h"
 
 class furikuri {

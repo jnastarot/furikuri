@@ -51,7 +51,8 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    shibari_module module(std::string("..\\..\\app for test\\swhtest.exe"));
+    /*
+    shibari_module module(std::string("..\\..\\app for test\\linked_programm.exe"));
 
     furikuri fuku;
 
@@ -60,9 +61,7 @@ int main(){
         
 
         auto& symbols_code = module.get_code_symbols();
-        symbols_code.push_back({ 0x1110 , 0x123 });
-        symbols_code.push_back({ 0x14A0 , 0x87 });
-        
+        symbols_code.push_back({ 0x10F9 , 0x139 });
 
         if (fuku.fuku_protect({ 1,2,90.f,90.f,90.f }, out_image)) {
             FILE* hTargetFile;
@@ -75,13 +74,13 @@ int main(){
         }
     }
 
-
+    //*/
    
 
 
 
 
-    /*
+    
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
     for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {
@@ -109,8 +108,7 @@ int main(){
 
         obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
-        obfuscator.set_complexity(5);
-        obfuscator.set_number_of_passes(5);
+        obfuscator.set_settings({ 1,2,90.f,90.f,90.f });
         obfuscator.set_relocation_table(&relocations);
 
                 
@@ -145,7 +143,7 @@ int main(){
         printf("good!\n");
         delete[] __obf_unpacker_;
     }
-    */
+    //*/
     return 0;
 }
 

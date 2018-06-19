@@ -122,7 +122,6 @@ public:
     fuku_instruction fuku_asm_x86::xchg(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::xchg_b(fuku_reg86 reg, fuku_operand86& op);
     fuku_instruction fuku_asm_x86::xchg_w(fuku_reg86 reg, fuku_operand86& op);
-    fuku_instruction fuku_asm_x86::lock();
     fuku_instruction fuku_asm_x86::cmpxchg(fuku_operand86& dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::cmpxchg_b(fuku_operand86& dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::cmpxchg_w(fuku_operand86& dst, fuku_reg86 src);
@@ -186,6 +185,7 @@ public:
     fuku_instruction fuku_asm_x86::not_(fuku_reg86 dst);
     fuku_instruction fuku_asm_x86::not_(fuku_operand86& dst);
 
+    fuku_instruction fuku_asm_x86::or_(fuku_reg86 dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::or_(fuku_reg86 dst, int32_t imm32);
     fuku_instruction fuku_asm_x86::or_(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::or_(fuku_operand86& dst,  fuku_immediate86& x);
@@ -207,6 +207,7 @@ public:
     fuku_instruction fuku_asm_x86::shrd(fuku_reg86 dst, fuku_reg86 src, uint8_t shift);
     fuku_instruction fuku_asm_x86::shrd_cl(fuku_operand86& dst, fuku_reg86 src);
 
+    fuku_instruction fuku_asm_x86::sub(fuku_reg86 dst, fuku_immediate86& x);
     fuku_instruction fuku_asm_x86::sub(fuku_operand86& dst,  fuku_immediate86& x);
     fuku_instruction fuku_asm_x86::sub(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::sub(fuku_operand86& dst, fuku_reg86 src);
@@ -221,6 +222,7 @@ public:
     fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_operand86& op);
     fuku_instruction fuku_asm_x86::test_w(fuku_operand86& op, fuku_immediate86& imm16);
 
+    fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, int32_t imm32);
     fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::xor_(fuku_operand86& dst, fuku_reg86 src);

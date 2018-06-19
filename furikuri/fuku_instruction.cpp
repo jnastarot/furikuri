@@ -25,6 +25,7 @@ fuku_instruction::fuku_instruction(){
     this->type               = 0;
     this->modified_flags     = 0;
     this->tested_flags       = 0;
+    this->useless_flags      = 0;
 }
 
 fuku_instruction::fuku_instruction(const fuku_instruction& line) {
@@ -59,7 +60,7 @@ fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
     this->type              = line.type;
     this->modified_flags    = line.modified_flags;
     this->tested_flags      = line.tested_flags;
-
+    this->useless_flags     = line.useless_flags;
 
     return *this;
 }
@@ -270,6 +271,12 @@ fuku_instruction&  fuku_instruction::set_tested_flags(uint16_t tested_flags) {
     return *this;
 }
 
+fuku_instruction&  fuku_instruction::set_useless_flags(uint16_t useless_flags) {
+    this->useless_flags = useless_flags;
+
+    return *this;
+}
+
 const uint8_t* fuku_instruction::get_op_code() const {
     return this->op_code;
 }
@@ -346,4 +353,8 @@ uint16_t fuku_instruction::get_modified_flags() const {
 
 uint16_t fuku_instruction::get_tested_flags() const {
     return this->tested_flags;
+}
+
+uint16_t fuku_instruction::get_useless_flags() const {
+    return this->useless_flags;
 }

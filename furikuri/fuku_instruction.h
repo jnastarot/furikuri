@@ -41,6 +41,7 @@ class fuku_instruction {
     uint16_t type;
     uint16_t modified_flags;
     uint16_t tested_flags;
+    uint16_t useless_flags;
 
     uint8_t fuku_instruction::get_prefixes_number();
 public:
@@ -75,6 +76,7 @@ public:
     fuku_instruction&  fuku_instruction::set_type(uint16_t type);
     fuku_instruction&  fuku_instruction::set_modified_flags(uint16_t modified_flags);
     fuku_instruction&  fuku_instruction::set_tested_flags(uint16_t tested_flags);
+    fuku_instruction&  fuku_instruction::set_useless_flags(uint16_t useless_flags);
 public:
     const uint8_t* fuku_instruction::get_op_code() const;
     uint8_t  fuku_instruction::get_op_length() const;
@@ -103,6 +105,7 @@ public:
     uint16_t fuku_instruction::get_type() const;
     uint16_t fuku_instruction::get_modified_flags() const;
     uint16_t fuku_instruction::get_tested_flags() const;
+    uint16_t fuku_instruction::get_useless_flags() const;
 public:
     void fuku_instruction::set_jump_imm(uint64_t destination_virtual_address);
 

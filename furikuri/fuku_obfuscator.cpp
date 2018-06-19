@@ -306,6 +306,8 @@ std::vector<uint8_t> fuku_obfuscator::obfuscate_code() {
         (fuku_mutation*)(new fuku_mutation_x86(settings, this)) : (fuku_mutation*)(new fuku_mutation_x64(settings, this));
 
 
+    useless_flags_profiler();
+
     for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
         lines_correction(lines, destination_virtual_address);
@@ -344,7 +346,8 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
                 fuku_instruction jmp_instruction = fuku_asm.jmp(0);             
                 jmp_instruction.set_link_label_id(set_label(lines[line_idx]));//add jmp to next instruction
                 jmp_instruction.set_ip_relocation_disp_offset(1);
-                jmp_instruction.set_tested_flags(lines[line_idx].get_tested_flags());
+                jmp_instruction.set_useless_flags(lines[line_idx].get_useless_flags());
+
                 line_block.push_back(jmp_instruction);
                 break;
             }
@@ -647,6 +650,40 @@ void fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines) {
             default: {break; }
             }
         }
+    }
+}
+
+void fuku_obfuscator::useless_flags_profiler() {
+
+    for (uint32_t line_idx = 0; line_idx < lines.size();line_idx++) {
+
+        uint16_t useless_flags = 0;
+
+        if (line_idx + 1 < lines.size()) {
+
+            for (uint32_t next_line_idx = line_idx + 1; next_line_idx < lines.size(); next_line_idx++) {
+
+                if (useless_flags == 0xED5 || lines[next_line_idx].get_tested_flags()) { break; }
+
+                uint16_t type = lines[next_line_idx].get_type();
+
+                switch (type)
+                {
+                    case I_IRET :case I_JMP :case I_JMP_FAR : case I_RET:{
+                         goto routine_exit;
+                    }
+
+                        default: {
+                            break;
+                        }
+                }
+
+                useless_flags |= lines[next_line_idx].get_modified_flags();
+            }
+        routine_exit:;
+        }
+            
+        lines[line_idx].set_useless_flags(useless_flags);
     }
 }
 

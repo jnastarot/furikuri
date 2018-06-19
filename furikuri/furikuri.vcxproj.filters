@@ -57,6 +57,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\msvc">
       <UniqueIdentifier>{40b42aa9-6851-47b5-bde7-364512ae3286}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_vm">
+      <UniqueIdentifier>{b10e78d1-0510-4dbb-94cd-b99a543cb725}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -110,6 +113,9 @@
     <ClInclude Include="fuku_debug_info.h">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_virtual_machine.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_vm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -153,6 +159,9 @@
     </ClCompile>
     <ClCompile Include="fuku_bolrand_map.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_virtual_machine.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_vm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
