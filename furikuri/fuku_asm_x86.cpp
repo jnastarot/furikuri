@@ -175,10 +175,10 @@ void fuku_asm_x86::emit_dw(const fuku_immediate86& x) {
 
 void fuku_asm_x86::emit_arith(int sel, fuku_operand86& dst, const fuku_immediate86& x) {
 
-    if (x.is_imm_8()) {
+    if ( std::abs((int32_t)x.get_imm()) < 128 ) {
         emit_b(0x83);
         emit_operand(fuku_reg86(sel), dst);
-        emit_b(x);
+        emit_b((int32_t)x.get_imm());
     }
     else if (dst.get_reg() == fuku_reg86::r_EAX) {
         emit_b((sel << 3) | 0x05);
@@ -619,6 +619,10 @@ fuku_instruction fuku_asm_x86::add(fuku_operand86& dst, fuku_immediate86& x) {
 fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, int32_t imm32) {
     and_(dst, fuku_immediate86(imm32));
     return fuku_instruction().set_op_code(bytecode, length).set_type(I_AND).set_modified_flags(D_OF | D_CF | D_SF | D_ZF | D_PF).set_tested_flags(0);
+}
+
+fuku_instruction fuku_asm_x86::and_(fuku_reg86 dst, fuku_reg86 src) {
+    return and_(dst, fuku_operand86(src));
 }
 
 
@@ -1074,6 +1078,10 @@ fuku_instruction fuku_asm_x86::shrd_cl(fuku_operand86& dst, fuku_reg86 src) {
 
 fuku_instruction fuku_asm_x86::sub(fuku_reg86 dst, fuku_immediate86& x) { 
    return sub(fuku_operand86(dst), x);
+}
+
+fuku_instruction fuku_asm_x86::sub(fuku_reg86 dst, fuku_reg86 src) {
+    return sub(dst, fuku_operand86(src));
 }
 
 fuku_instruction fuku_asm_x86::sub(fuku_operand86& dst, fuku_immediate86& x) {

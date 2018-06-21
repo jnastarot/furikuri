@@ -182,7 +182,7 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
 
 
 bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
-   // return false;
+
     auto& target_line = lines[current_line_idx];
     const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
 
@@ -225,13 +225,182 @@ bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsi
 }
 bool fuku_mutation_x86::fukutate_pop(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
+
+    auto& target_line = lines[current_line_idx];
+    const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
+
+     if (code[0] & 0x50 == 0x50) {
+        fuku_reg86 reg = fuku_reg86(code[0] % 8);
+
+        
+        out_lines.push_back(f_asm.mov(reg,fuku_operand86(fuku_reg86::r_ESP, operand_scale::operand_scale_1)).set_useless_flags(target_line.get_useless_flags()));
+        out_lines.push_back(f_asm.add(fuku_reg86::r_ESP, fuku_immediate86(4)).set_useless_flags(target_line.get_useless_flags()));
+
+        /*
+        //mov reg,[esp]
+        //add esp,4
+        */
+        return true;
+    }
+
     return false;
 }
 bool fuku_mutation_x86::fukutate_add(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
+
+    auto& target_line = lines[current_line_idx];
+
+    if ( (target_line.get_modified_flags() & target_line.get_useless_flags()) == target_line.get_modified_flags()) {
+        const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
+
+        if (code[0] == 0x05 ||  //add reg,imm
+            ((code[0] == 0x81 || code[0] == 0x83) && (code[1] >= 0xC0 && code[1] < 0xC8)) ) {
+
+            fuku_reg86 reg1;
+            uint32_t val;
+
+            if (code[0] == 0x05) {
+                reg1 = fuku_reg86::r_EAX;
+                val = *(uint32_t*)&code[1];
+            }
+            else {
+                reg1 = fuku_reg86(code[1] - 0xC0);
+                if (code[0] == 0x81) {
+                    val = *(uint32_t*)&code[2];
+                }
+                else {
+                    val = *(int8_t*)&code[2];
+                }
+            }
+
+
+            switch (FUKU_GET_RAND(1, 2)) {
+            case 1: {
+                unsigned int passes_number = FUKU_GET_RAND(2, 4);
+                uint32_t current_val = 0;
+
+                for (unsigned int pass = 0; pass < passes_number; pass++ ) {
+
+                    switch (FUKU_GET_RAND(1, 2)) {
+
+                    case 1: {
+                        if (pass + 1 < passes_number) {
+                            uint32_t rand_val = FUKU_GET_RAND(0, 0xFFFFFFFF);
+                            out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(rand_val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val -= rand_val;
+                        }
+                        else {
+                            out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(current_val - val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val -= current_val - val;
+                        }
+                        break;
+                    }
+                    case 2: {
+                        if (pass + 1 < passes_number) {
+                            uint32_t rand_val = FUKU_GET_RAND(0, 0xFFFFFFFF);
+                            out_lines.push_back(f_asm.add(reg1, fuku_immediate86(rand_val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val += rand_val;
+                        }
+                        else {
+                            out_lines.push_back(f_asm.add(reg1, fuku_immediate86(val - current_val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val += val - current_val;                       
+                        }
+                        break;
+                    }
+                    }
+                }
+                break;
+            }
+
+            case 2: {
+                out_lines.push_back(f_asm.sub(reg1, fuku_immediate86((-(int32_t)val))).set_useless_flags(target_line.get_useless_flags()));
+                break;
+            }
+            }
+            
+
+            return true;
+        }
+    }
+
     return false;
 }
 bool fuku_mutation_x86::fukutate_sub(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    auto& target_line = lines[current_line_idx];
+
+    if ((target_line.get_modified_flags() & target_line.get_useless_flags()) == target_line.get_modified_flags()) {
+        const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
+
+        if (code[0] == 0x2D ||  //sub reg,imm
+            ((code[0] == 0x81 || code[0] == 0x83) && (code[1] >= 0xE8 && code[1] < 0xF0))) {
+
+            fuku_reg86 reg1;
+            uint32_t val;
+
+            if (code[0] == 0x2D) {
+                reg1 = fuku_reg86::r_EAX;
+                val = *(uint32_t*)&code[1];
+            }
+            else {
+                reg1 = fuku_reg86(code[1] - 0xE8);
+                if (code[0] == 0x81) {
+                    val = *(uint32_t*)&code[2];
+                }
+                else {
+                    val = *(int8_t*)&code[2];
+                }
+            }
+            val = -(int32_t)val;
+
+            switch (FUKU_GET_RAND(1, 2)) {
+            case 1: {
+                unsigned int passes_number = FUKU_GET_RAND(2, 4);
+                uint32_t current_val = 0;
+
+                for (unsigned int pass = 0; pass < passes_number; pass++) {
+
+                    switch (FUKU_GET_RAND(1, 2)) {
+
+                    case 1: {
+                        if (pass + 1 < passes_number) {
+                            uint32_t rand_val = FUKU_GET_RAND(0, 0xFFFFFFFF);
+                            out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(rand_val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val -= rand_val;
+                        }
+                        else {
+                            out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(current_val - val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val -= current_val - val;
+                        }
+                        break;
+                    }
+                    case 2: {
+                        if (pass + 1 < passes_number) {
+                            uint32_t rand_val = FUKU_GET_RAND(0, 0xFFFFFFFF);
+                            out_lines.push_back(f_asm.add(reg1, fuku_immediate86(rand_val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val += rand_val;
+                        }
+                        else {
+                            out_lines.push_back(f_asm.add(reg1, fuku_immediate86(val - current_val)).set_useless_flags(target_line.get_useless_flags()));
+                            current_val += val - current_val;
+                        }
+                        break;
+                    }
+                    }
+                }
+                break;
+            }
+
+            case 2: {
+                out_lines.push_back(f_asm.sub(reg1, fuku_immediate86((-(int32_t)val))).set_useless_flags(target_line.get_useless_flags()));
+                break;
+            }
+            }
+
+
+            return true;
+        }
+    }
 
     return false;
 }
@@ -252,7 +421,7 @@ bool fuku_mutation_x86::fukutate_and(std::vector<fuku_instruction>& lines, unsig
 
         if (
             (code[0] == 0x21 || code[0] == 0x23) && code[1] >= 0xC0) { //and reg_dw, reg_dw
-            fuku_reg86 reg1 = fuku_reg86( (code[1] - 0xC0) & 0x0F);
+            fuku_reg86 reg1 = fuku_reg86( (code[1] - 0xC0) % 8);
             fuku_reg86 reg2 = fuku_reg86( (code[1] - 0xC0) / 8);
             fuku_reg86 reg3 = fuku_reg86::r_EAX;
 
@@ -338,6 +507,10 @@ bool fuku_mutation_x86::fukutate_inc(std::vector<fuku_instruction>& lines, unsig
             fuku_reg86 reg = fuku_reg86(code[0] & 0x0F);
             fuku_instruction l_res;
 
+            /*
+            (add reg,FFFFFFFF) or (sub reg,1)
+            */
+
             if (FUKU_GET_CHANCE(50.f)) {
                 l_res = f_asm.add(reg, fuku_immediate86(1));
             }
@@ -368,6 +541,10 @@ bool fuku_mutation_x86::fukutate_dec(std::vector<fuku_instruction>& lines, unsig
             fuku_reg86 reg = fuku_reg86((code[0] & 0x0F) - 8);
             fuku_instruction l_res;
 
+            /*
+            (add reg,1) or (sub reg,FFFFFFFF)
+            */
+
             if (FUKU_GET_CHANCE(50.f)) {
                 l_res = f_asm.add(reg, fuku_immediate86(0xFFFFFFFF));
             }
@@ -389,22 +566,184 @@ bool fuku_mutation_x86::fukutate_dec(std::vector<fuku_instruction>& lines, unsig
 }
 bool fuku_mutation_x86::fukutate_test(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
-    /*
-    push reg1
-    and reg1,reg2
-    pop reg1
-    */
+    auto& target_line = lines[current_line_idx];
+    const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
+
+    if (code[0] == 0x85 && (code[1] >= 0xC0 && code[1] < 0xC8)) { //test reg1,reg2
+        fuku_reg86 reg1 = fuku_reg86((code[1] - 0xC0) % 8);
+        fuku_reg86 reg2 = fuku_reg86((code[1] - 0xC0) / 8);
+
+        if (reg1 == fuku_reg86::r_ESP) {
+            fuku_reg86 reg3;
+            for (reg3 = fuku_reg86::r_EAX; reg3 < fuku_reg86::r_EBX; reg3 = fuku_reg86(reg3 + 1)) {}
+
+            out_lines.push_back(f_asm.push(reg3).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.mov(reg3, reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.lea(reg3, fuku_operand86(reg3, operand_scale::operand_scale_1, 4)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.and_(reg3, reg2).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg3));
+
+            /*
+            push reg3
+            mov reg3,reg1
+            lea reg3, [reg3 + 4]
+            and reg3,reg2
+            pop reg3
+            */
+        }
+        else {
+            out_lines.push_back(f_asm.push(reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.and_(reg1, reg2).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg1));
+            /*
+            push reg1
+            and reg1,reg2
+            pop reg1
+            */
+        }
+
+        return true;
+    }
+    else if (code[0] == 0xA9 || (code[0] == 0xF7 && code[1] >= 0xC0 && code[1] < 0xC8)) { //test reg, imm
+        fuku_reg86 reg1;
+        uint32_t val;
+        if (code[0] == 0xA9) {
+            reg1 = fuku_reg86::r_EAX;
+            val = *(uint32_t*)&code[1];
+        }
+        else {
+            reg1 = fuku_reg86(code[1] - 0xC0);
+            val = *(uint32_t*)&code[2];
+        }
+
+        if (reg1 == fuku_reg86::r_ESP) {
+            fuku_reg86 reg2;
+            for (reg2 = fuku_reg86::r_EAX; reg2 < fuku_reg86::r_EBX; reg2 = fuku_reg86(reg2 + 1)) {}
+
+            out_lines.push_back(f_asm.push(reg2).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.mov(reg2, reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.lea(reg2, fuku_operand86(reg2, operand_scale::operand_scale_1, 4)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.and_(reg2, fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg2));
+
+            /*
+            push reg2
+            mov reg2,reg1
+            lea reg2, [reg2 + 4]
+            sub reg2,imm
+            pop reg3
+            */
+        }
+        else {
+            out_lines.push_back(f_asm.push(reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.and_(reg1, fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg1));
+
+            /*
+            push reg
+            and reg, imm
+            pop reg
+            */
+        }
+        return true;
+    }
+
 
 
     return false;
 }
 bool fuku_mutation_x86::fukutate_cmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
-    /*
-    push reg1
-    sub reg1,reg2
-    pop reg1
-    */
+    auto& target_line = lines[current_line_idx];
+    const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
+
+    if ( (code[0] == 0x39 || code[0] == 0x3B) && (code[1] >= 0xC0 && code[1] < 0xC8)) { //cmp reg1,reg2
+        fuku_reg86 reg1 = fuku_reg86((code[1] - 0xC0) % 8);
+        fuku_reg86 reg2 = fuku_reg86((code[1] - 0xC0) / 8);
+
+        if (code[0] == 0x3B) {
+            std::swap(reg1, reg2);
+        }
+
+
+        if (reg1 == fuku_reg86::r_ESP) {
+            fuku_reg86 reg3;
+            for (reg3 = fuku_reg86::r_EAX; reg3 < fuku_reg86::r_EBX; reg3 = fuku_reg86(reg3 + 1)) {}
+
+
+            out_lines.push_back(f_asm.push(reg3).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.mov(reg3,reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.lea(reg3, fuku_operand86(reg3,operand_scale::operand_scale_1,4)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.sub(reg3, reg2).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg3));
+
+            /*
+            push reg3
+            mov reg3,reg1
+            lea reg3, [reg3 + 4]
+            sub reg3,reg2
+            pop reg3
+            */
+        }
+        else {
+            out_lines.push_back(f_asm.push(reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.sub(reg1, reg2).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg1));
+
+            /*
+            push reg1
+            sub reg1,reg2
+            pop reg1
+            */
+        }
+        
+        return true;
+    }
+    else if (code[0] == 0x39 || (code[0] == 0x81 && code[1] >= 0xF8)) { //cmp reg, imm
+        fuku_reg86 reg1;
+        uint32_t val;
+        if (code[0] == 0x39) {
+            reg1 = fuku_reg86::r_EAX;
+            val = *(uint32_t*)&code[1];
+        }
+        else {
+            reg1 = fuku_reg86(code[1] - 0xF8);
+            val = *(uint32_t*)&code[2];
+        }
+
+        if (reg1 == fuku_reg86::r_ESP) {
+            fuku_reg86 reg2;
+            for (reg2 = fuku_reg86::r_EAX; reg2 < fuku_reg86::r_EBX; reg2 = fuku_reg86(reg2 + 1)) {}
+
+            out_lines.push_back(f_asm.push(reg2).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.mov(reg2, reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.lea(reg2, fuku_operand86(reg2, operand_scale::operand_scale_1, 4)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.sub(reg2, fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg2));
+
+            /*
+            push reg2
+            mov reg2,reg1
+            lea reg2, [reg2 + 4]
+            sub reg2,imm
+            pop reg3
+            */
+        }
+        else {
+            out_lines.push_back(f_asm.push(reg1).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()));
+            out_lines.push_back(f_asm.pop(reg1));
+
+            /*
+            push reg
+            sub reg, imm
+            pop reg
+            */
+        }
+
+
+        return true;
+    }
 
     return false;
 }
