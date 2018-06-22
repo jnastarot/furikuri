@@ -151,7 +151,7 @@ bool    fuku_protector::finish_initialize_zones() {
             if (reloc.data  > code.symbol_info_rva &&
                 reloc.data < (code.symbol_info_rva + code.symbol_info_size)) {
 
-                ob_fuku_association * assoc = find_assoc(this->module->get_image().rva_to_va(reloc.data));
+                ob_fuku_association * assoc = find_assoc(this->module->get_image().rva_to_va((uint32_t)reloc.data));
 
                 if (assoc) {
                     reloc.data = assoc->virtual_address;

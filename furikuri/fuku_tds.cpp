@@ -783,7 +783,7 @@ void fuku_tds::parse_modules(const uint8_t * start, const uint8_t * end) {
 void fuku_tds::parse_symbols(const uint8_t * start, const uint8_t * end) {
 
     const uint8_t * pos = start;
-    const tds_ssearch * symbolSearch;
+//    const tds_ssearch * symbolSearch;
 
     while (pos != end) {
 

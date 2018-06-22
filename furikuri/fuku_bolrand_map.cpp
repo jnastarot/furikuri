@@ -119,7 +119,7 @@ void fuku_bolrand_map::parse_line(uint32_t line_idx, std::vector<std::string> &l
 
                 if (line[1] == "SysInit.__ImageBase"){
                     if (segments.size() >= item.segment_id) {
-                        map.base_address = uint32_t(segments[item.segment_id - 1].segment_start) + uint32_t(item.public_start);
+                        map.base_address = uint32_t(segments[(uint32_t)item.segment_id - 1].segment_start) + uint32_t(item.public_start);
                         return;
                     }
                 }
@@ -154,7 +154,7 @@ void fuku_bolrand_map::post_process_map(fuku_map& map) {
     }
 
     for (auto& pub : publics) {
-        if (segments[pub.segment_id-1].segment_class == map_segment_class_code) {
+        if (segments[(uint32_t)pub.segment_id-1].segment_class == map_segment_class_code) {
             if (pub.public_name.find("..")) {
                 if (pub.public_name.find("...")) {
                     pub.public_class = fuku_map_public_class::map_public_class_code;

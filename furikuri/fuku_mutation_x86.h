@@ -8,6 +8,13 @@ class fuku_mutation_x86 :
     ob_fuku_sensitivity settings;
     fuku_obfuscator * obfuscator;
 
+    void fuku_mutation_x86::fuku_junk_1b(std::vector<fuku_instruction>& out_lines);
+    void fuku_mutation_x86::fuku_junk_2b(std::vector<fuku_instruction>& out_lines);
+    void fuku_mutation_x86::fuku_junk_4b(std::vector<fuku_instruction>& out_lines);
+    void fuku_mutation_x86::fuku_junk_5b(std::vector<fuku_instruction>& out_lines);
+    void fuku_mutation_x86::fuku_junk_7b(std::vector<fuku_instruction>& out_lines);
+
+
     void fuku_mutation_x86::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,std::vector<fuku_instruction>& out_lines);
 
     bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
