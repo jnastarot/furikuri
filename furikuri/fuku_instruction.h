@@ -3,6 +3,8 @@
 enum ob_fuku_flags {
     ob_fuku_instruction_has_relocation    = 1 << 1,
     ob_fuku_instruction_has_ip_relocation = 1 << 2,
+
+    ob_fuku_instruction_full_mutated      = 1 << 31,
 };
 
 

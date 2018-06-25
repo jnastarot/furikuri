@@ -97,6 +97,8 @@ public:
     fuku_instruction fuku_asm_x86::enter( fuku_immediate86& size);
     fuku_instruction fuku_asm_x86::leave();
 
+    fuku_instruction fuku_asm_x86::mov_b(fuku_reg86 dst, fuku_reg86 src);
+    fuku_instruction fuku_asm_x86::mov_b(fuku_reg86 dst, int8_t imm8);
     fuku_instruction fuku_asm_x86::mov_b(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::mov_b(fuku_operand86& dst,  fuku_immediate86& src);
     fuku_instruction fuku_asm_x86::mov_b(fuku_operand86& dst, fuku_reg86 src);
@@ -144,12 +146,18 @@ public:
     fuku_instruction fuku_asm_x86::and_(fuku_operand86& dst,  fuku_immediate86& x);
     fuku_instruction fuku_asm_x86::and_(fuku_operand86& dst, fuku_reg86 src);
 
+    fuku_instruction fuku_asm_x86::cmpb(fuku_reg86 dst, fuku_reg86 src);
+    fuku_instruction fuku_asm_x86::cmpb(fuku_reg86 reg, fuku_immediate86& imm8);
     fuku_instruction fuku_asm_x86::cmpb(fuku_operand86& op, fuku_immediate86& imm8);
     fuku_instruction fuku_asm_x86::cmpb(fuku_operand86& op, fuku_reg86 reg);
     fuku_instruction fuku_asm_x86::cmpb(fuku_reg86 reg, fuku_operand86& op);
+    fuku_instruction fuku_asm_x86::cmpw(fuku_reg86 dst, fuku_immediate86& src);
+    fuku_instruction fuku_asm_x86::cmpw(fuku_reg86 dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::cmpw(fuku_operand86& op, fuku_immediate86& imm16);
     fuku_instruction fuku_asm_x86::cmpw(fuku_reg86 reg, fuku_operand86& op);
     fuku_instruction fuku_asm_x86::cmpw(fuku_operand86& op, fuku_reg86 reg);
+    fuku_instruction fuku_asm_x86::cmp(fuku_reg86 reg0, fuku_reg86 reg1);
+    fuku_instruction fuku_asm_x86::cmp(fuku_reg86 reg, fuku_immediate86& imm);
     fuku_instruction fuku_asm_x86::cmp(fuku_reg86 reg, int32_t imm32);
     fuku_instruction fuku_asm_x86::cmp(fuku_reg86 reg, fuku_operand86& op);
     fuku_instruction fuku_asm_x86::cmp(fuku_operand86& op, fuku_reg86 reg);
@@ -193,13 +201,25 @@ public:
 
     fuku_instruction fuku_asm_x86::rcl(fuku_reg86 dst, uint8_t imm8);
     fuku_instruction fuku_asm_x86::rcr(fuku_reg86 dst, uint8_t imm8);
+    fuku_instruction fuku_asm_x86::ror(fuku_reg86 dst, uint8_t imm8);
+    fuku_instruction fuku_asm_x86::ror_cl(fuku_reg86 dst);
     fuku_instruction fuku_asm_x86::ror(fuku_operand86& dst, uint8_t imm8);
     fuku_instruction fuku_asm_x86::ror_cl(fuku_operand86& dst);
+
+    fuku_instruction fuku_asm_x86::rol(fuku_reg86 dst, uint8_t imm8);
+    fuku_instruction fuku_asm_x86::rol_cl(fuku_reg86 dst);
+    fuku_instruction fuku_asm_x86::rol(fuku_operand86& dst, uint8_t imm8);
+    fuku_instruction fuku_asm_x86::rol_cl(fuku_operand86& dst);
+
+    fuku_instruction fuku_asm_x86::sar(fuku_reg86 dst, uint8_t imm8);
+    fuku_instruction fuku_asm_x86::sar_cl(fuku_reg86 dst);
     fuku_instruction fuku_asm_x86::sar(fuku_operand86& dst, uint8_t imm8);
     fuku_instruction fuku_asm_x86::sar_cl(fuku_operand86& dst);
+    fuku_instruction fuku_asm_x86::sbb(fuku_reg86 dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::sbb(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::shld(fuku_reg86 dst, fuku_reg86 src, uint8_t shift);
     fuku_instruction fuku_asm_x86::shld_cl(fuku_reg86 dst, fuku_reg86 src);
+    fuku_instruction fuku_asm_x86::shl(fuku_reg86 dst, uint8_t imm8);
     fuku_instruction fuku_asm_x86::shl(fuku_operand86& dst, uint8_t imm8);
     fuku_instruction fuku_asm_x86::shl_cl(fuku_operand86& dst);
     fuku_instruction fuku_asm_x86::shr(fuku_operand86& dst, uint8_t imm8);
@@ -213,15 +233,22 @@ public:
     fuku_instruction fuku_asm_x86::sub(fuku_reg86 dst, fuku_operand86& src);
     fuku_instruction fuku_asm_x86::sub(fuku_operand86& dst, fuku_reg86 src);
 
-    fuku_instruction fuku_asm_x86::test(fuku_reg86 reg,  fuku_immediate86& imm);
-    fuku_instruction fuku_asm_x86::test(fuku_reg86 reg, fuku_operand86& op);
+
     fuku_instruction fuku_asm_x86::test_b(fuku_reg86 reg, fuku_operand86& op);
-    fuku_instruction fuku_asm_x86::test(fuku_operand86& op,  fuku_immediate86& imm);
     fuku_instruction fuku_asm_x86::test_b(fuku_reg86 reg, fuku_immediate86& imm8);
     fuku_instruction fuku_asm_x86::test_b(fuku_operand86& op, fuku_immediate86& imm8);
+    fuku_instruction fuku_asm_x86::test_b(fuku_reg86 dst, fuku_reg86 src);
+
     fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_immediate86& imm16);
     fuku_instruction fuku_asm_x86::test_w(fuku_reg86 reg, fuku_operand86& op);
     fuku_instruction fuku_asm_x86::test_w(fuku_operand86& op, fuku_immediate86& imm16);
+    fuku_instruction fuku_asm_x86::test_w(fuku_operand86& op, fuku_reg86 reg);
+    fuku_instruction fuku_asm_x86::test_w(fuku_reg86 dst, fuku_reg86 src);
+
+    fuku_instruction fuku_asm_x86::test(fuku_reg86 reg0, fuku_reg86 reg1);
+    fuku_instruction fuku_asm_x86::test(fuku_reg86 reg, fuku_immediate86& imm);
+    fuku_instruction fuku_asm_x86::test(fuku_reg86 reg, fuku_operand86& op);
+    fuku_instruction fuku_asm_x86::test(fuku_operand86& op, fuku_immediate86& imm);
 
     fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, fuku_reg86 src);
     fuku_instruction fuku_asm_x86::xor_(fuku_reg86 dst, int32_t imm32);

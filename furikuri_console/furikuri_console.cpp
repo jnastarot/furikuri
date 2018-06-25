@@ -108,7 +108,7 @@ int main(){
 
         obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
-        obfuscator.set_settings({ 1,2,90.f,00.f,100.f });
+        obfuscator.set_settings({ 1,2,1.f,00.f,60.f });
         obfuscator.set_relocation_table(&relocations);
 
                 

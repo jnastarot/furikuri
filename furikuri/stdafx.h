@@ -26,7 +26,7 @@ using namespace std;
 #include "enma_pe\enma_pe\enma_pe.h"
 #include "shibari\shibari\shibari.h"
 
-#define FUKU_GET_RAND(_min,_max) (_min + (rand()%((_max) - (_min))))
-#define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(0,1000) <= (10*(x))) //0.f - 100.f in
+#define FUKU_GET_RAND(_min,_max) (_min == _max ? _min : (_min + (rand()%((_max) - (_min)))))
+#define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(1,1000) <= (10*(x))) //0.f - 100.f in
 
 #include "furikuri.h"
