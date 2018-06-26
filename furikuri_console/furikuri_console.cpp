@@ -77,7 +77,7 @@ int main(){
     //*/
    
 
-
+    srand(1);
 
 
     
@@ -106,22 +106,22 @@ int main(){
         fuku_obfuscator obfuscator;
         std::vector<ob_fuku_relocation> relocations;
 
+
         obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
-        obfuscator.set_settings({ 1,2,1.f,00.f,60.f });
+        obfuscator.set_settings({ 2,2,40.f,10.f,70.f });
         obfuscator.set_relocation_table(&relocations);
 
                 
         unsigned int s_time = GetTickCount();
 
         obfuscator.push_code(lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
+        
         std::vector<uint8_t> __obf_unpacker = obfuscator.obfuscate_code();
-        printf("obfuscated in %.4f sec | size scale %.2f |", (GetTickCount() - s_time) / 1000.f, (float)__obf_unpacker.size() / sizeof(lzo_depack_32));
+        printf("%d obfuscated in %.4f sec | size scale %.2f |", i,(GetTickCount() - s_time) / 1000.f, (float)__obf_unpacker.size() / sizeof(lzo_depack_32));
 
+        uint8_t * __obf_unpacker_ = __obf_unpacker.data();
 
-        uint8_t * __obf_unpacker_ = new uint8_t[__obf_unpacker.size()];
-
-        memcpy(__obf_unpacker_, __obf_unpacker.data(), __obf_unpacker.size());
         DWORD old_p;
         VirtualProtect(__obf_unpacker_, __obf_unpacker.size(), PAGE_EXECUTE_READWRITE, &old_p);
 
@@ -133,7 +133,7 @@ int main(){
             *(DWORD*)&__obf_unpacker_[rel.virtual_address] += (DWORD)__obf_unpacker_;
         }
 
-
+///        while (!GetAsyncKeyState(VK_HOME)) { Sleep(1); }
         depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
 
         for (unsigned int i = 0; i < 0x1000; i++) {
@@ -141,7 +141,6 @@ int main(){
         }
 
         printf("good!\n");
-        delete[] __obf_unpacker_;
     }
     //*/
     return 0;
