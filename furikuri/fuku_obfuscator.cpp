@@ -350,7 +350,10 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
 
                 fuku_instruction jmp_instruction = fuku_asm.jmp(0);              
                 jmp_instruction.set_ip_relocation_disp_offset(1);
-             //   jmp_instruction.set_useless_flags(lines[line_idx].get_useless_flags());
+                jmp_instruction.set_flags(
+                    lines[line_idx].get_flags()&(ob_fuku_instruction_bad_stack)
+                );
+                jmp_instruction.set_useless_flags(lines[line_idx].get_useless_flags());
 
                 line_block.push_back(jmp_instruction);
                 break;
