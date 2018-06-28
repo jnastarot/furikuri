@@ -15,6 +15,7 @@
 #include <iostream>
 #include <stdarg.h> 
 #include <cstdint>
+#include <random>  
 
 using namespace std;
 
@@ -26,7 +27,9 @@ using namespace std;
 #include "enma_pe\enma_pe\enma_pe.h"
 #include "shibari\shibari\shibari.h"
 
-#define FUKU_GET_RAND(_min,_max) (_min == _max ? _min : (_min + (rand()%((_max) - (_min))) + 1))
+#define FUKU_GET_RAND(_min,_max) (_min == _max ? _min : (_min + (rand()%((_max + ((_max == UINT_MAX) ? 0 : 1)) - (_min)))))
+
+
 #define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(1,1000) <= (10*(x))) //0.f - 100.f in
 
 #include "furikuri.h"

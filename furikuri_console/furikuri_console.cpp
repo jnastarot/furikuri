@@ -109,7 +109,7 @@ int main(){
 
         obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
-        obfuscator.set_settings({ 2,2,30.f,20.f,60.f });
+        obfuscator.set_settings({ 1,1,50.f,30.f,40.f });
         obfuscator.set_relocation_table(&relocations);
 
                 
@@ -133,9 +133,9 @@ int main(){
             *(DWORD*)&__obf_unpacker_[rel.virtual_address] += (DWORD)__obf_unpacker_;
         }
 
-///        while (!GetAsyncKeyState(VK_HOME)) { Sleep(1); }
+        unsigned int n_time = GetTickCount();
         depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
-
+        printf(" called in %.4f sec | ", (GetTickCount() - n_time) / 1000.f);
         for (unsigned int i = 0; i < 0x1000; i++) {
             if (data_[i] != data_1[i]) { printf("error!"); Sleep(100000); }
         }
