@@ -60,6 +60,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_vm">
       <UniqueIdentifier>{b10e78d1-0510-4dbb-94cd-b99a543cb725}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code_analyzer">
+      <UniqueIdentifier>{a0dae202-b54d-45bc-9767-e5812da284b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -116,6 +119,9 @@
     <ClInclude Include="fuku_virtual_machine.h">
       <Filter>Заголовочные файлы\furikuri\fuku_vm</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_code_analyzer.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_code_analyzer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -162,6 +168,9 @@
     </ClCompile>
     <ClCompile Include="fuku_virtual_machine.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_vm</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_code_analyzer.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_code_analyzer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

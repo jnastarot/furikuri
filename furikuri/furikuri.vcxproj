@@ -151,6 +151,7 @@
     <ClInclude Include="fuku_asm_x64.h" />
     <ClInclude Include="fuku_asm_x86.h" />
     <ClInclude Include="fuku_bolrand_map.h" />
+    <ClInclude Include="fuku_code_analyzer.h" />
     <ClInclude Include="fuku_debug_info.h" />
     <ClInclude Include="fuku_map.h" />
     <ClInclude Include="fuku_msvc_map.h" />
@@ -170,6 +171,7 @@
     <ClCompile Include="fuku_asm_x64.cpp" />
     <ClCompile Include="fuku_asm_x86.cpp" />
     <ClCompile Include="fuku_bolrand_map.cpp" />
+    <ClCompile Include="fuku_code_analyzer.cpp" />
     <ClCompile Include="fuku_map.cpp" />
     <ClCompile Include="fuku_msvc_map.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />

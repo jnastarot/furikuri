@@ -77,7 +77,7 @@ int main(){
     //*/
    
 
-    srand(1);
+    srand(2);
 
 
     
@@ -101,7 +101,7 @@ int main(){
     delete[] work_mem;
 
     typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
-    for (unsigned int i = 0; i < 1000; i++) {
+    for (unsigned int i = 0; i < 10000; i++) {
 
         fuku_obfuscator obfuscator;
         std::vector<ob_fuku_relocation> relocations;
@@ -109,7 +109,7 @@ int main(){
 
         obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
-        obfuscator.set_settings({ 1,1,50.f,30.f,40.f });
+        obfuscator.set_settings({ 2,2,30.f,30.f,30.f });
         obfuscator.set_relocation_table(&relocations);
 
                 
@@ -124,7 +124,8 @@ int main(){
 
         DWORD old_p;
         VirtualProtect(__obf_unpacker_, __obf_unpacker.size(), PAGE_EXECUTE_READWRITE, &old_p);
-
+        VirtualProtect(lzo_depack_32, sizeof(lzo_depack_32), PAGE_EXECUTE_READWRITE, &old_p);
+        
         _depack_algo depack = (_depack_algo)__obf_unpacker_;
 
         unsigned long unpack_size = 0x1000;
@@ -134,6 +135,7 @@ int main(){
         }
 
         unsigned int n_time = GetTickCount();
+       // ((_depack_algo)&lzo_depack_32[0])(compressed_buf, packed_size, data_1, &unpack_size, 0);
         depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
         printf(" called in %.4f sec | ", (GetTickCount() - n_time) / 1000.f);
         for (unsigned int i = 0; i < 0x1000; i++) {

@@ -8,6 +8,8 @@ class fuku_mutation_x86 :
     ob_fuku_sensitivity settings;
     fuku_obfuscator * obfuscator;
 
+    bool need_fix_labels;
+
     void fuku_mutation_x86::fuku_junk_1b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x86::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x86::fuku_junk_3b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
@@ -16,6 +18,9 @@ class fuku_mutation_x86 :
     void fuku_mutation_x86::fuku_junk_6b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x86::fuku_junk_7b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
 
+    void fuku_mutation_x86::generate_junk(std::vector<fuku_instruction>& junk,
+        fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
+
 
     void fuku_mutation_x86::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,std::vector<fuku_instruction>& out_lines);
 
@@ -23,7 +28,6 @@ class fuku_mutation_x86 :
     bool fuku_mutation_x86::fukutate_pop(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     bool fuku_mutation_x86::fukutate_add(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     bool fuku_mutation_x86::fukutate_sub(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
-    bool fuku_mutation_x86::fukutate_xor(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     bool fuku_mutation_x86::fukutate_and(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     bool fuku_mutation_x86::fukutate_inc(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     bool fuku_mutation_x86::fukutate_dec(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
@@ -36,7 +40,6 @@ class fuku_mutation_x86 :
     void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     void fuku_mutation_x86::obfuscate_lines(std::vector<fuku_instruction>& lines, unsigned int recurse_idx);
 
-    void fuku_mutation_x86::generate_junk(std::vector<fuku_instruction>& junk, fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
 public:
     fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, fuku_obfuscator * obfuscator);
     fuku_mutation_x86::~fuku_mutation_x86();
