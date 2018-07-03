@@ -7,7 +7,7 @@ fuku_protector::fuku_protector(shibari_module * module, const ob_fuku_sensitivit
     :module(module), code_list(code_list){
 
     obfuscator.set_arch(
-        module->get_image().is_x32_image() ? ob_fuku_arch::ob_fuku_arch_x32 : ob_fuku_arch::ob_fuku_arch_x64
+        module->get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64
     );
     obfuscator.set_settings(settings);
     obfuscator.set_association_table(&association_table);

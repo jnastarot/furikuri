@@ -1,7 +1,23 @@
 #pragma once
-class fuku_protector {
+
+enum fuku_code_type {
+    fuku_code_obfuscate,
+    fuku_code_virtual,
+};
+
+struct fuku_acode {
+    uint64_t region_start;
+    uint64_t region_size;
+
     std::vector<ob_fuku_association>   association_table;
     std::vector<ob_fuku_relocation>    relocation_table;
+    fuku_code_analyzer analyzer;
+    fuku_code_type type;
+};
+
+class fuku_protector { 
+    std::vector<fuku_acode> acodes;
+
     fuku_obfuscator obfuscator;
     
     shibari_module * module;

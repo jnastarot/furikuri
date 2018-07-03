@@ -1,10 +1,6 @@
 #pragma once
 
 
-enum ob_fuku_arch {
-    ob_fuku_arch_x32,
-    ob_fuku_arch_x64
-};
 
 struct ob_fuku_association {
     uint64_t prev_virtual_address;
@@ -22,7 +18,7 @@ struct ob_fuku_ip_relocation {
 };
 
 class fuku_obfuscator {
-    ob_fuku_arch arch;
+    fuku_arch arch;
 
     uint64_t destination_virtual_address;
 
@@ -39,12 +35,6 @@ class fuku_obfuscator {
     std::vector<ob_fuku_association>*     association_table;
     std::vector<ob_fuku_relocation>*      relocation_table;
 
-    bool fuku_obfuscator::analyze_code(
-        uint8_t * src, uint32_t src_len,
-        uint64_t virtual_address,
-        std::vector<fuku_instruction>&  lines,
-        const std::vector<ob_fuku_relocation>*	relocations);
-
     void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     void    fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines);
     void    fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
@@ -52,8 +42,6 @@ class fuku_obfuscator {
     void    fuku_obfuscator::useless_flags_profiler(); 
 
     fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
-    fuku_instruction * fuku_obfuscator::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
-    fuku_instruction * fuku_obfuscator::get_direct_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     fuku_instruction * fuku_obfuscator::get_line_by_label_id(unsigned int label_id);
     std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(std::vector<fuku_instruction>&  lines);
 public:
@@ -62,19 +50,15 @@ public:
 
     std::vector<uint8_t> fuku_obfuscator::obfuscate_code();
 
-    bool fuku_obfuscator::push_code(
-        uint8_t * src, uint32_t src_len,
-        uint64_t virtual_address,
-        const std::vector<ob_fuku_relocation>*	relocations);
 public:
-    void fuku_obfuscator::set_arch(ob_fuku_arch arch);
+    void fuku_obfuscator::set_arch(fuku_arch arch);
     void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address);
     void fuku_obfuscator::set_settings(const ob_fuku_sensitivity& settings);
 
     void fuku_obfuscator::set_association_table(std::vector<ob_fuku_association>*	associations);
     void fuku_obfuscator::set_relocation_table(std::vector<ob_fuku_relocation>* relocations);
 public:  
-    ob_fuku_arch   fuku_obfuscator::get_arch() const;
+    fuku_arch    fuku_obfuscator::get_arch() const;
     uint64_t     fuku_obfuscator::get_destination_virtual_address() const;
     ob_fuku_sensitivity fuku_obfuscator::get_settings() const;
 
