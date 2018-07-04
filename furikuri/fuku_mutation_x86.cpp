@@ -3,8 +3,8 @@
 
 #define ISNT_LAST (lines.size() > current_line_idx+1)
 
-fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, fuku_obfuscator * obfuscator)
-: settings(settings), obfuscator(obfuscator){}
+fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, unsigned int * label_seed)
+: settings(settings), label_seed(label_seed){}
 
 fuku_mutation_x86::~fuku_mutation_x86() {
 
@@ -42,7 +42,23 @@ void fuku_mutation_x86::obfuscate(std::vector<fuku_instruction>& lines) {
     obfuscate_lines(lines, -1);
 }
 
+uint32_t fuku_mutation_x86::set_label(fuku_instruction& line) {
+    if (label_seed) {
+        if (!line.get_label_id()) {
+            line.set_label_id(*label_seed);
+            *label_seed++;
+        }
+        return line.get_label_id();
+    }
+    return 0;
+}
 
+uint32_t fuku_mutation_x86::get_maxlabel() {
+    if (label_seed) {
+        return *label_seed;
+    }
+    return 0;
+}
 
 
 void fuku_mutation_x86::generate_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
@@ -100,13 +116,13 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
 
     need_fix_labels = true;
 
-    bool unstable_stack = lines[current_line_idx].get_flags() & ob_fuku_instruction_bad_stack;
+    bool unstable_stack = lines[current_line_idx].get_flags() & fuku_instruction_bad_stack;
 
     if (FUKU_GET_CHANCE(settings.junk_chance)) {
         fuku_junk(lines, current_line_idx, out_lines);
     }
 
-    if ((lines[current_line_idx].get_flags()&ob_fuku_instruction_full_mutated) == 0 &&
+    if ((lines[current_line_idx].get_flags() & fuku_instruction_full_mutated) == 0 &&
         FUKU_GET_CHANCE(settings.mutate_chance)) {
 
         switch (lines[current_line_idx].get_type()) {
@@ -222,7 +238,7 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
 
     for (auto& line : out_lines) {
         if (unstable_stack) {
-            line.set_flags(line.get_flags() | ob_fuku_instruction_bad_stack);
+            line.set_flags(line.get_flags() | fuku_instruction_bad_stack);
         }
 
         if (need_fix_labels) {
@@ -261,13 +277,13 @@ bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsi
         uint32_t needed = (D_OF | D_SF | D_ZF | D_AF | D_CF | D_PF);
 
         if ((needed & lines[current_line_idx].get_useless_flags()) == needed) {
-            out_lines.push_back(f_asm.sub(fuku_reg86::r_ESP, fuku_immediate86(4)).set_useless_flags(target_line.get_useless_flags()).set_flags(ob_fuku_instruction_bad_stack));
+            out_lines.push_back(f_asm.sub(fuku_reg86::r_ESP, fuku_immediate86(4)).set_useless_flags(target_line.get_useless_flags()).set_flags(fuku_instruction_bad_stack));
         }
         else {
-            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, -4)).set_flags(ob_fuku_instruction_bad_stack));
+            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, -4)).set_flags(fuku_instruction_bad_stack));
         }
                
-        out_lines.push_back(f_asm.mov(fuku_operand86(fuku_reg86::r_ESP,operand_scale::operand_scale_1),fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()).set_flags(ob_fuku_instruction_bad_stack));
+        out_lines.push_back(f_asm.mov(fuku_operand86(fuku_reg86::r_ESP,operand_scale::operand_scale_1),fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()).set_flags(fuku_instruction_bad_stack));
         
         if (target_line.get_relocation_f_imm_offset()) {
             out_lines[out_lines.size() - 1].set_relocation_f_id(target_line.get_relocation_f_id());
@@ -287,13 +303,13 @@ bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsi
 
 
         if ((needed & lines[current_line_idx].get_useless_flags()) == needed) {
-            out_lines.push_back(f_asm.sub(fuku_reg86::r_ESP, fuku_immediate86(4)).set_useless_flags(target_line.get_useless_flags()).set_flags(ob_fuku_instruction_bad_stack));
+            out_lines.push_back(f_asm.sub(fuku_reg86::r_ESP, fuku_immediate86(4)).set_useless_flags(target_line.get_useless_flags()).set_flags(fuku_instruction_bad_stack));
         }
         else {
-            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, -4)).set_flags(ob_fuku_instruction_bad_stack));
+            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, -4)).set_flags(fuku_instruction_bad_stack));
         }
 
-        out_lines.push_back(f_asm.mov(fuku_operand86(fuku_reg86::r_ESP,operand_scale::operand_scale_1), reg).set_useless_flags(target_line.get_useless_flags()).set_flags(ob_fuku_instruction_bad_stack));
+        out_lines.push_back(f_asm.mov(fuku_operand86(fuku_reg86::r_ESP,operand_scale::operand_scale_1), reg).set_useless_flags(target_line.get_useless_flags()).set_flags(fuku_instruction_bad_stack));
         
 
         /*
@@ -342,7 +358,7 @@ bool fuku_mutation_x86::fukutate_pop(std::vector<fuku_instruction>& lines, unsig
                 out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4)));
             }
 
-            out_lines.push_back(f_asm.mov(reg, fuku_operand86(fuku_reg86::r_ESP, -4)).set_useless_flags(target_line.get_useless_flags()).set_flags(ob_fuku_instruction_bad_stack));
+            out_lines.push_back(f_asm.mov(reg, fuku_operand86(fuku_reg86::r_ESP, -4)).set_useless_flags(target_line.get_useless_flags()).set_flags(fuku_instruction_bad_stack));
 
 
             /*
@@ -363,7 +379,7 @@ bool fuku_mutation_x86::fukutate_add(std::vector<fuku_instruction>& lines, unsig
 
     auto& target_line = lines[current_line_idx];
     
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0) &&
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0) &&
         (target_line.get_modified_flags() & target_line.get_useless_flags()) == target_line.get_modified_flags() &&
         !target_line.get_relocation_f_imm_offset()) {
 
@@ -446,7 +462,7 @@ bool fuku_mutation_x86::fukutate_sub(std::vector<fuku_instruction>& lines, unsig
 
     auto& target_line = lines[current_line_idx];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0) && 
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0) && 
         (target_line.get_modified_flags() & target_line.get_useless_flags()) == target_line.get_modified_flags() &&
         !target_line.get_relocation_f_imm_offset()) {
 
@@ -534,7 +550,7 @@ bool fuku_mutation_x86::fukutate_and(std::vector<fuku_instruction>& lines, unsig
 
     auto& target_line = lines[current_line_idx];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0) && 
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0) && 
         (target_line.get_modified_flags() & target_line.get_useless_flags()) == target_line.get_modified_flags() &&
         !target_line.get_relocation_f_imm_offset()) {
 
@@ -621,7 +637,7 @@ bool fuku_mutation_x86::fukutate_inc(std::vector<fuku_instruction>& lines, unsig
 
     auto& target_line = lines[current_line_idx];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0) && 
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0) && 
         (target_line.get_modified_flags() & target_line.get_useless_flags()) == target_line.get_modified_flags()) {
 
         const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
@@ -696,7 +712,7 @@ bool fuku_mutation_x86::fukutate_test(std::vector<fuku_instruction>& lines, unsi
     auto& target_line = lines[current_line_idx];
     const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0) &&
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0) &&
         !target_line.get_relocation_f_imm_offset()) {
 
         if (code[0] == 0x85 && (code[1] >= 0xC0 && code[1] < 0xC8)) { //test reg1,reg2
@@ -787,7 +803,7 @@ bool fuku_mutation_x86::fukutate_cmp(std::vector<fuku_instruction>& lines, unsig
     auto& target_line = lines[current_line_idx];
     const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0) &&
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0) &&
         !target_line.get_relocation_f_imm_offset()) {
 
         if ((code[0] == 0x39 || code[0] == 0x3B) && (code[1] >= 0xC0 && code[1] < 0xC8)) { //cmp reg1,reg2
@@ -885,7 +901,7 @@ bool fuku_mutation_x86::fukutate_jcc(std::vector<fuku_instruction>& lines, unsig
 
     auto& target_line = lines[current_line_idx];
 
-    if (ISNT_LAST) {
+    if (label_seed && ISNT_LAST) {
         const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
 
         fuku_instruction l_jmp = f_asm.jmp(0);
@@ -902,8 +918,8 @@ bool fuku_mutation_x86::fukutate_jcc(std::vector<fuku_instruction>& lines, unsig
         }
 
         fuku_instruction l_jcc = f_asm.jcc(fuku_condition(cond^1),0);
-        l_jcc.set_link_label_id(obfuscator->set_label(lines[current_line_idx+1]));
-        l_jcc.set_flags(l_jcc.get_flags() | ob_fuku_instruction_full_mutated);
+        l_jcc.set_link_label_id(set_label(lines[current_line_idx+1]));
+        l_jcc.set_flags(l_jcc.get_flags() | fuku_instruction_full_mutated);
 
         out_lines.push_back(l_jcc);
         out_lines.push_back(l_jmp);
@@ -918,11 +934,11 @@ bool fuku_mutation_x86::fukutate_jmp(std::vector<fuku_instruction>& lines, unsig
     return false;
     auto& target_line = lines[current_line_idx];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0)) {
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0)) {
         if (target_line.get_op_code()[0] == 0xE9) {
 
             fuku_instruction l_push = f_asm.push_imm32(0); //push 00000000
-            l_push.set_flags(ob_fuku_instruction_has_relocation);
+            l_push.set_flags(fuku_instruction_has_relocation);
 
             l_push.set_relocation_f_imm_offset(1);
             l_push.set_relocation_f_id(0);
@@ -947,11 +963,11 @@ bool fuku_mutation_x86::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
 
     auto& target_line = lines[current_line_idx];
 
-    if (((target_line.get_flags()&ob_fuku_instruction_bad_stack) == 0)) {
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0)) {
         if (target_line.get_op_code()[0] == 0xC3) { //ret
 
             out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4)));//lea esp,[esp + (4 + stack_offset)]
-            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4)).set_flags(ob_fuku_instruction_bad_stack));           //jmp [esp - (4 + stack_offset)] 
+            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4)).set_flags(fuku_instruction_bad_stack));           //jmp [esp - (4 + stack_offset)] 
 
             return true;
 
@@ -959,7 +975,7 @@ bool fuku_mutation_x86::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
         else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
             uint16_t ret_stack = *(uint16_t*)target_line.get_op_code()[1];
             out_lines.push_back(f_asm.add(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)));//lea esp,[esp + (4 + stack_offset)]
-            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(ob_fuku_instruction_bad_stack));          //jmp [esp - (4 + stack_offset)] 
+            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(fuku_instruction_bad_stack));          //jmp [esp - (4 + stack_offset)] 
 
             return true;
         }
@@ -1011,7 +1027,7 @@ void fuku_mutation_x86::generate_junk(std::vector<fuku_instruction>& junk,
 void fuku_mutation_x86::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
     std::vector<fuku_instruction>& out_lines) {
 
-    bool unstable_stack = (lines[current_line_idx].get_flags()&ob_fuku_instruction_bad_stack);
+    bool unstable_stack = (lines[current_line_idx].get_flags() & fuku_instruction_bad_stack);
 
     switch (FUKU_GET_RAND(0, 6)) {
     case 0: {
@@ -1084,7 +1100,7 @@ void fuku_mutation_x86::fuku_junk_2b(std::vector<fuku_instruction>& out_lines,
         }
 
         if (reg1 == fuku_reg86::r_ESP || reg2 == fuku_reg86::r_ESP) {
-            out_lines[out_lines.size() - 1].set_flags(ob_fuku_instruction_bad_stack);
+            out_lines[out_lines.size() - 1].set_flags(fuku_instruction_bad_stack);
         }
 
         break;
@@ -1201,7 +1217,7 @@ void fuku_mutation_x86::fuku_junk_4b(std::vector<fuku_instruction>& out_lines,
         out_lines.push_back(f_asm.not_(reg1).set_useless_flags(allow_flags_changes));
 
         if (reg1 == fuku_reg86::r_ESP) {
-            out_lines[out_lines.size() - 1].set_flags(ob_fuku_instruction_bad_stack);
+            out_lines[out_lines.size() - 1].set_flags(fuku_instruction_bad_stack);
         }
         break;
     }
@@ -1224,7 +1240,7 @@ void fuku_mutation_x86::fuku_junk_4b(std::vector<fuku_instruction>& out_lines,
         }
 
         if (reg1 == fuku_reg86::r_ESP || reg2 == fuku_reg86::r_ESP) {
-            out_lines[out_lines.size() - 1].set_flags(ob_fuku_instruction_bad_stack);
+            out_lines[out_lines.size() - 1].set_flags(fuku_instruction_bad_stack);
         }
 
         break;
@@ -1312,11 +1328,11 @@ void fuku_mutation_x86::fuku_junk_7b(std::vector<fuku_instruction>& out_lines,
             line.set_relocation_f_destination(imm.get_imm());
             line.set_relocation_f_imm_offset(1);
 
-            if (this->obfuscator) {
-                line.set_relocation_f_label_id(FUKU_GET_RAND(1, this->obfuscator->get_maxlabel()));
+            if (label_seed) {
+                line.set_relocation_f_label_id(FUKU_GET_RAND(1, get_maxlabel()));
             }
 
-            line.set_flags(ob_fuku_instruction_has_relocation);
+            line.set_flags(fuku_instruction_has_relocation);
         }
 
         out_lines.push_back(f_asm.pop(reg1).set_useless_flags(allow_flags_changes));

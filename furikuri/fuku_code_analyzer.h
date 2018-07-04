@@ -5,6 +5,22 @@ enum fuku_arch {
     fuku_arch_x64
 };
 
+
+struct fuku_code_association {
+    uint64_t prev_virtual_address;
+    uint64_t virtual_address;
+};
+struct fuku_code_relocation {
+    uint64_t virtual_address;
+    uint32_t relocation_id;
+};
+struct fuku_code_ip_relocation {
+    uint64_t    virtual_address;
+    uint64_t    destination_virtual_address;
+    uint8_t     disp_relocation_offset;
+    uint8_t     instruction_size;
+};
+
 class fuku_code_analyzer {
     fuku_arch arch;
 
@@ -20,7 +36,7 @@ class fuku_code_analyzer {
         uint8_t * src, uint32_t src_len,
         uint64_t virtual_address,
         std::vector<fuku_instruction>&  lines,
-        const std::vector<ob_fuku_relocation>*	relocations);
+        const std::vector<fuku_code_relocation>*	relocations);
 
     fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
     fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
@@ -33,7 +49,7 @@ public:
     bool fuku_code_analyzer::push_code(
         uint8_t * src, uint32_t src_len,
         uint64_t virtual_address,
-        const std::vector<ob_fuku_relocation>*	relocations);
+        const std::vector<fuku_code_relocation>*	relocations);
 
 public:
     void fuku_code_analyzer::clear();

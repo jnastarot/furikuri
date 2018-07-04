@@ -21,7 +21,7 @@ struct fuku_code_list {
 
 #include "fuku_instruction.h"
 #include "fuku_asm.h"
-#include "fuku_mutation.h"
+
 #include "fuku_code_analyzer.h"
 #include "fuku_obfuscator.h"
 #include "fuku_virtual_machine.h"

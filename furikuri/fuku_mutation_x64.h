@@ -8,7 +8,7 @@ class fuku_mutation_x64 :
 
     fuku_asm_x86 f_asm;
     ob_fuku_sensitivity settings;
-    fuku_obfuscator * obfuscator;
+    unsigned int * label_seed;
 
     bool need_fix_labels;
 
@@ -42,7 +42,7 @@ class fuku_mutation_x64 :
     void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     void fuku_mutation_x64::obfuscate_lines(std::vector<fuku_instruction>& lines, unsigned int recurse_idx);
 public:
-    fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_sensitivity& settings, fuku_obfuscator * obfuscator);
+    fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_sensitivity& settings, unsigned int * label_seed);
     fuku_mutation_x64::~fuku_mutation_x64();
 
     void fuku_mutation_x64::obfuscate(std::vector<fuku_instruction>& lines);

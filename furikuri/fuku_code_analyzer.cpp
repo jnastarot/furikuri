@@ -13,7 +13,7 @@ bool fuku_code_analyzer::analyze_code(
     uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
     std::vector<fuku_instruction>&  lines,
-    const std::vector<ob_fuku_relocation>*	relocations) {
+    const std::vector<fuku_code_relocation>*	relocations) {
 
 
     unsigned int current_len = 0;
@@ -45,7 +45,7 @@ bool fuku_code_analyzer::analyze_code(
                 .set_tested_flags(distorm_line.testedFlagsMask);
 
             if (distorm_line.flags&FLAG_RIP_RELATIVE) {
-                line.set_flags(line.get_flags() | ob_fuku_instruction_has_ip_relocation)
+                line.set_flags(line.get_flags() | fuku_instruction_has_ip_relocation)
                     .set_ip_relocation_destination(INSTRUCTION_GET_RIP_TARGET(&distorm_line) + virtual_address)
                     .set_ip_relocation_disp_offset(distorm_line.disp_offset - &src[distorm_line.addr]);
             }
@@ -59,7 +59,7 @@ bool fuku_code_analyzer::analyze_code(
 
                 fuku_instruction * line = this->get_range_line_by_source_va(lines, reloc.virtual_address);
                 if (line) {
-                    line->set_flags(line->get_flags() | ob_fuku_instruction_has_relocation);
+                    line->set_flags(line->get_flags() | fuku_instruction_has_relocation);
 
                     if (!line->get_relocation_f_imm_offset()) {
                         line->set_relocation_f_id(reloc.relocation_id);
@@ -90,7 +90,7 @@ bool fuku_code_analyzer::analyze_code(
 
         for (auto &line : lines) {//jmp set labels
 
-            if (line.get_flags()&ob_fuku_instruction_has_ip_relocation) { //disp to local code
+            if (line.get_flags() & fuku_instruction_has_ip_relocation) { //disp to local code
 
                 fuku_instruction * dst_line = this->get_direct_line_by_source_va(lines, line.get_ip_relocation_destination());
 
@@ -139,7 +139,7 @@ bool fuku_code_analyzer::analyze_code(
 bool fuku_code_analyzer::push_code(
     uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
-    const std::vector<ob_fuku_relocation>*	relocations) {
+    const std::vector<fuku_code_relocation>*	relocations) {
 
 
     std::vector<fuku_instruction> new_lines;
@@ -197,7 +197,7 @@ bool fuku_code_analyzer::push_code(
         for (uint32_t new_line_idx = 0; new_line_idx < new_lines.size(); new_line_idx++) {//link new lines with stored lines
             auto& new_line = new_lines[new_line_idx];
 
-            if (new_line.get_flags()&ob_fuku_instruction_has_relocation) {
+            if (new_line.get_flags() & fuku_instruction_has_relocation) {
                 rel_idx_cache.push_back(lines.size() + new_line_idx);
 
                 if (new_line.get_relocation_f_imm_offset()) {
@@ -218,7 +218,7 @@ bool fuku_code_analyzer::push_code(
             }
             else if (!new_line.get_link_label_id()) {
 
-                if (new_line.get_flags()&ob_fuku_instruction_has_ip_relocation) {
+                if (new_line.get_flags() & fuku_instruction_has_ip_relocation) {
                     ip_rel_idx_cache.push_back(lines.size() + new_line_idx);
 
                     fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_ip_relocation_destination());

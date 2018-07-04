@@ -223,7 +223,7 @@ void fuku_protector::sort_assoc() {
     });
 }
 
-ob_fuku_association * fuku_protector::find_assoc(uint64_t rva) {
+fuku_code_association * fuku_protector::find_assoc(uint64_t rva) {
 
     size_t left = 0;
     size_t right = association_table.size();

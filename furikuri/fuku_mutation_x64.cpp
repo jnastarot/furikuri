@@ -2,8 +2,8 @@
 #include "fuku_mutation_x64.h"
 
 
-fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_sensitivity& settings, fuku_obfuscator * obfuscator)
-: settings(settings), obfuscator(obfuscator){}
+fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_sensitivity& settings, unsigned int * label_seed)
+: settings(settings), label_seed(label_seed){}
 
 fuku_mutation_x64::~fuku_mutation_x64() {
 
@@ -251,7 +251,7 @@ void fuku_mutation_x64::fuku_junk(std::vector<fuku_instruction>& lines, unsigned
     std::vector<fuku_instruction>& out_lines) {
 
 
-    bool unstable_stack = (lines[current_line_idx].get_flags()&ob_fuku_instruction_bad_stack);
+    bool unstable_stack = (lines[current_line_idx].get_flags() & fuku_instruction_bad_stack);
 
     switch (FUKU_GET_RAND(0, 6)) {
     case 0: {
