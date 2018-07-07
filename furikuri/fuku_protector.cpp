@@ -2,26 +2,38 @@
 #include "fuku_protector.h"
 
 
-fuku_protector::fuku_protector(shibari_module * module, const ob_fuku_sensitivity& settings,
-    const fuku_code_list& code_list)
-    :module(module), code_list(code_list){
+fuku_code_profile::fuku_code_profile() {
+    out_code_rva    = 0;
+    type            = fuku_code_obfuscate;
+    _ptr.obfuscator = 0;
+}
 
-    obfuscator.set_arch(
-        module->get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64
-    );
-    obfuscator.set_settings(settings);
-    obfuscator.set_association_table(&association_table);
-    obfuscator.set_relocation_table(&relocation_table);
+fuku_code_profile::~fuku_code_profile() {
+
+    if (_ptr.obfuscator) {
+
+        if (type == fuku_code_obfuscate) {
+            delete _ptr.obfuscator;
+        }
+        else {
+            delete _ptr.virtual_machine;
+        }
+    }
+}
+
+fuku_protector::fuku_protector(const shibari_module& _module)
+    :protected_module(_module){
+
 }
 
 
-fuku_protector::~fuku_protector()
-{
+fuku_protector::~fuku_protector(){
+    clear_profiles();
 }
 
 
-
-bool fuku_protector::protect_module() {
+/*
+fuku_protector_code fuku_protector::protect_module() {
 
     if (start_initialize_zones()) {
         pe_image_io image_io(module->get_image(), enma_io_mode_allow_expand);
@@ -216,32 +228,241 @@ bool    fuku_protector::finish_initialize_zones() {
 
     return true;
 }
+*/
 
-void fuku_protector::sort_assoc() {
-    std::sort(association_table.begin(), association_table.end(), [](ob_fuku_association& lhs, ob_fuku_association& rhs) {
-        return lhs.prev_virtual_address < rhs.prev_virtual_address;
-    });
+fuku_protector_code fuku_protector::protect_module() {
+
+    if (test_regions()) {
+
+        if (initialize_profiles()) {
+
+            for (auto& profile : profiles) {
+
+                switch (profile.type) {
+
+                case fuku_code_obfuscate: {
+                    profile._ptr.obfuscator = new fuku_obfuscator;
+
+
+                    break;
+                }
+
+                case fuku_code_hybrid: {
+
+                    break;
+                }
+                case fuku_code_virtual: {
+                    profile._ptr.virtual_machine = new fuku_virtual_machine;
+
+
+                    break;
+                }
+                
+
+                }
+
+            }
+
+            merge_profiles();
+
+            if (finish_protected_code()) {
+                return fuku_protector_code::fuku_protector_ok;
+            }
+        }
+
+        return fuku_protector_code::fuku_protector_error_initialization;
+    }
+
+    return fuku_protector_code::fuku_protector_error_code_range;
 }
 
-fuku_code_association * fuku_protector::find_assoc(uint64_t rva) {
 
-    size_t left = 0;
-    size_t right = association_table.size();
-    size_t mid = 0;
+bool    fuku_protector::initialize_profiles() {
 
-    while (left < right) {
-        mid = left + (right - left) / 2;
+    pe_image_io image_io(protected_module.get_image());
+    bool     is32arch = protected_module.get_image().is_x32_image();
+    uint64_t base_address = protected_module.get_image().get_image_base();
 
-        if (association_table[mid].prev_virtual_address == rva) {
-            return &association_table[mid];
+    for (auto& profile : profiles) {
+
+        profile.analyzed_code.set_arch(is32arch ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+
+        std::sort(profile.regions.begin(), profile.regions.end(), [](fuku_protected_region& lhs, fuku_protected_region& rhs) {
+            return lhs.region_rva < rhs.region_rva;
+        });
+
+
+        struct _bind_part_code {
+            uint32_t rva_code_part;
+            std::vector<uint8_t> code_buffer;
+            std::vector<fuku_code_relocation> fuku_code_relocs;
+        };
+
+        std::vector<_bind_part_code> bind_part_code;
+
+        protected_module.get_image_relocations().sort();
+
+        size_t last_reloc_idx = 0;
+
+        for (auto& region : profile.regions) {
+
+            _bind_part_code part_code;
+
+            part_code.rva_code_part = region.region_rva;
+
+            if (image_io.set_image_offset(region.region_rva).read(part_code.code_buffer, region.region_size) != enma_io_success) {
+                return false;
+            }
+
+            auto& relocations = protected_module.get_image_relocations().get_items();
+
+            for (size_t reloc_idx = last_reloc_idx; reloc_idx < relocations.size(); reloc_idx++, last_reloc_idx++) {
+                auto& reloc_item = relocations[reloc_idx];
+
+                if (reloc_item.relative_virtual_address > region.region_rva) {
+                    if (reloc_item.relative_virtual_address < (region.region_rva + region.region_size)) {
+                        part_code.fuku_code_relocs.push_back({
+                            reloc_item.relative_virtual_address + base_address, reloc_item.relocation_id
+                            });
+
+                        relocations.erase(relocations.begin() + reloc_idx);
+
+                        reloc_idx--;
+                        last_reloc_idx--;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            bind_part_code.push_back(part_code);
+
+            image_io.set_image_offset(region.region_rva).memory_set(region.region_size, 0);
         }
-        else if (association_table[mid].prev_virtual_address > rva) {
-            right = mid;
+
+    for (auto& part_code : bind_part_code) {
+        profile.analyzed_code.push_code(
+            part_code.code_buffer.data(), 
+            part_code.code_buffer.size(),
+            base_address + part_code.rva_code_part, 
+            &part_code.fuku_code_relocs
+        );
+    }
+    }
+
+    return true;
+}
+
+void    fuku_protector::merge_profiles() {
+    //merge external jumps
+}
+
+bool    fuku_protector::finish_protected_code() {
+
+
+    return false;
+}
+
+bool fuku_protector::test_regions() {
+
+    std::vector<fuku_protected_region>   regions;
+
+    for (auto& profile : profiles) {
+        for (auto& region : profile.regions) {
+            regions.push_back(region);
         }
-        else {
-            left = mid + 1;
+    }
+
+    std::sort(regions.begin(), regions.end(), [](fuku_protected_region& lhs, fuku_protected_region& rhs) {
+        return lhs.region_rva < rhs.region_rva;
+    });
+
+    for (size_t region_idx = 0; region_idx < regions.size(); region_idx++) {
+
+        if (region_idx + 1 < regions.size()) {
+            auto& region_current = regions[region_idx];
+            auto& region_next = regions[region_idx + 1];
+
+            if ( (region_next.region_rva == region_current.region_rva) || 
+                (region_current.region_rva + region_current.region_size) >= region_next.region_rva
+                ) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void    fuku_protector::sort_association_tables() {
+    for (auto& profile : profiles) {
+        std::sort(profile.association_table.begin(), profile.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
+            return lhs.prev_virtual_address < rhs.prev_virtual_address;
+        });
+    }
+}
+
+fuku_code_association * fuku_protector::find_association(fuku_code_profile& profile, uint32_t rva){
+
+    
+    for (auto& region : profile.regions) {
+
+        if (region.region_rva <= rva && region.region_rva + region.region_size > rva) {
+            uint64_t real_address = protected_module.get_image().rva_to_va(rva);
+
+            size_t left = 0;
+            size_t right = profile.association_table.size();
+            size_t mid = 0;
+
+            while (left < right) {
+                mid = left + (right - left) / 2;
+
+                if (profile.association_table[mid].prev_virtual_address == real_address) {
+                    return &profile.association_table[mid];
+                }
+                else if (profile.association_table[mid].prev_virtual_address > real_address) {
+                    right = mid;
+                }
+                else {
+                    left = mid + 1;
+                }
+            }
         }
     }
 
     return 0;
+}
+
+fuku_code_association * fuku_protector::find_association(uint32_t rva) {
+
+    for (auto& profile : profiles) {
+        fuku_code_association * code_assoc = find_association(profile, rva);
+        if (code_assoc) {
+            return code_assoc;
+        }
+    }
+
+    return 0;
+}
+
+
+void fuku_protector::add_profile(const std::vector<fuku_protected_region>& regions, fuku_code_type type) {
+
+    fuku_code_profile code_profile;
+    code_profile.regions = regions;
+    code_profile.out_code_rva = 0;
+    code_profile.type    = type;
+
+
+    profiles.push_back(code_profile);
+}
+
+
+void fuku_protector::clear_profiles() {
+    profiles.clear();
+}
+
+const shibari_module& fuku_protector::get_protected_module() const {
+    return this->protected_module;
 }

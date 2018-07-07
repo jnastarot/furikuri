@@ -54,7 +54,7 @@ public:
 
     fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line);
 public:
-    fuku_instruction&  fuku_instruction::set_op_code(uint8_t* op_code, uint8_t lenght);
+    fuku_instruction&  fuku_instruction::set_op_code(const uint8_t* op_code, uint8_t lenght);
 
     fuku_instruction&  fuku_instruction::set_source_virtual_address(uint64_t va);
     fuku_instruction&  fuku_instruction::set_virtual_address(uint64_t va);

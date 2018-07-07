@@ -104,10 +104,10 @@ int main(){
     for (unsigned int i = 0; i < 10000; i++) {
 
         fuku_obfuscator obfuscator;
-        std::vector<ob_fuku_relocation> relocations;
+        std::vector<fuku_code_relocation> relocations;
 
 
-        obfuscator.set_arch(ob_fuku_arch::ob_fuku_arch_x32);
+        obfuscator.set_arch(fuku_arch::fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
         obfuscator.set_settings({ 2,2,30.f,30.f,30.f });
         obfuscator.set_relocation_table(&relocations);

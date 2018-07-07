@@ -24,8 +24,10 @@ fuku_obfuscator::fuku_obfuscator(){
 fuku_obfuscator::~fuku_obfuscator(){
 }
 
-void fuku_obfuscator::set_arch(fuku_arch arch) {
-    this->arch = arch;
+void fuku_obfuscator::set_code(const fuku_code_analyzer& code) {
+    this->arch = code.get_arch();
+    this->lines = code.get_lines();
+    this->label_seed = code.get_label_seed();
 }
 
 void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address) {
@@ -50,6 +52,10 @@ void fuku_obfuscator::set_ip_relocation_table(std::vector<fuku_code_ip_relocatio
 
 fuku_arch   fuku_obfuscator::get_arch() const {
     return this->arch;
+}
+
+const std::vector<fuku_instruction>& fuku_obfuscator::get_lines() const {
+    return this->lines;
 }
 
 uint64_t     fuku_obfuscator::get_destination_virtual_address() const {

@@ -151,7 +151,7 @@ void fuku_instruction::set_jump_imm(uint64_t destination_virtual_address) {
     }
 }
 
-fuku_instruction&  fuku_instruction::set_op_code(uint8_t* _op_code, uint8_t _lenght) {
+fuku_instruction&  fuku_instruction::set_op_code(const uint8_t* _op_code, uint8_t _lenght) {
 
     memcpy(this->op_code, _op_code, _lenght);
     this->op_length = _lenght;

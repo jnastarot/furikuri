@@ -2,15 +2,15 @@
 #include "fuku_code_analyzer.h"
 
 
-fuku_code_analyzer::fuku_code_analyzer(fuku_arch arch)
-    :arch(arch), label_seed(1){}
+fuku_code_analyzer::fuku_code_analyzer()
+    :arch(fuku_arch::fuku_arch_x32), label_seed(1){}
 
 
 fuku_code_analyzer::~fuku_code_analyzer(){}
 
 
 bool fuku_code_analyzer::analyze_code(
-    uint8_t * src, uint32_t src_len,
+    const uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
     std::vector<fuku_instruction>&  lines,
     const std::vector<fuku_code_relocation>*	relocations) {
@@ -136,8 +136,114 @@ bool fuku_code_analyzer::analyze_code(
 }
 
 
+
+bool fuku_code_analyzer::merge_code(std::vector<fuku_instruction>&  new_lines) {
+
+
+    for (auto&jump_idx : jumps_idx_cache) {
+        auto& jump_line = lines[jump_idx];
+
+        if (!jump_line.get_link_label_id()) {
+            uint64_t jmp_dst_va = jump_line.get_source_virtual_address() +
+                jump_line.get_op_length() +
+                jump_line.get_jump_imm();
+
+            fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, jmp_dst_va);
+
+            if (dst_line) {
+                jump_line.set_link_label_id(set_label(*dst_line));
+            }
+        }
+    }
+
+    for (auto&rel_idx : rel_idx_cache) {
+        auto& rel_line = lines[rel_idx];
+
+        if (rel_line.get_relocation_f_imm_offset() && !rel_line.get_relocation_f_label_id()) {
+            fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, rel_line.get_relocation_f_destination());
+
+            if (dst_line) {
+                rel_line.set_relocation_f_label_id(set_label(*dst_line));
+            }
+        }
+        if (rel_line.get_relocation_s_imm_offset() && !rel_line.get_relocation_s_label_id()) {
+            fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, rel_line.get_relocation_s_destination());
+
+            if (dst_line) {
+                rel_line.set_relocation_s_label_id(set_label(*dst_line));
+            }
+        }
+    }
+
+    for (auto&ip_rel_idx : ip_rel_idx_cache) {
+        auto& ip_rel_line = lines[ip_rel_idx];
+
+        if (!ip_rel_line.get_link_label_id()) {
+            fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, ip_rel_line.get_ip_relocation_destination());
+
+            if (dst_line) {
+                ip_rel_line.set_link_label_id(set_label(*dst_line));
+            }
+        }
+    }
+
+    for (uint32_t new_line_idx = 0; new_line_idx < new_lines.size(); new_line_idx++) {//link new lines with stored lines
+        auto& new_line = new_lines[new_line_idx];
+
+        if (new_line.get_flags() & fuku_instruction_has_relocation) {
+            rel_idx_cache.push_back(lines.size() + new_line_idx);
+
+            if (new_line.get_relocation_f_imm_offset()) {
+                fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_relocation_f_destination());
+
+                if (dst_line) {
+                    new_line.set_relocation_f_label_id(set_label(*dst_line));
+                }
+            }
+            if (new_line.get_relocation_s_imm_offset()) {
+                fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_relocation_s_destination());
+
+                if (dst_line) {
+                    new_line.set_relocation_s_label_id(set_label(*dst_line));
+                }
+            }
+
+        }
+        else if (!new_line.get_link_label_id()) {
+
+            if (new_line.get_flags() & fuku_instruction_has_ip_relocation) {
+                ip_rel_idx_cache.push_back(lines.size() + new_line_idx);
+
+                fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_ip_relocation_destination());
+
+                if (dst_line) {
+                    new_line.set_link_label_id(set_label(*dst_line));
+                }
+            }
+            else if (new_line.is_jump()) {
+                jumps_idx_cache.push_back(lines.size() + new_line_idx);
+
+                uint64_t jmp_dst_va = new_line.get_source_virtual_address() +
+                    new_line.get_op_length() +
+                    new_line.get_jump_imm();
+
+                fuku_instruction * dst_line = get_direct_line_by_source_va(lines, jmp_dst_va);
+
+                if (dst_line) {
+                    new_line.set_link_label_id(set_label(*dst_line));
+                }
+            }
+        }
+    }
+
+
+    lines.insert(lines.end(), new_lines.begin(), new_lines.end());
+
+    return true;
+}
+
 bool fuku_code_analyzer::push_code(
-    uint8_t * src, uint32_t src_len,
+    const uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
     const std::vector<fuku_code_relocation>*	relocations) {
 
@@ -146,108 +252,50 @@ bool fuku_code_analyzer::push_code(
 
     if (analyze_code(src, src_len, virtual_address, new_lines, relocations)) {
 
-
-        for (auto&jump_idx : jumps_idx_cache) {
-            auto& jump_line = lines[jump_idx];
-
-            if (!jump_line.get_link_label_id()) {
-                uint64_t jmp_dst_va = jump_line.get_source_virtual_address() +
-                    jump_line.get_op_length() +
-                    jump_line.get_jump_imm();
-
-                fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, jmp_dst_va);
-
-                if (dst_line) {
-                    jump_line.set_link_label_id(set_label(*dst_line));
-                }
-            }
-        }
-
-        for (auto&rel_idx : rel_idx_cache) {
-            auto& rel_line = lines[rel_idx];
-
-            if (rel_line.get_relocation_f_imm_offset() && !rel_line.get_relocation_f_label_id()) {
-                fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, rel_line.get_relocation_f_destination());
-
-                if (dst_line) {
-                    rel_line.set_relocation_f_label_id(set_label(*dst_line));
-                }
-            }
-            if (rel_line.get_relocation_s_imm_offset() && !rel_line.get_relocation_s_label_id()) {
-                fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, rel_line.get_relocation_s_destination());
-
-                if (dst_line) {
-                    rel_line.set_relocation_s_label_id(set_label(*dst_line));
-                }
-            }
-        }
-
-        for (auto&ip_rel_idx : ip_rel_idx_cache) {
-            auto& ip_rel_line = lines[ip_rel_idx];
-
-            if (!ip_rel_line.get_link_label_id()) {
-                fuku_instruction * dst_line = get_direct_line_by_source_va(new_lines, ip_rel_line.get_ip_relocation_destination());
-
-                if (dst_line) {
-                    ip_rel_line.set_link_label_id(set_label(*dst_line));
-                }
-            }
-        }
-
-        for (uint32_t new_line_idx = 0; new_line_idx < new_lines.size(); new_line_idx++) {//link new lines with stored lines
-            auto& new_line = new_lines[new_line_idx];
-
-            if (new_line.get_flags() & fuku_instruction_has_relocation) {
-                rel_idx_cache.push_back(lines.size() + new_line_idx);
-
-                if (new_line.get_relocation_f_imm_offset()) {
-                    fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_relocation_f_destination());
-
-                    if (dst_line) {
-                        new_line.set_relocation_f_label_id(set_label(*dst_line));
-                    }
-                }
-                if (new_line.get_relocation_s_imm_offset()) {
-                    fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_relocation_s_destination());
-
-                    if (dst_line) {
-                        new_line.set_relocation_s_label_id(set_label(*dst_line));
-                    }
-                }
-
-            }
-            else if (!new_line.get_link_label_id()) {
-
-                if (new_line.get_flags() & fuku_instruction_has_ip_relocation) {
-                    ip_rel_idx_cache.push_back(lines.size() + new_line_idx);
-
-                    fuku_instruction * dst_line = get_direct_line_by_source_va(lines, new_line.get_ip_relocation_destination());
-
-                    if (dst_line) {
-                        new_line.set_link_label_id(set_label(*dst_line));
-                    }
-                }
-                else if (new_line.is_jump()) {
-                    jumps_idx_cache.push_back(lines.size() + new_line_idx);
-
-                    uint64_t jmp_dst_va = new_line.get_source_virtual_address() +
-                        new_line.get_op_length() +
-                        new_line.get_jump_imm();
-
-                    fuku_instruction * dst_line = get_direct_line_by_source_va(lines, jmp_dst_va);
-
-                    if (dst_line) {
-                        new_line.set_link_label_id(set_label(*dst_line));
-                    }
-                }
-            }
-        }
-
-
-        lines.insert(lines.end(), new_lines.begin(), new_lines.end());
+        return merge_code(new_lines);
     }
 
     return false;
+}
+
+bool fuku_code_analyzer::push_code(const std::vector<fuku_instruction>&  code_lines) {
+
+    std::vector<fuku_instruction> new_lines = code_lines;
+
+    unsigned int new_label_seed = 0;
+    
+
+    for(auto& line : new_lines){ //fix old labels to new labels
+
+        uint32_t label_id = line.get_label_id();
+        uint32_t link_label_id = line.get_link_label_id();
+        uint32_t rel_f_label_id = line.get_relocation_f_label_id();
+        uint32_t rel_s_label_id = line.get_relocation_s_label_id();
+
+        if (label_id) {
+            if (new_label_seed < label_id) {
+                new_label_seed = label_id;
+            }
+
+            line.set_label_id(label_id + this->label_seed - 1);
+        }
+
+        if (link_label_id) {
+            line.set_link_label_id(link_label_id + this->label_seed - 1);
+        }
+
+        if (rel_f_label_id) {
+            line.set_relocation_f_label_id(rel_f_label_id + this->label_seed - 1);
+        }
+
+        if (rel_s_label_id) {
+            line.set_relocation_s_label_id(rel_s_label_id + this->label_seed - 1);
+        }
+    }
+
+    this->label_seed += new_label_seed;
+
+    return merge_code(new_lines);
 }
 
 
@@ -306,6 +354,10 @@ fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(std::vector<
     }
 
     return 0;
+}
+
+void fuku_code_analyzer::set_arch(fuku_arch arch) {
+    this->arch = arch;
 }
 
 void fuku_code_analyzer::clear() {
