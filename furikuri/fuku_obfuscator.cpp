@@ -77,7 +77,7 @@ std::vector<fuku_code_ip_relocation>*  fuku_obfuscator::get_ip_relocation_table(
     return this->ip_relocation_table;
 }
 
-std::vector<uint8_t> fuku_obfuscator::obfuscate_code() {
+void fuku_obfuscator::obfuscate_code() {
 
     fuku_mutation * mutator = (arch == fuku_arch::fuku_arch_x32) ?
         (fuku_mutation*)(new fuku_mutation_x86(settings, &this->label_seed)) : (fuku_mutation*)(new fuku_mutation_x64(settings, &this->label_seed));
@@ -100,7 +100,9 @@ std::vector<uint8_t> fuku_obfuscator::obfuscate_code() {
     delete mutator;
   
     finalize_code();
+}
 
+std::vector<uint8_t> fuku_obfuscator::get_code() {
     return lines_to_bin(lines);
 }
 

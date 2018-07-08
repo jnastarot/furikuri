@@ -6,6 +6,7 @@ fuku_code_profile::fuku_code_profile() {
     out_code_rva    = 0;
     type            = fuku_code_obfuscate;
     _ptr.obfuscator = 0;
+    settings = { 0 };
 }
 
 fuku_code_profile::~fuku_code_profile() {
@@ -13,10 +14,10 @@ fuku_code_profile::~fuku_code_profile() {
     if (_ptr.obfuscator) {
 
         if (type == fuku_code_obfuscate) {
-            delete _ptr.obfuscator;
+            delete _ptr.obfuscator; _ptr.obfuscator = 0;           
         }
         else {
-            delete _ptr.virtual_machine;
+            delete _ptr.virtual_machine; _ptr.virtual_machine = 0;
         }
     }
 }
@@ -24,11 +25,21 @@ fuku_code_profile::~fuku_code_profile() {
 fuku_protector::fuku_protector(const shibari_module& _module)
     :protected_module(_module){
 
+
+    main_obfuscator._ptr.obfuscator = new fuku_obfuscator;
+    main_vm._ptr.virtual_machine = new fuku_virtual_machine;
 }
 
 
 fuku_protector::~fuku_protector(){
     clear_profiles();
+
+    if (main_obfuscator._ptr.obfuscator) {
+        delete main_obfuscator._ptr.obfuscator; main_obfuscator._ptr.obfuscator = 0;
+    }
+    if (main_vm._ptr.virtual_machine) {
+        delete main_vm._ptr.virtual_machine; main_vm._ptr.virtual_machine = 0;
+    }
 }
 
 
@@ -236,25 +247,48 @@ fuku_protector_code fuku_protector::protect_module() {
 
         if (initialize_profiles()) {
 
+            uint64_t last_address = protected_module.get_image().get_image_base() + ALIGN_UP(protected_module.get_image().get_last_section()->get_virtual_address(),
+                protected_module.get_image().get_last_section()->get_virtual_size());
+
             for (auto& profile : profiles) {
 
                 switch (profile.type) {
 
                 case fuku_code_obfuscate: {
                     profile._ptr.obfuscator = new fuku_obfuscator;
+                    profile._ptr.obfuscator->set_association_table(&profile.association_table);
+                    profile._ptr.obfuscator->set_relocation_table(&profile.relocation_table);
+                    profile._ptr.obfuscator->set_ip_relocation_table(&profile.ip_relocation_table);
+                    profile._ptr.obfuscator->set_settings(profile.settings);
+                    profile._ptr.obfuscator->set_destination_virtual_address(last_address);
+                    profile._ptr.obfuscator->set_code(profile.analyzed_code);
 
+                    profile._ptr.obfuscator->obfuscate_code();
 
+                    const std::vector<fuku_instruction>& lines = profile._ptr.obfuscator->get_lines();
+                    last_address += lines[lines.size() - 1].get_virtual_address() + lines[lines.size() - 1].get_op_length();
                     break;
                 }
 
                 case fuku_code_hybrid: {
+                    fuku_obfuscator obfuscator;
 
+                    obfuscator.set_settings({ 2 , 2, 5.f, 5.f , 20.f});
+                    obfuscator.set_destination_virtual_address(last_address);
+                    obfuscator.set_code(profile.analyzed_code);
+
+                    obfuscator.obfuscate_code();
+
+                    profile.analyzed_code.clear();
+                    profile.analyzed_code.push_code(obfuscator.get_lines());
+
+                    const std::vector<fuku_instruction>& lines = obfuscator.get_lines();
+                    last_address += lines[lines.size() - 1].get_virtual_address() + lines[lines.size() - 1].get_op_length();
                     break;
                 }
+
                 case fuku_code_virtual: {
                     profile._ptr.virtual_machine = new fuku_virtual_machine;
-
-
                     break;
                 }
                 
@@ -355,13 +389,137 @@ bool    fuku_protector::initialize_profiles() {
 }
 
 void    fuku_protector::merge_profiles() {
-    //merge external jumps
+    
+    fuku_code_analyzer totaly_obfuscated_code;
+    fuku_code_analyzer totaly_vmed_code;
+
+    totaly_obfuscated_code.set_arch(
+        protected_module.get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64
+    );
+    totaly_vmed_code.set_arch(
+        protected_module.get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64
+    );
+
+    for (auto& profile : profiles) {
+
+        switch (profile.type) {
+
+        case fuku_code_obfuscate: {
+            totaly_obfuscated_code.push_code(profile._ptr.obfuscator->get_lines());
+            break;
+        }
+
+        case fuku_code_hybrid:
+        case fuku_code_virtual: {
+            totaly_vmed_code.push_code(profile.analyzed_code.get_lines());
+            break;
+        }
+        }
+    }
+
+    main_obfuscator._ptr.obfuscator->set_association_table(&main_obfuscator.association_table);
+    main_obfuscator._ptr.obfuscator->set_relocation_table(&main_obfuscator.relocation_table);
+    main_obfuscator._ptr.obfuscator->set_ip_relocation_table(&main_obfuscator.ip_relocation_table);
+    main_obfuscator._ptr.obfuscator->set_settings({1 , 1 , 0.f , 5.f , 0.f}); //only for mixing
+
+    main_obfuscator._ptr.obfuscator->set_destination_virtual_address(
+        protected_module.get_image().get_image_base() + ALIGN_UP(protected_module.get_image().get_last_section()->get_virtual_address(),
+        protected_module.get_image().get_last_section()->get_virtual_size()));
+
+    main_obfuscator._ptr.obfuscator->set_code(totaly_obfuscated_code);
+    //main_vm.set_code()
+
+
 }
 
 bool    fuku_protector::finish_protected_code() {
 
+    sort_association_tables();
+    auto& image_relocs = protected_module.get_image_relocations();
 
-    return false;
+    fuku_asm_x86 fuku_asm;
+    pe_image_io image_io(protected_module.get_image());
+
+    uint64_t base_address = protected_module.get_image().get_image_base();
+
+    for (auto& reloc : image_relocs.get_items()) {
+        reloc.data = 0;
+        if (image_io.set_image_offset(reloc.relative_virtual_address).read(
+            &reloc.data, protected_module.get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
+
+            return false;
+        }
+        reloc.data = protected_module.get_image().va_to_rva(reloc.data);
+    }
+
+    for (auto & profile : profiles) {
+        for (auto& region : profile.regions) {
+            for (auto& reloc : image_relocs.get_items()) {                              //fix relocations
+
+                if (reloc.data > region.region_rva &&
+                    reloc.data < (region.region_rva + region.region_size)) {
+
+                    fuku_code_association * assoc = find_association(profile, protected_module.get_image().rva_to_va((uint32_t)reloc.data));
+
+                    if (assoc) {
+                        reloc.data = assoc->virtual_address;
+
+                        if (image_io.set_image_offset(reloc.relative_virtual_address).write(
+                            &reloc.data, protected_module.get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
+
+                            return false;
+                        }
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            }
+
+            fuku_code_association * dst_func_assoc = find_association(profile, region.region_rva + base_address);   //set jumps to start of obfuscated funcs
+            if (dst_func_assoc) {
+                auto _jmp = fuku_asm.jmp(uint32_t(dst_func_assoc->virtual_address - (region.region_rva + base_address) - 5));
+
+                if (image_io.set_image_offset(region.region_rva).write(
+                    _jmp.get_op_code(), _jmp.get_op_length()) != enma_io_success) {
+
+                    return false;
+                }
+            }
+        }
+
+        for (auto& reloc : profile.relocation_table) {
+            image_relocs.add_item(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
+        }
+    }
+
+    
+    {
+        fuku_code_association * ep_assoc = find_association(protected_module.get_image().get_entry_point() + base_address);
+        if (ep_assoc) {
+            protected_module.get_image().set_entry_point(uint32_t(ep_assoc->virtual_address - base_address));
+        }
+    }
+
+    for (auto& ext_ep : protected_module.get_module_entrys()) {
+        fuku_code_association * ext_ep_assoc = find_association(ext_ep.entry_point_rva + base_address);
+        if (ext_ep_assoc) {
+            ext_ep.entry_point_rva = uint32_t(ext_ep_assoc->virtual_address - base_address);
+        }
+    }
+
+    protected_module.get_image_load_config().get_se_handlers().clear();
+    protected_module.get_image_load_config().get_guard_cf_functions().clear();
+
+    for (auto& export_item : protected_module.get_image_exports().get_items()) {
+
+        fuku_code_association * item_assoc = find_association(export_item.get_rva() + base_address);
+        if (item_assoc) {
+            export_item.set_rva(uint32_t(item_assoc->virtual_address - base_address));
+        }
+    }
+
+    return true;
 }
 
 bool fuku_protector::test_regions() {
@@ -447,13 +605,13 @@ fuku_code_association * fuku_protector::find_association(uint32_t rva) {
 }
 
 
-void fuku_protector::add_profile(const std::vector<fuku_protected_region>& regions, fuku_code_type type) {
+void fuku_protector::add_profile(const std::vector<fuku_protected_region>& regions, fuku_code_type type, const ob_fuku_sensitivity& settings) {
 
     fuku_code_profile code_profile;
     code_profile.regions = regions;
     code_profile.out_code_rva = 0;
     code_profile.type    = type;
-
+    code_profile.settings = settings;
 
     profiles.push_back(code_profile);
 }

@@ -27,6 +27,8 @@ struct fuku_code_profile {
     std::vector<fuku_code_relocation>    relocation_table;
     std::vector<fuku_code_ip_relocation> ip_relocation_table;
 
+    ob_fuku_sensitivity settings;
+
     fuku_code_type type;
 
     fuku_code_analyzer analyzed_code;
@@ -45,10 +47,9 @@ class fuku_protector {
 
     std::vector<fuku_code_profile> profiles;
 
-    fuku_obfuscator      main_obfuscator;
-    fuku_virtual_machine main_vm;
+    fuku_code_profile main_obfuscator, main_vm;
 
-
+    
     void    fuku_protector::sort_association_tables();
     fuku_code_association * fuku_protector::find_association(fuku_code_profile& profile,uint32_t rva);
     fuku_code_association * fuku_protector::find_association(uint32_t rva);
@@ -65,7 +66,7 @@ public:
     fuku_protector_code fuku_protector::protect_module();
 
 public:
-    void fuku_protector::add_profile(const std::vector<fuku_protected_region>& regions, fuku_code_type type);
+    void fuku_protector::add_profile(const std::vector<fuku_protected_region>& regions, fuku_code_type type, const ob_fuku_sensitivity& settings = { 0 });
     void fuku_protector::clear_profiles();
 public:
     const shibari_module& get_protected_module() const;

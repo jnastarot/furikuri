@@ -36,8 +36,8 @@ public:
     fuku_obfuscator::fuku_obfuscator();
     fuku_obfuscator::~fuku_obfuscator();
 
-    std::vector<uint8_t> fuku_obfuscator::obfuscate_code();
-
+    void fuku_obfuscator::obfuscate_code();
+    std::vector<uint8_t> fuku_obfuscator::get_code();
 public:
     void fuku_obfuscator::set_code(const fuku_code_analyzer& code);
     void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address);
