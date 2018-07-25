@@ -4,18 +4,6 @@ enum fuku_protector_code {
     fuku_protector_ok,
     fuku_protector_error_code_range,
     fuku_protector_error_initialization,
-
-};
-
-enum fuku_code_type {
-    fuku_code_obfuscate,
-    fuku_code_virtual,
-    fuku_code_hybrid,//obfuscation + virtualization
-};
-
-struct fuku_protected_region {
-    uint32_t region_rva;
-    uint32_t region_size;
 };
 
 
@@ -51,8 +39,7 @@ class fuku_protector {
 
     
     void    fuku_protector::sort_association_tables();
-    fuku_code_association * fuku_protector::find_association(fuku_code_profile& profile,uint32_t rva);
-    fuku_code_association * fuku_protector::find_association(uint32_t rva);
+    fuku_code_association * fuku_protector::find_obf_association(uint32_t rva);
 
     bool    fuku_protector::test_regions();
     bool    fuku_protector::initialize_profiles();

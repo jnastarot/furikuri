@@ -245,7 +245,14 @@ fuku_protector_code fuku_protector::protect_module() {
 
     if (test_regions()) {
 
+        pe_image_io image_io(protected_module.get_image());
+
         if (initialize_profiles()) {
+
+            uint32_t dest_address_rva = ALIGN_UP(
+                protected_module.get_image().get_last_section()->get_virtual_address() +
+                protected_module.get_image().get_last_section()->get_virtual_size(), protected_module.get_image().get_section_align());
+            uint64_t dest_address = protected_module.get_image().get_image_base() + dest_address_rva;
 
             uint64_t last_address = protected_module.get_image().get_image_base() + ALIGN_UP(protected_module.get_image().get_last_section()->get_virtual_address(),
                 protected_module.get_image().get_last_section()->get_virtual_size());
@@ -298,6 +305,14 @@ fuku_protector_code fuku_protector::protect_module() {
             }
 
             merge_profiles();
+
+            std::vector<uint8_t> ob_code = main_obfuscator._ptr.obfuscator->get_code();
+
+            if (ob_code.size()) {
+                if (image_io.set_image_offset(dest_address_rva).write(ob_code) != enma_io_success) {
+                    return fuku_protector_code::fuku_protector_error_initialization;
+                }
+            }
 
             if (finish_protected_code()) {
                 return fuku_protector_code::fuku_protector_ok;
@@ -417,16 +432,21 @@ void    fuku_protector::merge_profiles() {
         }
     }
 
+    uint32_t dest_address_rva = ALIGN_UP(
+        protected_module.get_image().get_last_section()->get_virtual_address() +
+        protected_module.get_image().get_last_section()->get_virtual_size(), protected_module.get_image().get_section_align());
+    uint64_t dest_address = protected_module.get_image().get_image_base() + dest_address_rva;
+
     main_obfuscator._ptr.obfuscator->set_association_table(&main_obfuscator.association_table);
     main_obfuscator._ptr.obfuscator->set_relocation_table(&main_obfuscator.relocation_table);
     main_obfuscator._ptr.obfuscator->set_ip_relocation_table(&main_obfuscator.ip_relocation_table);
     main_obfuscator._ptr.obfuscator->set_settings({1 , 1 , 0.f , 5.f , 0.f}); //only for mixing
 
-    main_obfuscator._ptr.obfuscator->set_destination_virtual_address(
-        protected_module.get_image().get_image_base() + ALIGN_UP(protected_module.get_image().get_last_section()->get_virtual_address(),
-        protected_module.get_image().get_last_section()->get_virtual_size()));
+    main_obfuscator._ptr.obfuscator->set_destination_virtual_address(dest_address);
 
     main_obfuscator._ptr.obfuscator->set_code(totaly_obfuscated_code);
+
+    main_obfuscator._ptr.obfuscator->obfuscate_code();
     //main_vm.set_code()
 
 
@@ -442,6 +462,16 @@ bool    fuku_protector::finish_protected_code() {
 
     uint64_t base_address = protected_module.get_image().get_image_base();
 
+    std::vector<uint8_t> obf_buffer = main_obfuscator._ptr.obfuscator->get_code();
+	
+    //rewrite for dynamic code place
+	if(image_io.set_image_offset(main_obfuscator._ptr.obfuscator->get_destination_virtual_address()).write(obf_buffer) != enma_io_success){
+		
+	   return false;
+	}
+	
+	//todo for vm
+	
     for (auto& reloc : image_relocs.get_items()) {
         reloc.data = 0;
         if (image_io.set_image_offset(reloc.relative_virtual_address).read(
@@ -459,7 +489,7 @@ bool    fuku_protector::finish_protected_code() {
                 if (reloc.data > region.region_rva &&
                     reloc.data < (region.region_rva + region.region_size)) {
 
-                    fuku_code_association * assoc = find_association(profile, protected_module.get_image().rva_to_va((uint32_t)reloc.data));
+                    fuku_code_association * assoc = find_obf_association(protected_module.get_image().rva_to_va((uint32_t)reloc.data));
 
                     if (assoc) {
                         reloc.data = assoc->virtual_address;
@@ -476,7 +506,7 @@ bool    fuku_protector::finish_protected_code() {
                 }
             }
 
-            fuku_code_association * dst_func_assoc = find_association(profile, region.region_rva + base_address);   //set jumps to start of obfuscated funcs
+            fuku_code_association * dst_func_assoc = find_obf_association(region.region_rva + base_address);   //set jumps to start of obfuscated funcs
             if (dst_func_assoc) {
                 auto _jmp = fuku_asm.jmp(uint32_t(dst_func_assoc->virtual_address - (region.region_rva + base_address) - 5));
 
@@ -495,14 +525,14 @@ bool    fuku_protector::finish_protected_code() {
 
     
     {
-        fuku_code_association * ep_assoc = find_association(protected_module.get_image().get_entry_point() + base_address);
+        fuku_code_association * ep_assoc = find_obf_association(protected_module.get_image().get_entry_point() + base_address);
         if (ep_assoc) {
             protected_module.get_image().set_entry_point(uint32_t(ep_assoc->virtual_address - base_address));
         }
     }
 
     for (auto& ext_ep : protected_module.get_module_entrys()) {
-        fuku_code_association * ext_ep_assoc = find_association(ext_ep.entry_point_rva + base_address);
+        fuku_code_association * ext_ep_assoc = find_obf_association(ext_ep.entry_point_rva + base_address);
         if (ext_ep_assoc) {
             ext_ep.entry_point_rva = uint32_t(ext_ep_assoc->virtual_address - base_address);
         }
@@ -513,7 +543,7 @@ bool    fuku_protector::finish_protected_code() {
 
     for (auto& export_item : protected_module.get_image_exports().get_items()) {
 
-        fuku_code_association * item_assoc = find_association(export_item.get_rva() + base_address);
+        fuku_code_association * item_assoc = find_obf_association(export_item.get_rva() + base_address);
         if (item_assoc) {
             export_item.set_rva(uint32_t(item_assoc->virtual_address - base_address));
         }
@@ -561,43 +591,31 @@ void    fuku_protector::sort_association_tables() {
     }
 }
 
-fuku_code_association * fuku_protector::find_association(fuku_code_profile& profile, uint32_t rva){
+fuku_code_association * fuku_protector::find_obf_association(uint32_t rva){
 
     
-    for (auto& region : profile.regions) {
+    for (auto& region : main_obfuscator.regions) {
 
         if (region.region_rva <= rva && region.region_rva + region.region_size > rva) {
             uint64_t real_address = protected_module.get_image().rva_to_va(rva);
 
             size_t left = 0;
-            size_t right = profile.association_table.size();
+            size_t right = main_obfuscator.association_table.size();
             size_t mid = 0;
 
             while (left < right) {
                 mid = left + (right - left) / 2;
 
-                if (profile.association_table[mid].prev_virtual_address == real_address) {
-                    return &profile.association_table[mid];
+                if (main_obfuscator.association_table[mid].prev_virtual_address == real_address) {
+                    return &main_obfuscator.association_table[mid];
                 }
-                else if (profile.association_table[mid].prev_virtual_address > real_address) {
+                else if (main_obfuscator.association_table[mid].prev_virtual_address > real_address) {
                     right = mid;
                 }
                 else {
                     left = mid + 1;
                 }
             }
-        }
-    }
-
-    return 0;
-}
-
-fuku_code_association * fuku_protector::find_association(uint32_t rva) {
-
-    for (auto& profile : profiles) {
-        fuku_code_association * code_assoc = find_association(profile, rva);
-        if (code_assoc) {
-            return code_assoc;
         }
     }
 

@@ -51,7 +51,9 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    /*
+    srand(2);
+
+    
     shibari_module module(std::string("..\\..\\app for test\\linked_programm.exe"));
 
     furikuri fuku;
@@ -77,10 +79,8 @@ int main(){
     //*/
    
 
-    srand(2);
 
-
-    
+    /*
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
     for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {
