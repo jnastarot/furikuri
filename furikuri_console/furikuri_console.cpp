@@ -54,18 +54,21 @@ int main(){
     srand(2);
 
     
-    shibari_module module(std::string("..\\..\\app for test\\linked_programm.exe"));
+    shibari_module _module(std::string("..\\..\\app for test\\linked_programm.exe"));
 
     furikuri fuku;
 
-    if (fuku.set_main_module(&module)) {
+    if (fuku.set_main_module(&_module)) {
         std::vector<uint8_t> out_image;
         
 
-        auto& symbols_code = module.get_code_symbols();
+        auto& symbols_code = _module.get_code_symbols();
         symbols_code.push_back({ 0x10F9 , 0x139 });
 
-        if (fuku.fuku_protect({ 1,2,90.f,90.f,90.f }, out_image)) {
+        fuku.add_code_list({ 0x10F9 , 0x139 }, fuku_code_type::fuku_code_obfuscate, &_module, { 1,2,10.f,10.f,00.f });
+
+        
+        if (fuku.fuku_protect(out_image)) {
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
 

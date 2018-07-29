@@ -2,7 +2,7 @@
 #include "fuku_mutation_x64.h"
 
 
-fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_sensitivity& settings, unsigned int * label_seed)
+fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_settings& settings, unsigned int * label_seed)
 : settings(settings), label_seed(label_seed){}
 
 fuku_mutation_x64::~fuku_mutation_x64() {

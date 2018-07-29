@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "furikuri.h"
 
-bool ob_fuku_sensitivity::operator==(const ob_fuku_sensitivity& set) {
+bool ob_fuku_settings::operator==(const ob_fuku_settings& set) {
     return (
         this->complexity == set.complexity &&
         this->number_of_passes == set.number_of_passes &&
@@ -46,14 +46,20 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
             }
         }
 
-        protector.add_profile(list.functions, list.type, list.settings);
+        if (list.type == fuku_code_type::fuku_code_obfuscate) {
+            protector.add_ob_profile(list.functions, list.settings);
+        }
+        else {
+            //todo for vm
+        }
+        
     }
 
     fuku_protector_code code = protector.protect_module();
 
     if (code == fuku_protector_code::fuku_protector_ok) {
 
-        shibari_builder(*main_module, main_has_relocations, out_image);
+        shibari_builder(protector.get_protected_module(), main_has_relocations, out_image);
 
         return true;
     }
@@ -78,7 +84,7 @@ bool furikuri::add_extended_module(shibari_module* module, std::string module_pa
 }
 
 
-bool furikuri::add_code_list(fuku_protected_region& region, fuku_code_type type, shibari_module* _module, ob_fuku_sensitivity& settings) {
+bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, shibari_module* _module, ob_fuku_settings settings) {
 
     bool valid_module = false;
 

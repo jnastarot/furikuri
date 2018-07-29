@@ -34,8 +34,8 @@ void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtu
     this->destination_virtual_address = destination_virtual_address;
 }
 
-void fuku_obfuscator::set_settings(const ob_fuku_sensitivity& settings) {
-    memcpy(&this->settings,&settings,sizeof(ob_fuku_sensitivity));
+void fuku_obfuscator::set_settings(const ob_fuku_settings& settings) {
+    memcpy(&this->settings,&settings,sizeof(ob_fuku_settings));
 }
 
 void fuku_obfuscator::set_association_table(std::vector<fuku_code_association>*	associations) {
@@ -62,7 +62,7 @@ uint64_t     fuku_obfuscator::get_destination_virtual_address() const {
     return this->destination_virtual_address;
 }
 
-ob_fuku_sensitivity fuku_obfuscator::get_settings() const {
+ob_fuku_settings fuku_obfuscator::get_settings() const {
     return this->settings;
 }
 std::vector<fuku_code_association>*    fuku_obfuscator::get_association_table() {
@@ -526,6 +526,7 @@ void fuku_obfuscator::finalize_code() {
             }
         }
 
+        //todo fix reloc offset
 
         if (relocation_table && line.get_relocation_f_imm_offset()) {
             relocation_table->push_back({ (line.get_virtual_address() + line.get_relocation_f_imm_offset()),line.get_relocation_f_id() });

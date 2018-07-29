@@ -3,7 +3,7 @@
 
 #define ISNT_LAST (lines.size() > current_line_idx+1)
 
-fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, unsigned int * label_seed)
+fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_settings& settings, unsigned int * label_seed)
 : settings(settings), label_seed(label_seed){}
 
 fuku_mutation_x86::~fuku_mutation_x86() {
@@ -46,7 +46,7 @@ uint32_t fuku_mutation_x86::set_label(fuku_instruction& line) {
     if (label_seed) {
         if (!line.get_label_id()) {
             line.set_label_id(*label_seed);
-            *label_seed++;
+            (*label_seed)++;
         }
         return line.get_label_id();
     }

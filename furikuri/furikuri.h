@@ -13,14 +13,21 @@ class fuku_obfuscator;
 class fuku_instruction;
 class fuku_mutation;
 
-struct ob_fuku_sensitivity {
+struct ob_fuku_settings {
     unsigned int complexity;        //number of passes for single line
     unsigned int number_of_passes;  //number of passes for full code
     float junk_chance;   //0.f - 100.f chance of adding junk
     float block_chance;  //0.f - 100.f chance of generation new code graph
     float mutate_chance; //0.f - 100.f chance of mutation line
 
-    bool ob_fuku_sensitivity::operator==(const ob_fuku_sensitivity& set);
+    bool ob_fuku_settings::operator==(const ob_fuku_settings& set);
+};
+
+struct vm_fuku_settings {
+    bool used_obfuscation;
+    ob_fuku_settings ob_settings;
+
+    shibari_module* _module;//vm holder
 };
 
 struct fuku_protected_region {
@@ -32,7 +39,7 @@ struct fuku_code_list {
     std::vector<fuku_protected_region> functions;
     fuku_code_type type;
 
-    ob_fuku_sensitivity settings;
+    ob_fuku_settings settings;
 
     shibari_module* _module;
 
@@ -62,7 +69,7 @@ public:
     bool furikuri::set_main_module(shibari_module* module,std::string module_path = "");
     bool furikuri::add_extended_module(shibari_module* module, std::string module_path = "");
 
-    bool furikuri::add_code_list(fuku_protected_region& region, fuku_code_type type, shibari_module* _module, ob_fuku_sensitivity& settings = { 0 });
+    bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, shibari_module* _module, ob_fuku_settings settings);
 
     void furikuri::clear_code_lists();
     void furikuri::clear_extended_modules(); //delete only from pointer table without destruction classes

@@ -5,7 +5,7 @@ class fuku_mutation_x86 :
     public fuku_mutation {
 
     fuku_asm_x86 f_asm;
-    ob_fuku_sensitivity settings;
+    ob_fuku_settings settings;
     unsigned int * label_seed;
 
     bool need_fix_labels;
@@ -43,7 +43,7 @@ class fuku_mutation_x86 :
     uint32_t fuku_mutation_x86::set_label(fuku_instruction& line);
     uint32_t fuku_mutation_x86::get_maxlabel();
 public:
-    fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_sensitivity& settings, unsigned int * label_seed);
+    fuku_mutation_x86::fuku_mutation_x86(const ob_fuku_settings& settings, unsigned int * label_seed);
     fuku_mutation_x86::~fuku_mutation_x86();
 
     void fuku_mutation_x86::obfuscate(std::vector<fuku_instruction>& lines);

@@ -15,7 +15,7 @@ struct fuku_code_profile {
     std::vector<fuku_code_relocation>    relocation_table;
     std::vector<fuku_code_ip_relocation> ip_relocation_table;
 
-    ob_fuku_sensitivity settings;
+    ob_fuku_settings settings;
 
     fuku_code_type type;
 
@@ -43,7 +43,7 @@ class fuku_protector {
 
     bool    fuku_protector::test_regions();
     bool    fuku_protector::initialize_profiles();
-    void    fuku_protector::merge_profiles();
+    void    fuku_protector::merge_profiles(uint32_t dest_address_rva);
     bool    fuku_protector::finish_protected_code();
 public:
     fuku_protector::fuku_protector(const shibari_module& module);
@@ -53,7 +53,9 @@ public:
     fuku_protector_code fuku_protector::protect_module();
 
 public:
-    void fuku_protector::add_profile(const std::vector<fuku_protected_region>& regions, fuku_code_type type, const ob_fuku_sensitivity& settings = { 0 });
+    void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& regions, const vm_fuku_settings& settings);
+    void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const ob_fuku_settings& settings);
+
     void fuku_protector::clear_profiles();
 public:
     const shibari_module& get_protected_module() const;
