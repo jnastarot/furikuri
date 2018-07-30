@@ -8,8 +8,6 @@ class fuku_mutation_x86 :
     ob_fuku_settings settings;
     unsigned int * label_seed;
 
-    bool need_fix_labels;
-
     void fuku_mutation_x86::fuku_junk_1b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x86::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x86::fuku_junk_3b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
@@ -48,7 +46,7 @@ public:
 
     void fuku_mutation_x86::obfuscate(std::vector<fuku_instruction>& lines);
 
-    void fuku_mutation_x86::generate_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
+    void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
 };
 
 

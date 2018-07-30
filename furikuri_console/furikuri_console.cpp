@@ -62,10 +62,7 @@ int main(){
         std::vector<uint8_t> out_image;
         
 
-        auto& symbols_code = _module.get_code_symbols();
-        symbols_code.push_back({ 0x10F9 , 0x139 });
-
-        fuku.add_code_list({ 0x10F9 , 0x139 }, fuku_code_type::fuku_code_obfuscate, &_module, { 1,2,10.f,10.f,00.f });
+        fuku.add_code_list({ 0x10F9 , 0x139 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
 
         
         if (fuku.fuku_protect(out_image)) {

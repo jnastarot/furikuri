@@ -59,7 +59,7 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
 
     if (code == fuku_protector_code::fuku_protector_ok) {
 
-        shibari_builder(protector.get_protected_module(), main_has_relocations, out_image);
+        shibari_builder(protector.get_target_module(), main_has_relocations, out_image);
 
         return true;
     }

@@ -31,7 +31,7 @@ struct fuku_code_profile {
 };
 
 class fuku_protector { 
-    shibari_module protected_module;
+    shibari_module target_module;
 
     std::vector<fuku_code_profile> profiles;
 
@@ -44,6 +44,7 @@ class fuku_protector {
     bool    fuku_protector::test_regions();
     bool    fuku_protector::initialize_profiles();
     void    fuku_protector::merge_profiles(uint32_t dest_address_rva);
+    bool    fuku_protector::fill_code(uint32_t dest_address_rva);
     bool    fuku_protector::finish_protected_code();
 public:
     fuku_protector::fuku_protector(const shibari_module& module);
@@ -58,6 +59,6 @@ public:
 
     void fuku_protector::clear_profiles();
 public:
-    const shibari_module& get_protected_module() const;
+    const shibari_module& get_target_module() const;
 };
 

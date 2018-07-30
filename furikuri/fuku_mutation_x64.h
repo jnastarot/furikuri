@@ -6,11 +6,9 @@ class fuku_mutation_x64 :
     public fuku_mutation {
 
 
-    fuku_asm_x86 f_asm;
+    fuku_asm_x64 f_asm;
     ob_fuku_settings settings;
     unsigned int * label_seed;
-
-    bool need_fix_labels;
 
     void fuku_mutation_x64::fuku_junk_1b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
@@ -47,5 +45,5 @@ public:
 
     void fuku_mutation_x64::obfuscate(std::vector<fuku_instruction>& lines);
 
-    void fuku_mutation_x64::generate_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
+    void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
 };

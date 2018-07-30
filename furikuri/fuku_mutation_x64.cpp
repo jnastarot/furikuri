@@ -47,7 +47,7 @@ void fuku_mutation_x64::obfuscate(std::vector<fuku_instruction>& lines) {
     obfuscate_lines(lines, -1);
 }
 
-void fuku_mutation_x64::generate_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
     size_t current_size = 0;
     std::vector<fuku_instruction> lines;
@@ -99,6 +99,8 @@ void fuku_mutation_x64::generate_junk(std::vector<uint8_t>& junk, size_t junk_si
 
 void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
     std::vector<fuku_instruction>& out_lines) {
+
+    bool unstable_stack = lines[current_line_idx].get_flags() & fuku_instruction_bad_stack;
 
     if (FUKU_GET_CHANCE(settings.junk_chance)) {
         fuku_junk(lines, current_line_idx, out_lines);
@@ -194,6 +196,20 @@ void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigne
     else {
         out_lines.push_back(lines[current_line_idx]);
     }
+
+
+    for (auto& line : out_lines) {
+        if (unstable_stack) {
+            line.set_flags(line.get_flags() | fuku_instruction_bad_stack);
+        }
+
+        line.set_label_id(0);
+
+        line.set_source_virtual_address(-1);
+    }
+
+    out_lines[0].set_source_virtual_address(lines[current_line_idx].get_source_virtual_address());
+    out_lines[0].set_label_id(lines[current_line_idx].get_label_id());
 }
 
 
@@ -247,6 +263,48 @@ bool fuku_mutation_x64::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
     return false;
 }
 
+
+void fuku_mutation_x64::generate_junk(std::vector<fuku_instruction>& junk,
+    fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
+
+
+    size_t current_size = 0;
+
+    while (junk_size != current_size) {
+
+        switch (FUKU_GET_RAND(1, min(min(junk_size - current_size, max_size), 7))) {
+        case 1: {
+            fuku_junk_1b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 1;
+            break;
+        }
+        case 2: {
+            fuku_junk_2b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 2;
+            break;
+        }
+        case 3: {
+            fuku_junk_3b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 3;
+            break;
+        }
+        case 4: {
+            fuku_junk_4b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 4;
+            break;
+        }
+        case 5: {
+            fuku_junk_5b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 5;
+            break;
+        }
+        case 6: {
+            fuku_junk_6b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 6;
+            break;
+        }
+        case 7: {
+            fuku_junk_7b(junk, next_line, unstable_stack, allow_flags_changes); current_size += 7;
+            break;
+        }
+        }
+    }
+}
+
 void fuku_mutation_x64::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
     std::vector<fuku_instruction>& out_lines) {
 
@@ -285,31 +343,96 @@ void fuku_mutation_x64::fuku_junk(std::vector<fuku_instruction>& lines, unsigned
     }
 }
 
-void fuku_mutation_x64::fuku_junk_1b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::fuku_junk_1b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+
+    out_lines.push_back(f_asm.nop(1));
+}
+void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+
+    switch (FUKU_GET_RAND(0, 1)) {
+    case 0: {
+        out_lines.push_back(f_asm.nop(2));
+        break;
+    }
+    case 1: {
+
+        break;
+    }
+    }
 
 
 }
-void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::fuku_junk_3b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    switch (FUKU_GET_RAND(0, 1)) {
+    case 0: {
+        out_lines.push_back(f_asm.nop(3));
+        break;
+    }
+    case 1: {
 
+        break;
+    }
+    }
 }
-void fuku_mutation_x64::fuku_junk_3b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::fuku_junk_4b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    switch (FUKU_GET_RAND(0, 1)) {
+    case 0: {
+        out_lines.push_back(f_asm.nop(4));
+        break;
+    }
+    case 1: {
 
+        break;
+    }
+    }
 }
-void fuku_mutation_x64::fuku_junk_4b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::fuku_junk_5b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    switch (FUKU_GET_RAND(0, 1)) {
+    case 0: {
+        out_lines.push_back(f_asm.nop(5));
+        break;
+    }
+    case 1: {
 
+        break;
+    }
+    }
 }
-void fuku_mutation_x64::fuku_junk_5b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::fuku_junk_6b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    switch (FUKU_GET_RAND(0, 1)) {
+    case 0: {
+        out_lines.push_back(f_asm.nop(6));
+        break;
+    }
+    case 1: {
 
+       
+
+        break;
+    }
+    }
 }
-void fuku_mutation_x64::fuku_junk_6b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
+void fuku_mutation_x64::fuku_junk_7b(std::vector<fuku_instruction>& out_lines, 
+    fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    switch (FUKU_GET_RAND(0, 1)) {
+    case 0: {
+        out_lines.push_back(f_asm.nop(7));
+        break;
+    }
+    case 1: {
 
-}
-void fuku_mutation_x64::fuku_junk_7b(std::vector<fuku_instruction>& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
-
-
+        break;
+    }
+    }
 }

@@ -21,50 +21,53 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_asm\x64">
       <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_analyzer">
-      <UniqueIdentifier>{a0dae202-b54d-45bc-9767-e5812da284b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_defender">
-      <UniqueIdentifier>{514278ee-9057-4bb8-9e9a-8fd9a4d79d45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_defender\fuku_vm">
-      <UniqueIdentifier>{b10e78d1-0510-4dbb-94cd-b99a543cb725}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector">
       <UniqueIdentifier>{b1ec361b-10a5-4861-b39b-f8c1d18bb7d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code">
+      <UniqueIdentifier>{acd4d3f4-33f1-43b5-94da-77899a6d2ec3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_instruction">
+      <UniqueIdentifier>{1992578b-db89-4276-aca4-97eecbc1c7a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender">
+      <UniqueIdentifier>{514278ee-9057-4bb8-9e9a-8fd9a4d79d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm">
+      <UniqueIdentifier>{b10e78d1-0510-4dbb-94cd-b99a543cb725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator">
       <UniqueIdentifier>{3bb0ab87-e93b-416a-807d-e4ae9cee945a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation">
       <UniqueIdentifier>{be02e024-84aa-40da-8397-1033a70cfd64}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation\x86">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation\x86">
       <UniqueIdentifier>{1bed7b29-aa69-4f65-b0f2-ff60b7b0b303}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation\x64">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation\x64">
       <UniqueIdentifier>{8c1583e0-a42d-4039-84a1-24d892d64829}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_info">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_analyzer">
+      <UniqueIdentifier>{a0dae202-b54d-45bc-9767-e5812da284b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info">
       <UniqueIdentifier>{e2046fc9-1775-4911-943d-a11ecec9e5a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_info\fuku_tds">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info\fuku_tds">
       <UniqueIdentifier>{1ccebe1c-37c9-4137-9c2b-6a6077451fa6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_info\fuku_pdb">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info\fuku_pdb">
       <UniqueIdentifier>{1f4190dd-5d7a-43c4-8db6-cc4dd5b51e0d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_info\fuku_map">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info\fuku_map">
       <UniqueIdentifier>{315d4f5b-cd5d-4ca9-92c8-10586ca48f38}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_info\fuku_map\bolrand">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand">
       <UniqueIdentifier>{750ed0a3-45af-4184-a806-313996952718}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_info\fuku_map\msvc">
+    <Filter Include="Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\msvc">
       <UniqueIdentifier>{40b42aa9-6851-47b5-bde7-364512ae3286}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code_instruction">
-      <UniqueIdentifier>{1992578b-db89-4276-aca4-97eecbc1c7a3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -78,19 +81,19 @@
       <Filter>Заголовочные файлы\furikuri\fuku_asm</Filter>
     </ClInclude>
     <ClInclude Include="fuku_instruction.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_instruction</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_instruction</Filter>
     </ClInclude>
     <ClInclude Include="fuku_obfuscator.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator</Filter>
     </ClInclude>
     <ClInclude Include="fuku_mutation_x64.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation\x64</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation\x64</Filter>
     </ClInclude>
     <ClInclude Include="fuku_mutation_x86.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation\x86</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation\x86</Filter>
     </ClInclude>
     <ClInclude Include="fuku_mutation.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation</Filter>
     </ClInclude>
     <ClInclude Include="fuku_asm_x86.h">
       <Filter>Заголовочные файлы\furikuri\fuku_asm\x86</Filter>
@@ -102,28 +105,28 @@
       <Filter>Заголовочные файлы\furikuri\fuku_protector</Filter>
     </ClInclude>
     <ClInclude Include="fuku_map.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_map</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map</Filter>
     </ClInclude>
     <ClInclude Include="fuku_pdb.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_pdb</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_pdb</Filter>
     </ClInclude>
     <ClInclude Include="fuku_tds.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_tds</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_tds</Filter>
     </ClInclude>
     <ClInclude Include="fuku_msvc_map.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_map\msvc</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\msvc</Filter>
     </ClInclude>
     <ClInclude Include="fuku_bolrand_map.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_map\bolrand</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand</Filter>
     </ClInclude>
     <ClInclude Include="fuku_debug_info.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info</Filter>
     </ClInclude>
     <ClInclude Include="fuku_virtual_machine.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_vm</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm</Filter>
     </ClInclude>
     <ClInclude Include="fuku_code_analyzer.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_analyzer</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_analyzer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -134,16 +137,16 @@
       <Filter>Заголовочные файлы\furikuri</Filter>
     </ClCompile>
     <ClCompile Include="fuku_instruction.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_instruction</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_instruction</Filter>
     </ClCompile>
     <ClCompile Include="fuku_obfuscator.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator</Filter>
     </ClCompile>
     <ClCompile Include="fuku_mutation_x64.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation\x64</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation\x64</Filter>
     </ClCompile>
     <ClCompile Include="fuku_mutation_x86.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_obfuscator\fuku_mutation\x86</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation\x86</Filter>
     </ClCompile>
     <ClCompile Include="fuku_asm_x86.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_asm\x86</Filter>
@@ -155,25 +158,25 @@
       <Filter>Заголовочные файлы\furikuri\fuku_protector</Filter>
     </ClCompile>
     <ClCompile Include="fuku_map.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_map</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map</Filter>
     </ClCompile>
     <ClCompile Include="fuku_pdb.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_pdb</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_pdb</Filter>
     </ClCompile>
     <ClCompile Include="fuku_tds.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_tds</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_tds</Filter>
     </ClCompile>
     <ClCompile Include="fuku_msvc_map.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_map\msvc</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\msvc</Filter>
     </ClCompile>
     <ClCompile Include="fuku_bolrand_map.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_info\fuku_map\bolrand</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand</Filter>
     </ClCompile>
     <ClCompile Include="fuku_virtual_machine.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_defender\fuku_vm</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm</Filter>
     </ClCompile>
     <ClCompile Include="fuku_code_analyzer.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code_analyzer</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_analyzer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

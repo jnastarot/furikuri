@@ -366,7 +366,7 @@ void fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines) {
             //jcxz
             case 0xE3: {
                 
-                fuku_instruction cc_line = fuku_asm_x86().or_(fuku_reg86::r_ECX, fuku_reg86::r_ECX);//or ecx,ecx
+                fuku_instruction cc_line = fuku_asm_x86().or(fuku_reg86::r_ECX, fuku_reg86::r_ECX);//or ecx,ecx
                 cc_line.set_source_virtual_address(line.get_source_virtual_address());
                 cc_line.set_virtual_address(line.get_virtual_address());
 
@@ -525,8 +525,6 @@ void fuku_obfuscator::finalize_code() {
                     uint64_t(get_line_by_label_id(line.get_relocation_s_label_id())->get_virtual_address());
             }
         }
-
-        //todo fix reloc offset
 
         if (relocation_table && line.get_relocation_f_imm_offset()) {
             relocation_table->push_back({ (line.get_virtual_address() + line.get_relocation_f_imm_offset()),line.get_relocation_f_id() });
