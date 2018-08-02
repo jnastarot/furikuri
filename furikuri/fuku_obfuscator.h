@@ -45,7 +45,7 @@ public:
 
     void fuku_obfuscator::set_association_table(std::vector<fuku_code_association>*	associations);
     void fuku_obfuscator::set_relocation_table(std::vector<fuku_code_relocation>* relocations);
-    void fuku_obfuscator::set_ip_relocation_table(std::vector<fuku_code_ip_relocation>* relocations); //will returned only external rip relocations
+    void fuku_obfuscator::set_ip_relocation_table(std::vector<fuku_code_ip_relocation>* relocations); //be returned only external rip relocations
 public:  
     fuku_arch    fuku_obfuscator::get_arch() const;
     const std::vector<fuku_instruction>& fuku_obfuscator::get_lines() const;

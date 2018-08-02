@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "fuku_mutation_x64.h"
 
+#define ISNT_LAST (lines.size() > current_line_idx+1)
 
 fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_settings& settings, unsigned int * label_seed)
 : settings(settings), label_seed(label_seed){}
@@ -46,6 +47,25 @@ void fuku_mutation_x64::obfuscate_lines(std::vector<fuku_instruction>& lines, un
 void fuku_mutation_x64::obfuscate(std::vector<fuku_instruction>& lines) {
     obfuscate_lines(lines, -1);
 }
+
+uint32_t fuku_mutation_x64::set_label(fuku_instruction& line) {
+    if (label_seed) {
+        if (!line.get_label_id()) {
+            line.set_label_id(*label_seed);
+            (*label_seed)++;
+        }
+        return line.get_label_id();
+    }
+    return 0;
+}
+
+uint32_t fuku_mutation_x64::get_maxlabel() {
+    if (label_seed) {
+        return *label_seed;
+    }
+    return 0;
+}
+
 
 void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
@@ -109,6 +129,8 @@ void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigne
     if (FUKU_GET_CHANCE(settings.mutate_chance)) {
         switch (lines[current_line_idx].get_type()) {
 
+            //todo
+
         case I_PUSH: {
             if (!fukutate_push(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
@@ -168,6 +190,20 @@ void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigne
         }
         case I_CMP: {
             if (!fukutate_cmp(lines, current_line_idx, out_lines)) {
+                out_lines.push_back(lines[current_line_idx]);
+            }
+            break;
+        }
+
+        case  I_JO: case  I_JNO:
+        case  I_JB: case  I_JAE:
+        case  I_JZ: case  I_JNZ:
+        case  I_JBE:case  I_JA:
+        case  I_JS: case  I_JNS:
+        case  I_JP: case  I_JNP:
+        case  I_JL: case  I_JGE:
+        case  I_JLE:case  I_JG: {
+            if (!fukutate_jcc(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
@@ -252,6 +288,34 @@ bool fuku_mutation_x64::fukutate_cmp(std::vector<fuku_instruction>& lines, unsig
 }
 bool fuku_mutation_x64::fukutate_jcc(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
 
+    auto& target_line = lines[current_line_idx];
+
+    if (label_seed && ISNT_LAST) {
+        const uint8_t* code = &target_line.get_op_code()[target_line.get_op_pref_size()];
+
+        fuku_instruction l_jmp = f_asm.jmp(0);
+        l_jmp.set_ip_relocation_destination(target_line.get_ip_relocation_destination());
+        l_jmp.set_link_label_id(target_line.get_link_label_id());
+
+        uint8_t cond;
+
+        if (code[0] == 0x0F) {
+            cond = code[1] & 0xF;
+        }
+        else {
+            cond = code[0] & 0xF;
+        }
+
+        fuku_instruction l_jcc = f_asm.jcc(fuku_condition(cond ^ 1), 0).set_useless_flags(target_line.get_useless_flags());
+        l_jcc.set_link_label_id(set_label(lines[current_line_idx + 1]));
+        l_jcc.set_flags(l_jcc.get_flags() | fuku_instruction_full_mutated);
+
+        out_lines.push_back(l_jcc);
+        out_lines.push_back(l_jmp);
+        return true;
+    }
+
+
     return false;
 }
 bool fuku_mutation_x64::fukutate_jmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
@@ -259,6 +323,26 @@ bool fuku_mutation_x64::fukutate_jmp(std::vector<fuku_instruction>& lines, unsig
     return false;
 }
 bool fuku_mutation_x64::fukutate_ret(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+
+    auto& target_line = lines[current_line_idx];
+
+    if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0)) {
+        if (target_line.get_op_code()[0] == 0xC3) { //ret
+
+            out_lines.push_back(f_asm.lea(fuku_reg64::r_RSP, fuku_operand64(fuku_reg64::r_RSP, 8),fuku_asm64_size::asm64_size_64));//lea rsp,[rsp + (8 + stack_offset)]
+            out_lines.push_back(f_asm.jmp(fuku_operand64(r_RSP, -8)).set_flags(fuku_instruction_bad_stack));                        //jmp [rsp - (8 + stack_offset)] 
+
+            return true;
+
+        }
+        else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
+            uint16_t ret_stack = *(uint16_t*)target_line.get_op_code()[1];
+            out_lines.push_back(f_asm.add(fuku_reg64::r_RSP, fuku_operand64(fuku_reg64::r_RSP, 8 + ret_stack), fuku_asm64_size::asm64_size_64));//lea rsp,[rsp + (8 + stack_offset)]
+            out_lines.push_back(f_asm.jmp(fuku_operand64(r_RSP, -8 - ret_stack)).set_flags(fuku_instruction_bad_stack));                        //jmp [rsp - (8 + stack_offset)] 
+
+            return true;
+        }
+    }
 
     return false;
 }
@@ -351,13 +435,9 @@ void fuku_mutation_x64::fuku_junk_1b(std::vector<fuku_instruction>& out_lines,
 void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
-    switch (FUKU_GET_RAND(0, 1)) {
+    switch (FUKU_GET_RAND(0, 0)) {
     case 0: {
         out_lines.push_back(f_asm.nop(2));
-        break;
-    }
-    case 1: {
-
         break;
     }
     }
@@ -367,13 +447,9 @@ void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines,
 void fuku_mutation_x64::fuku_junk_3b(std::vector<fuku_instruction>& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
-    switch (FUKU_GET_RAND(0, 1)) {
+    switch (FUKU_GET_RAND(0, 0)) {
     case 0: {
         out_lines.push_back(f_asm.nop(3));
-        break;
-    }
-    case 1: {
-
         break;
     }
     }
@@ -381,13 +457,9 @@ void fuku_mutation_x64::fuku_junk_3b(std::vector<fuku_instruction>& out_lines,
 void fuku_mutation_x64::fuku_junk_4b(std::vector<fuku_instruction>& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
-    switch (FUKU_GET_RAND(0, 1)) {
+    switch (FUKU_GET_RAND(0, 0)) {
     case 0: {
         out_lines.push_back(f_asm.nop(4));
-        break;
-    }
-    case 1: {
-
         break;
     }
     }
@@ -395,13 +467,9 @@ void fuku_mutation_x64::fuku_junk_4b(std::vector<fuku_instruction>& out_lines,
 void fuku_mutation_x64::fuku_junk_5b(std::vector<fuku_instruction>& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
-    switch (FUKU_GET_RAND(0, 1)) {
+    switch (FUKU_GET_RAND(0, 0)) {
     case 0: {
         out_lines.push_back(f_asm.nop(5));
-        break;
-    }
-    case 1: {
-
         break;
     }
     }
@@ -409,15 +477,9 @@ void fuku_mutation_x64::fuku_junk_5b(std::vector<fuku_instruction>& out_lines,
 void fuku_mutation_x64::fuku_junk_6b(std::vector<fuku_instruction>& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
-    switch (FUKU_GET_RAND(0, 1)) {
+    switch (FUKU_GET_RAND(0, 0)) {
     case 0: {
         out_lines.push_back(f_asm.nop(6));
-        break;
-    }
-    case 1: {
-
-       
-
         break;
     }
     }
@@ -425,13 +487,9 @@ void fuku_mutation_x64::fuku_junk_6b(std::vector<fuku_instruction>& out_lines,
 void fuku_mutation_x64::fuku_junk_7b(std::vector<fuku_instruction>& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
-    switch (FUKU_GET_RAND(0, 1)) {
+    switch (FUKU_GET_RAND(0, 0)) {
     case 0: {
         out_lines.push_back(f_asm.nop(7));
-        break;
-    }
-    case 1: {
-
         break;
     }
     }

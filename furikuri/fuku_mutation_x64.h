@@ -39,6 +39,9 @@ class fuku_mutation_x64 :
 
     void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines);
     void fuku_mutation_x64::obfuscate_lines(std::vector<fuku_instruction>& lines, unsigned int recurse_idx);
+
+    uint32_t fuku_mutation_x64::set_label(fuku_instruction& line);
+    uint32_t fuku_mutation_x64::get_maxlabel();
 public:
     fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_settings& settings, unsigned int * label_seed);
     fuku_mutation_x64::~fuku_mutation_x64();

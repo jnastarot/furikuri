@@ -131,7 +131,7 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
             }
             break;
         }
-
+                     
         case I_POP: {
             if (!fukutate_pop(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
@@ -188,7 +188,7 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
             }
             break;
         }
-
+        
         case I_JMP: {
             if (!fukutate_jmp(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
@@ -210,7 +210,7 @@ void fuku_mutation_x86::fukutation(std::vector<fuku_instruction>& lines, unsigne
             break;
         }
 
-
+        
         case I_RET: {
             if (!fukutate_ret(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
@@ -281,7 +281,9 @@ bool fuku_mutation_x86::fukutate_push(std::vector<fuku_instruction>& lines, unsi
         out_lines.push_back(f_asm.mov(fuku_operand86(fuku_reg86::r_ESP,operand_scale::operand_scale_1),fuku_immediate86(val)).set_useless_flags(target_line.get_useless_flags()).set_flags(fuku_instruction_bad_stack));
         
         if (target_line.get_relocation_f_imm_offset()) {
+
             out_lines[out_lines.size() - 1].set_relocation_f_id(target_line.get_relocation_f_id());
+            out_lines[out_lines.size() - 1].set_relocation_f_label_id(target_line.get_relocation_f_label_id());
             out_lines[out_lines.size() - 1].set_relocation_f_destination(target_line.get_relocation_f_destination());
             out_lines[out_lines.size() - 1].set_relocation_f_imm_offset(3);
 
@@ -916,7 +918,7 @@ bool fuku_mutation_x86::fukutate_jcc(std::vector<fuku_instruction>& lines, unsig
             cond = code[0] & 0xF;
         }
 
-        fuku_instruction l_jcc = f_asm.jcc(fuku_condition(cond^1),0);
+        fuku_instruction l_jcc = f_asm.jcc(fuku_condition(cond^1),0).set_useless_flags(target_line.get_useless_flags());
         l_jcc.set_link_label_id(set_label(lines[current_line_idx+1]));
         l_jcc.set_flags(l_jcc.get_flags() | fuku_instruction_full_mutated);
 
@@ -930,27 +932,22 @@ bool fuku_mutation_x86::fukutate_jcc(std::vector<fuku_instruction>& lines, unsig
 }
 
 bool fuku_mutation_x86::fukutate_jmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
-    return false;
+  
     auto& target_line = lines[current_line_idx];
 
     if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0)) {
         if (target_line.get_op_code()[0] == 0xE9) {
 
-            fuku_instruction l_push = f_asm.push_imm32(0); //push 00000000
-            l_push.set_flags(fuku_instruction_has_relocation);
+            fuku_instruction l_push = f_asm.push_imm32(0).set_useless_flags(target_line.get_useless_flags()); //push 00000000
 
+            l_push.set_flags(fuku_instruction_has_relocation);
             l_push.set_relocation_f_imm_offset(1);
             l_push.set_relocation_f_id(0);
-
-            if (target_line.get_link_label_id()) { //internal jmp
-                l_push.set_relocation_f_label_id(target_line.get_link_label_id());
-            }
-            else { //external jmp
-                l_push.set_relocation_f_destination(target_line.get_ip_relocation_destination());
-            }
+            l_push.set_relocation_f_label_id(target_line.get_link_label_id());      
+            l_push.set_relocation_f_destination(target_line.get_ip_relocation_destination());
 
             out_lines.push_back(l_push);
-            out_lines.push_back(f_asm.ret(0));//ret
+            out_lines.push_back(f_asm.ret(0).set_useless_flags(target_line.get_useless_flags()));//ret
             return true;
         }
     }
@@ -973,8 +970,8 @@ bool fuku_mutation_x86::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
         }
         else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
             uint16_t ret_stack = *(uint16_t*)target_line.get_op_code()[1];
-            out_lines.push_back(f_asm.add(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)));//lea esp,[esp + (4 + stack_offset)]
-            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(fuku_instruction_bad_stack));          //jmp [esp - (4 + stack_offset)] 
+            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)).set_useless_flags(target_line.get_useless_flags()));                 //lea esp,[esp + (4 + stack_offset)]
+            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(fuku_instruction_bad_stack).set_useless_flags(target_line.get_useless_flags()));         //jmp [esp - (4 + stack_offset)] 
 
             return true;
         }
