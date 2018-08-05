@@ -97,8 +97,13 @@ void fuku_obfuscator::obfuscate_code() {
         }
     }
 
-    delete mutator;
-  
+    if (arch == fuku_arch::fuku_arch_x32) {
+        delete (fuku_mutation_x86*)mutator;
+    }
+    else {
+        delete (fuku_mutation_x64*)mutator;
+    }
+
     finalize_code();
 }
 

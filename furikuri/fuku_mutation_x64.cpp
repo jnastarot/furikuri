@@ -336,7 +336,7 @@ bool fuku_mutation_x64::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
 
         }
         else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
-            uint16_t ret_stack = *(uint16_t*)target_line.get_op_code()[1];
+            uint16_t ret_stack = *(uint16_t*)&target_line.get_op_code()[1];
             out_lines.push_back(f_asm.add(fuku_reg64::r_RSP, fuku_operand64(fuku_reg64::r_RSP, 8 + ret_stack), fuku_asm64_size::asm64_size_64));//lea rsp,[rsp + (8 + stack_offset)]
             out_lines.push_back(f_asm.jmp(fuku_operand64(r_RSP, -8 - ret_stack)).set_flags(fuku_instruction_bad_stack));                        //jmp [rsp - (8 + stack_offset)] 
 

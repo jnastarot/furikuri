@@ -47,6 +47,8 @@ struct fuku_code_list {
 };
 
 #include "fuku_instruction.h"
+#include "fuku_vm_instruction.h"
+
 #include "fuku_asm.h"
 
 #include "fuku_code_analyzer.h"

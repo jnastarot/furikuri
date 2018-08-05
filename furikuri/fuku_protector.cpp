@@ -3,7 +3,6 @@
 
 
 fuku_code_profile::fuku_code_profile() {
-    out_code_rva    = 0;
     type            = fuku_code_obfuscate;
     _ptr.obfuscator = 0;
     settings = { 0 };
@@ -306,7 +305,6 @@ bool    fuku_protector::finish_protected_code() {
                         }
                     }
                     else {
-                        fuku_code_association * assoc = find_obf_association((uint32_t)reloc.data);
                         return false;
                     }
                 }
@@ -440,7 +438,6 @@ void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& re
 
     fuku_code_profile code_profile;
     code_profile.regions = regions;
-    code_profile.out_code_rva = 0;
 
     if (settings.used_obfuscation) {
         code_profile.type = fuku_code_type::fuku_code_hybrid;
@@ -458,7 +455,7 @@ void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& re
 
     fuku_code_profile code_profile;
     code_profile.regions = regions;
-    code_profile.out_code_rva = 0;
+
     code_profile.type = fuku_code_type::fuku_code_obfuscate;
     code_profile.settings = settings;
 

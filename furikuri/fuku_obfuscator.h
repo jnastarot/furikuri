@@ -1,5 +1,5 @@
 #pragma once
-#include "fuku_mutation.h"
+#include "fuku_mutation_imp.h"
 
 class fuku_obfuscator {
     fuku_arch arch;

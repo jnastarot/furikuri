@@ -1,4 +1,8 @@
 #pragma once
+
+
+#include "fuku_virtualization_imp.h"
+
 class fuku_virtual_machine{
 
     unsigned int label_seed;

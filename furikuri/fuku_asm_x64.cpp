@@ -59,6 +59,7 @@ public:
     }
 
     OperandBuilder(fuku_operand64& operand, int32_t offset) {
+        addend = 0;
 
         uint8_t modrm = operand.get_buf()[0];
         bool has_sib = ((modrm & 0x07) == 0x04);

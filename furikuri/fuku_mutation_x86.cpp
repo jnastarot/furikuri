@@ -425,7 +425,7 @@ bool fuku_mutation_x86::fukutate_add(std::vector<fuku_instruction>& lines, unsig
                         }
                         else {
                             out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(current_val - val)).set_useless_flags(target_line.get_useless_flags()));
-                            current_val -= current_val - val;
+                            current_val -= (current_val - val);
                         }
                         break;
                     }
@@ -437,7 +437,7 @@ bool fuku_mutation_x86::fukutate_add(std::vector<fuku_instruction>& lines, unsig
                         }
                         else {
                             out_lines.push_back(f_asm.add(reg1, fuku_immediate86(val - current_val)).set_useless_flags(target_line.get_useless_flags()));
-                            current_val += val - current_val;                       
+                            current_val += (val - current_val);                       
                         }
                         break;
                     }
@@ -510,7 +510,7 @@ bool fuku_mutation_x86::fukutate_sub(std::vector<fuku_instruction>& lines, unsig
                         }
                         else {
                             out_lines.push_back(f_asm.sub(reg1, fuku_immediate86(current_val - val)).set_useless_flags(target_line.get_useless_flags()));
-                            current_val -= current_val - val;
+                            current_val -= (current_val - val);
                         }
                         break;
                     }
@@ -522,7 +522,7 @@ bool fuku_mutation_x86::fukutate_sub(std::vector<fuku_instruction>& lines, unsig
                         }
                         else {
                             out_lines.push_back(f_asm.add(reg1, fuku_immediate86(val - current_val)).set_useless_flags(target_line.get_useless_flags()));
-                            current_val += val - current_val;
+                            current_val += (val - current_val);
                         }
                         break;
                     }
@@ -969,7 +969,7 @@ bool fuku_mutation_x86::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
 
         }
         else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
-            uint16_t ret_stack = *(uint16_t*)target_line.get_op_code()[1];
+            uint16_t ret_stack = *(uint16_t*)&target_line.get_op_code()[1];
             out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)).set_useless_flags(target_line.get_useless_flags()));                 //lea esp,[esp + (4 + stack_offset)]
             out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(fuku_instruction_bad_stack).set_useless_flags(target_line.get_useless_flags()));         //jmp [esp - (4 + stack_offset)] 
 

@@ -155,11 +155,13 @@
     <ClInclude Include="fuku_debug_info.h" />
     <ClInclude Include="fuku_map.h" />
     <ClInclude Include="fuku_msvc_map.h" />
-    <ClInclude Include="fuku_mutation.h" />
+    <ClInclude Include="fuku_mutation_imp.h" />
     <ClInclude Include="fuku_pdb.h" />
     <ClInclude Include="fuku_protector.h" />
     <ClInclude Include="fuku_tds.h" />
+    <ClInclude Include="fuku_virtualization_imp.h" />
     <ClInclude Include="fuku_virtual_machine.h" />
+    <ClInclude Include="fuku_vm_instruction.h" />
     <ClInclude Include="furikuri.h" />
     <ClInclude Include="fuku_obfuscator.h" />
     <ClInclude Include="fuku_instruction.h" />
@@ -180,6 +182,7 @@
     <ClCompile Include="fuku_protector.cpp" />
     <ClCompile Include="fuku_tds.cpp" />
     <ClCompile Include="fuku_virtual_machine.cpp" />
+    <ClCompile Include="fuku_vm_instruction.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />
     <ClCompile Include="fuku_instruction.cpp" />
