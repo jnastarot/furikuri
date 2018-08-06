@@ -2,23 +2,10 @@
 #include "fuku_obfuscator.h"
 
 
-fuku_obfuscator::fuku_obfuscator(){
-    this->arch = fuku_arch::fuku_arch_x32;
-
-    this->destination_virtual_address = 0;
-
-    this->label_seed = 1;
-
-    this->settings.complexity       = 1;
-    this->settings.number_of_passes = 2;
-    this->settings.junk_chance      = 10.f;
-    this->settings.block_chance     = 10.f;
-    this->settings.mutate_chance    = 10.f;
-
-    this->association_table     = 0; 
-    this->relocation_table      = 0;
-    this->ip_relocation_table   = 0;
-}
+fuku_obfuscator::fuku_obfuscator()
+    :arch(fuku_arch::fuku_arch_x32), destination_virtual_address(0), label_seed(1),
+    settings({ 1 , 2 , 10.f, 10.f, 10.f }),
+    association_table(0), relocation_table(0), ip_relocation_table(0){}
 
 
 fuku_obfuscator::~fuku_obfuscator(){
@@ -34,8 +21,8 @@ void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtu
     this->destination_virtual_address = destination_virtual_address;
 }
 
-void fuku_obfuscator::set_settings(const ob_fuku_settings& settings) {
-    memcpy(&this->settings,&settings,sizeof(ob_fuku_settings));
+void fuku_obfuscator::set_settings(const fuku_ob_settings& settings) {
+    memcpy(&this->settings,&settings,sizeof(fuku_ob_settings));
 }
 
 void fuku_obfuscator::set_association_table(std::vector<fuku_code_association>*	associations) {
@@ -62,7 +49,7 @@ uint64_t     fuku_obfuscator::get_destination_virtual_address() const {
     return this->destination_virtual_address;
 }
 
-ob_fuku_settings fuku_obfuscator::get_settings() const {
+fuku_ob_settings fuku_obfuscator::get_settings() const {
     return this->settings;
 }
 std::vector<fuku_code_association>*    fuku_obfuscator::get_association_table() {

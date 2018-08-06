@@ -1,4 +1,5 @@
 #pragma once
+
 #include "fuku_mutation_imp.h"
 
 class fuku_obfuscator {
@@ -6,7 +7,7 @@ class fuku_obfuscator {
 
     uint64_t destination_virtual_address;
 
-    ob_fuku_settings settings;
+    fuku_ob_settings settings;
 
     unsigned int label_seed;
     std::vector<uint32_t> labels_cache;
@@ -41,7 +42,7 @@ public:
 public:
     void fuku_obfuscator::set_code(const fuku_code_analyzer& code);
     void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address);
-    void fuku_obfuscator::set_settings(const ob_fuku_settings& settings);
+    void fuku_obfuscator::set_settings(const fuku_ob_settings& settings);
 
     void fuku_obfuscator::set_association_table(std::vector<fuku_code_association>*	associations);
     void fuku_obfuscator::set_relocation_table(std::vector<fuku_code_relocation>* relocations);
@@ -50,7 +51,7 @@ public:
     fuku_arch    fuku_obfuscator::get_arch() const;
     const std::vector<fuku_instruction>& fuku_obfuscator::get_lines() const;
     uint64_t     fuku_obfuscator::get_destination_virtual_address() const;
-    ob_fuku_settings fuku_obfuscator::get_settings() const;
+    fuku_ob_settings fuku_obfuscator::get_settings() const;
 
     std::vector<fuku_code_association>*    fuku_obfuscator::get_association_table();
     std::vector<fuku_code_relocation>*     fuku_obfuscator::get_relocation_table();

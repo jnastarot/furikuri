@@ -3,7 +3,7 @@
 
 #define ISNT_LAST (lines.size() > current_line_idx+1)
 
-fuku_mutation_x64::fuku_mutation_x64(const ob_fuku_settings& settings, unsigned int * label_seed)
+fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings, unsigned int * label_seed)
 : settings(settings), label_seed(label_seed){}
 
 fuku_mutation_x64::~fuku_mutation_x64() {

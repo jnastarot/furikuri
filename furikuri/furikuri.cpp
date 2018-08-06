@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "furikuri.h"
 
-bool ob_fuku_settings::operator==(const ob_fuku_settings& set) {
+bool fuku_ob_settings::operator==(const fuku_ob_settings& set) {
     return (
         this->complexity == set.complexity &&
         this->number_of_passes == set.number_of_passes &&
@@ -84,7 +84,7 @@ bool furikuri::add_extended_module(shibari_module* module, std::string module_pa
 }
 
 
-bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, shibari_module* _module, ob_fuku_settings settings) {
+bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, shibari_module* _module, fuku_ob_settings settings) {
 
     bool valid_module = false;
 

@@ -13,7 +13,7 @@ struct fuku_code_profile {
     std::vector<fuku_code_relocation>    relocation_table;
     std::vector<fuku_code_ip_relocation> ip_relocation_table;
 
-    ob_fuku_settings settings;
+    fuku_ob_settings settings;
 
     fuku_code_type type;
 
@@ -52,8 +52,8 @@ public:
     fuku_protector_code fuku_protector::protect_module();
 
 public:
-    void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& regions, const vm_fuku_settings& settings);
-    void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const ob_fuku_settings& settings);
+    void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_vm_settings& settings);
+    void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings);
 
     void fuku_protector::clear_profiles();
 public:

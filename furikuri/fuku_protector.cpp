@@ -434,7 +434,7 @@ fuku_code_association * fuku_protector::find_obf_association(uint32_t rva){
 }
 
 
-void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& regions, const vm_fuku_settings& settings) {
+void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_vm_settings& settings) {
 
     fuku_code_profile code_profile;
     code_profile.regions = regions;
@@ -451,7 +451,7 @@ void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& re
     profiles.push_back(code_profile);
 }
 
-void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const ob_fuku_settings& settings) {
+void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings) {
 
     fuku_code_profile code_profile;
     code_profile.regions = regions;

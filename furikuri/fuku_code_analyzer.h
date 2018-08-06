@@ -46,7 +46,10 @@ class fuku_code_analyzer {
     uint32_t fuku_code_analyzer::set_label(fuku_instruction& line);
 public:
     fuku_code_analyzer::fuku_code_analyzer();
+    fuku_code_analyzer::fuku_code_analyzer(const fuku_code_analyzer& analyze);
     fuku_code_analyzer::~fuku_code_analyzer();
+
+    fuku_code_analyzer& fuku_code_analyzer::operator=(const fuku_code_analyzer& analyze);
 
     bool fuku_code_analyzer::push_code(
         const uint8_t * src, uint32_t src_len,

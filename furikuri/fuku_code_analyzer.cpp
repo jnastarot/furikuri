@@ -5,9 +5,27 @@
 fuku_code_analyzer::fuku_code_analyzer()
     :arch(fuku_arch::fuku_arch_x32), label_seed(1){}
 
+fuku_code_analyzer::fuku_code_analyzer(const fuku_code_analyzer& analyze) {
+    this->operator=(analyze);
+}
 
 fuku_code_analyzer::~fuku_code_analyzer(){}
 
+
+fuku_code_analyzer& fuku_code_analyzer::operator=(const fuku_code_analyzer& analyze) {
+
+    this->arch          = analyze.arch;
+    this->label_seed        = analyze.label_seed;
+    this->labels_cache      = analyze.labels_cache;
+    this->jumps_idx_cache   = analyze.jumps_idx_cache;
+    this->rel_idx_cache     = analyze.rel_idx_cache;
+    this->ip_rel_idx_cache  = analyze.ip_rel_idx_cache;
+
+    this->lines         = analyze.lines;
+    
+
+    return *this;
+}
 
 bool fuku_code_analyzer::analyze_code(
     const uint8_t * src, uint32_t src_len,
