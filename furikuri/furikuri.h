@@ -12,6 +12,7 @@ enum fuku_code_type {
 class fuku_obfuscator;
 class fuku_instruction;
 class fuku_mutation;
+class fuku_virtualization;
 
 struct fuku_ob_settings {
     unsigned int complexity;        //number of passes for single line

@@ -41,7 +41,7 @@ fuku_arch   fuku_obfuscator::get_arch() const {
     return this->arch;
 }
 
-const std::vector<fuku_instruction>& fuku_obfuscator::get_lines() const {
+const linestorage& fuku_obfuscator::get_lines() const {
     return this->lines;
 }
 
@@ -98,13 +98,13 @@ std::vector<uint8_t> fuku_obfuscator::get_code() {
     return lines_to_bin(lines);
 }
 
-void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
+void fuku_obfuscator::spagetti_code(linestorage& lines, uint64_t virtual_address) {
 
     lines_correction(lines, virtual_address);
 
     struct block_lines {
-        std::vector<fuku_instruction> lines;
-        block_lines::block_lines(const std::vector<fuku_instruction>& lines) { this->lines = lines; }
+        linestorage lines;
+        block_lines::block_lines(const linestorage& lines) { this->lines = lines; }
         void block_lines::swap(block_lines& block) {
             std::swap(this->lines, block.lines);
         };
@@ -115,7 +115,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
 
     //generate blocks of lines
     for (uint32_t line_idx = 0; line_idx < lines.size(); ) {
-        std::vector<fuku_instruction> line_block;
+        linestorage line_block;
 
 
         for (; line_idx < lines.size(); line_idx++) {
@@ -169,7 +169,7 @@ void fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64
     }
 }
 
-void fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
+void fuku_obfuscator::lines_correction(linestorage& lines, uint64_t virtual_address) {
     uint64_t _virtual_address = virtual_address;
     this->labels_cache.clear();
     this->jumps_idx_cache.clear();
@@ -202,43 +202,7 @@ void fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uin
     }
 }
 
-fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
-
-    size_t left = 0;
-    size_t right = lines.size();
-    size_t mid = 0;
-
-    while (left < right) {
-        mid = left + (right - left) / 2;
-
-        if (lines[mid].get_virtual_address() <= virtual_address &&
-            lines[mid].get_source_virtual_address() + lines[mid].get_op_length() > virtual_address) {
-
-            return &lines[mid];
-        }
-        else if (lines[mid].get_virtual_address() > virtual_address) {
-            right = mid;
-        }
-        else {
-            left = mid + 1;
-        }
-    }
-
-    return 0;
-}
-
-fuku_instruction * fuku_obfuscator::get_line_by_label_id(unsigned int label_id) {
-
-    if (this->labels_cache.size()) {
-        if (label_id > 0 && label_id <= this->labels_cache.size()) {
-            return &this->lines[this->labels_cache[label_id - 1]];
-        }
-    }
-
-    return 0;
-}
-
-void fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines) {
+void fuku_obfuscator::handle_jmps(linestorage& lines) {
 
     for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
 
@@ -439,7 +403,7 @@ void fuku_obfuscator::finalize_code() {
         memcpy(op_code, line.get_op_code(), 16);
 
         if (line.get_link_label_id()) {
-            fuku_instruction * line_destination = get_line_by_label_id(line.get_link_label_id());
+            fuku_instruction * line_destination = get_line_by_label_id(lines, labels_cache, line.get_link_label_id());
 
             if (line_destination) {
                 line.set_jump_imm(line_destination->get_virtual_address());
@@ -466,7 +430,7 @@ void fuku_obfuscator::finalize_code() {
         memcpy(op_code, line.get_op_code(), 16);
 
         if (line.get_link_label_id()) {
-            fuku_instruction * line_destination = get_line_by_label_id(line.get_link_label_id());
+            fuku_instruction * line_destination = get_line_by_label_id(lines, labels_cache, line.get_link_label_id());
 
             if (line_destination) {
                 *(uint32_t*)&op_code[line.get_ip_relocation_disp_offset()] =
@@ -500,11 +464,11 @@ void fuku_obfuscator::finalize_code() {
             if (line.get_relocation_f_label_id()) {
                 if (arch == fuku_arch::fuku_arch_x32) {
                     *(uint32_t*)&op_code[line.get_relocation_f_imm_offset()] =
-                        uint32_t(get_line_by_label_id(line.get_relocation_f_label_id())->get_virtual_address());
+                        uint32_t(get_line_by_label_id(lines, labels_cache, line.get_relocation_f_label_id())->get_virtual_address());
                 }
                 else {
                     *(uint64_t*)&op_code[line.get_relocation_f_imm_offset()] =
-                        uint64_t(get_line_by_label_id(line.get_relocation_f_label_id())->get_virtual_address());
+                        uint64_t(get_line_by_label_id(lines, labels_cache, line.get_relocation_f_label_id())->get_virtual_address());
                 }
             }
             else {
@@ -521,11 +485,11 @@ void fuku_obfuscator::finalize_code() {
             if (line.get_relocation_s_label_id()) {
                 if (arch == fuku_arch::fuku_arch_x32) {
                     *(uint32_t*)&op_code[line.get_relocation_s_imm_offset()] =
-                        uint32_t(get_line_by_label_id(line.get_relocation_s_label_id())->get_virtual_address());
+                        uint32_t(get_line_by_label_id(lines, labels_cache, line.get_relocation_s_label_id())->get_virtual_address());
                 }
                 else {
                     *(uint64_t*)&op_code[line.get_relocation_s_imm_offset()] =
-                        uint64_t(get_line_by_label_id(line.get_relocation_s_label_id())->get_virtual_address());
+                        uint64_t(get_line_by_label_id(lines, labels_cache, line.get_relocation_s_label_id())->get_virtual_address());
                 }
             }
             else {
@@ -550,7 +514,7 @@ void fuku_obfuscator::finalize_code() {
     }
 }
 
-std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(std::vector<fuku_instruction>&  lines) {
+std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(linestorage&  lines) {
 
     std::vector<uint8_t> lines_dump;
     size_t dump_size = 0;

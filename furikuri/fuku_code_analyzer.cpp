@@ -30,7 +30,7 @@ fuku_code_analyzer& fuku_code_analyzer::operator=(const fuku_code_analyzer& anal
 bool fuku_code_analyzer::analyze_code(
     const uint8_t * src, uint32_t src_len,
     uint64_t virtual_address,
-    std::vector<fuku_instruction>&  lines,
+    linestorage&  lines,
     const std::vector<fuku_code_relocation>*	relocations) {
 
 
@@ -155,7 +155,7 @@ bool fuku_code_analyzer::analyze_code(
 
 
 
-bool fuku_code_analyzer::merge_code(std::vector<fuku_instruction>&  new_lines) {
+bool fuku_code_analyzer::merge_code(linestorage&  new_lines) {
 
 
     for (auto&jump_idx : jumps_idx_cache) {
@@ -266,7 +266,7 @@ bool fuku_code_analyzer::push_code(
     const std::vector<fuku_code_relocation>*	relocations) {
 
 
-    std::vector<fuku_instruction> new_lines;
+    linestorage new_lines;
 
     if (analyze_code(src, src_len, virtual_address, new_lines, relocations)) {
 
@@ -276,9 +276,9 @@ bool fuku_code_analyzer::push_code(
     return false;
 }
 
-bool fuku_code_analyzer::push_code(const std::vector<fuku_instruction>&  code_lines) {
+bool fuku_code_analyzer::push_code(const linestorage&  code_lines) {
 
-    std::vector<fuku_instruction> new_lines = code_lines;
+    linestorage new_lines = code_lines;
 
     unsigned int new_label_seed = 0;
     
@@ -325,7 +325,7 @@ uint32_t fuku_code_analyzer::set_label(fuku_instruction& line) {
     return line.get_label_id();
 }
 
-fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
+fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(linestorage& lines, uint64_t virtual_address) {
 
 
     size_t left = 0;
@@ -351,7 +351,7 @@ fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(std::vector<f
     return 0;
 }
 
-fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address) {
+fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(linestorage& lines, uint64_t virtual_address) {
 
     size_t left = 0;
     size_t right = lines.size();
@@ -397,6 +397,6 @@ unsigned int fuku_code_analyzer::get_label_seed() const {
     return this->label_seed;
 }
 
-std::vector<fuku_instruction>  fuku_code_analyzer::get_lines() const {
+linestorage  fuku_code_analyzer::get_lines() const {
     return this->lines;
 }

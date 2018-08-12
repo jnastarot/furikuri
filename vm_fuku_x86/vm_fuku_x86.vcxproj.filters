@@ -9,10 +9,19 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="Исходные файлы\vm_cpu">
+      <UniqueIdentifier>{8a8aa3b6-1c5b-4503-bb6e-d75cb3d032c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_cpu.h">
+      <Filter>Исходные файлы\vm_cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_internal.h">
+      <Filter>Исходные файлы\vm_cpu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -21,6 +30,9 @@
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="vm_cpu.cpp">
+      <Filter>Исходные файлы\vm_cpu</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

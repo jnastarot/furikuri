@@ -10,13 +10,13 @@ fuku_mutation_x64::~fuku_mutation_x64() {
 
 }
 
-void fuku_mutation_x64::obfuscate_lines(std::vector<fuku_instruction>& lines, unsigned int recurse_idx) {
+void fuku_mutation_x64::obfuscate_lines(linestorage& lines, unsigned int recurse_idx) {
 
-    std::vector<fuku_instruction> obf_lines;
+    linestorage obf_lines;
 
     //obfuscate
     for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
-        std::vector<fuku_instruction> single_line;
+        linestorage single_line;
 
         fukutation(lines, line_idx, single_line);
 
@@ -44,7 +44,7 @@ void fuku_mutation_x64::obfuscate_lines(std::vector<fuku_instruction>& lines, un
     lines = obf_lines;
 }
 
-void fuku_mutation_x64::obfuscate(std::vector<fuku_instruction>& lines) {
+void fuku_mutation_x64::obfuscate(linestorage& lines) {
     obfuscate_lines(lines, -1);
 }
 
@@ -70,7 +70,7 @@ uint32_t fuku_mutation_x64::get_maxlabel() {
 void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
     size_t current_size = 0;
-    std::vector<fuku_instruction> lines;
+    linestorage lines;
 
     while (junk_size != current_size) {
 
@@ -117,8 +117,8 @@ void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, b
 
 
 
-void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
-    std::vector<fuku_instruction>& out_lines) {
+void fuku_mutation_x64::fukutation(linestorage& lines, unsigned int current_line_idx,
+    linestorage& out_lines) {
 
     bool unstable_stack = lines[current_line_idx].get_flags() & fuku_instruction_bad_stack;
 
@@ -250,43 +250,43 @@ void fuku_mutation_x64::fukutation(std::vector<fuku_instruction>& lines, unsigne
 
 
 
-bool fuku_mutation_x64::fukutate_push(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_push(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_pop(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_pop(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_add(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_add(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_sub(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_sub(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_and(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_and(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_inc(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_inc(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_dec(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_dec(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_test(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_test(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_cmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_cmp(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_jcc(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_jcc(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     auto& target_line = lines[current_line_idx];
 
@@ -318,11 +318,11 @@ bool fuku_mutation_x64::fukutate_jcc(std::vector<fuku_instruction>& lines, unsig
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_jmp(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_jmp(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     return false;
 }
-bool fuku_mutation_x64::fukutate_ret(std::vector<fuku_instruction>& lines, unsigned int current_line_idx, std::vector<fuku_instruction>& out_lines) {
+bool fuku_mutation_x64::fukutate_ret(linestorage& lines, unsigned int current_line_idx, linestorage& out_lines) {
 
     auto& target_line = lines[current_line_idx];
 
@@ -348,7 +348,7 @@ bool fuku_mutation_x64::fukutate_ret(std::vector<fuku_instruction>& lines, unsig
 }
 
 
-void fuku_mutation_x64::generate_junk(std::vector<fuku_instruction>& junk,
+void fuku_mutation_x64::generate_junk(linestorage& junk,
     fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
 
@@ -389,8 +389,8 @@ void fuku_mutation_x64::generate_junk(std::vector<fuku_instruction>& junk,
     }
 }
 
-void fuku_mutation_x64::fuku_junk(std::vector<fuku_instruction>& lines, unsigned int current_line_idx,
-    std::vector<fuku_instruction>& out_lines) {
+void fuku_mutation_x64::fuku_junk(linestorage& lines, unsigned int current_line_idx,
+    linestorage& out_lines) {
 
 
     bool unstable_stack = (lines[current_line_idx].get_flags() & fuku_instruction_bad_stack);
@@ -427,12 +427,12 @@ void fuku_mutation_x64::fuku_junk(std::vector<fuku_instruction>& lines, unsigned
     }
 }
 
-void fuku_mutation_x64::fuku_junk_1b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_1b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     out_lines.push_back(f_asm.nop(1));
 }
-void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_2b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     switch (FUKU_GET_RAND(0, 0)) {
@@ -444,7 +444,7 @@ void fuku_mutation_x64::fuku_junk_2b(std::vector<fuku_instruction>& out_lines,
 
 
 }
-void fuku_mutation_x64::fuku_junk_3b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_3b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     switch (FUKU_GET_RAND(0, 0)) {
@@ -454,7 +454,7 @@ void fuku_mutation_x64::fuku_junk_3b(std::vector<fuku_instruction>& out_lines,
     }
     }
 }
-void fuku_mutation_x64::fuku_junk_4b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_4b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     switch (FUKU_GET_RAND(0, 0)) {
@@ -464,7 +464,7 @@ void fuku_mutation_x64::fuku_junk_4b(std::vector<fuku_instruction>& out_lines,
     }
     }
 }
-void fuku_mutation_x64::fuku_junk_5b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_5b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     switch (FUKU_GET_RAND(0, 0)) {
@@ -474,7 +474,7 @@ void fuku_mutation_x64::fuku_junk_5b(std::vector<fuku_instruction>& out_lines,
     }
     }
 }
-void fuku_mutation_x64::fuku_junk_6b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_6b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     switch (FUKU_GET_RAND(0, 0)) {
@@ -484,7 +484,7 @@ void fuku_mutation_x64::fuku_junk_6b(std::vector<fuku_instruction>& out_lines,
     }
     }
 }
-void fuku_mutation_x64::fuku_junk_7b(std::vector<fuku_instruction>& out_lines, 
+void fuku_mutation_x64::fuku_junk_7b(linestorage& out_lines, 
     fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes) {
 
     switch (FUKU_GET_RAND(0, 0)) {

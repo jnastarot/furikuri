@@ -146,6 +146,12 @@
     <ClInclude Include="fuku_vm_instruction.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_vm_instruction</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_virtualization_x64.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_virtualization_x86.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x86</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -198,6 +204,12 @@
     </ClCompile>
     <ClCompile Include="fuku_vm_instruction.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_vm_instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_virtualization_x64.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_virtualization_x86.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x86</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

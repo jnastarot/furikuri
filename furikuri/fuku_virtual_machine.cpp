@@ -23,7 +23,7 @@ void fuku_virtual_machine::set_destination_virtual_address(uint64_t destination_
 }
 
 void fuku_virtual_machine::set_settings(const fuku_vm_settings& settings) {
-
+    this->settings = settings;
 }
 
 void fuku_virtual_machine::set_association_table(std::vector<fuku_code_association>*	associations){
@@ -34,7 +34,7 @@ fuku_arch           fuku_virtual_machine::get_arch() const {
     return this->arch;
 }
 
-const std::vector<fuku_instruction>& fuku_virtual_machine::get_lines() const {
+const linestorage& fuku_virtual_machine::get_lines() const {
     return this->lines;
 }
 

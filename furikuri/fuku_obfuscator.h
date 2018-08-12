@@ -15,21 +15,19 @@ class fuku_obfuscator {
     std::vector<uint32_t> rel_idx_cache;
     std::vector<uint32_t> ip_rel_idx_cache;
 
-    std::vector<fuku_instruction>  lines;
+    linestorage  lines;
 
     std::vector<fuku_code_association>*     association_table;
     std::vector<fuku_code_relocation>*      relocation_table;
     std::vector<fuku_code_ip_relocation>*   ip_relocation_table;
 
-    void    fuku_obfuscator::spagetti_code(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
-    void    fuku_obfuscator::handle_jmps(std::vector<fuku_instruction>& lines);
-    void    fuku_obfuscator::lines_correction(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
+    void    fuku_obfuscator::spagetti_code(linestorage& lines, uint64_t virtual_address);
+    void    fuku_obfuscator::handle_jmps(linestorage& lines);
+    void    fuku_obfuscator::lines_correction(linestorage& lines, uint64_t virtual_address);
     void    fuku_obfuscator::finalize_code();
     void    fuku_obfuscator::useless_flags_profiler(); 
 
-    fuku_instruction * fuku_obfuscator::get_line_by_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
-    fuku_instruction * fuku_obfuscator::get_line_by_label_id(unsigned int label_id);
-    std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(std::vector<fuku_instruction>&  lines);
+    std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(linestorage&  lines);
 
     uint32_t fuku_obfuscator::set_label(fuku_instruction& line);
     uint32_t fuku_obfuscator::get_maxlabel() const;
@@ -49,7 +47,7 @@ public:
     void fuku_obfuscator::set_ip_relocation_table(std::vector<fuku_code_ip_relocation>* relocations); //be returned only external rip relocations
 public:  
     fuku_arch    fuku_obfuscator::get_arch() const;
-    const std::vector<fuku_instruction>& fuku_obfuscator::get_lines() const;
+    const linestorage& fuku_obfuscator::get_lines() const;
     uint64_t     fuku_obfuscator::get_destination_virtual_address() const;
     fuku_ob_settings fuku_obfuscator::get_settings() const;
 

@@ -160,6 +160,8 @@
     <ClInclude Include="fuku_protector.h" />
     <ClInclude Include="fuku_tds.h" />
     <ClInclude Include="fuku_virtualization_imp.h" />
+    <ClInclude Include="fuku_virtualization_x64.h" />
+    <ClInclude Include="fuku_virtualization_x86.h" />
     <ClInclude Include="fuku_virtual_machine.h" />
     <ClInclude Include="fuku_vm_instruction.h" />
     <ClInclude Include="furikuri.h" />
@@ -181,6 +183,8 @@
     <ClCompile Include="fuku_pdb.cpp" />
     <ClCompile Include="fuku_protector.cpp" />
     <ClCompile Include="fuku_tds.cpp" />
+    <ClCompile Include="fuku_virtualization_x64.cpp" />
+    <ClCompile Include="fuku_virtualization_x86.cpp" />
     <ClCompile Include="fuku_virtual_machine.cpp" />
     <ClCompile Include="fuku_vm_instruction.cpp" />
     <ClCompile Include="furikuri.cpp" />

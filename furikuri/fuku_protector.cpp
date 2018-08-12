@@ -70,7 +70,7 @@ fuku_protector_code fuku_protector::protect_module() {
 
                     profile._ptr.obfuscator->obfuscate_code();
 
-                    const std::vector<fuku_instruction>& lines = profile._ptr.obfuscator->get_lines();
+                    const linestorage& lines = profile._ptr.obfuscator->get_lines();
                     last_address += lines[lines.size() - 1].get_virtual_address() + lines[lines.size() - 1].get_op_length();
                     break;
                 }
@@ -87,7 +87,7 @@ fuku_protector_code fuku_protector::protect_module() {
                     profile.analyzed_code.clear();
                     profile.analyzed_code.push_code(obfuscator.get_lines());
 
-                    const std::vector<fuku_instruction>& lines = obfuscator.get_lines();
+                    const linestorage& lines = obfuscator.get_lines();
                     last_address += lines[lines.size() - 1].get_virtual_address() + lines[lines.size() - 1].get_op_length();
                     break;
                 }

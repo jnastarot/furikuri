@@ -13,9 +13,11 @@ class fuku_virtual_machine{
     std::vector<uint32_t> rel_idx_cache;
     std::vector<uint32_t> ip_rel_idx_cache;
 
-    std::vector<fuku_instruction>  lines;
+    linestorage  lines;
 
     uint64_t destination_virtual_address;
+
+    fuku_vm_settings settings;
 public:
     fuku_virtual_machine::fuku_virtual_machine();
     fuku_virtual_machine::~fuku_virtual_machine();
@@ -29,7 +31,7 @@ public:
 
 public:
     fuku_arch           fuku_virtual_machine::get_arch() const;
-    const std::vector<fuku_instruction>& fuku_virtual_machine::get_lines() const;
+    const linestorage& fuku_virtual_machine::get_lines() const;
     uint64_t            fuku_virtual_machine::get_destination_virtual_address() const;
     fuku_vm_settings    fuku_virtual_machine::get_settings() const;
 

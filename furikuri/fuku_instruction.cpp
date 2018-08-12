@@ -358,3 +358,39 @@ uint16_t fuku_instruction::get_tested_flags() const {
 uint16_t fuku_instruction::get_useless_flags() const {
     return this->useless_flags;
 }
+
+fuku_instruction * get_line_by_va(const linestorage& lines, uint64_t virtual_address) {
+
+    size_t left = 0;
+    size_t right = lines.size();
+    size_t mid = 0;
+
+    while (left < right) {
+        mid = left + (right - left) / 2;
+
+        if (lines[mid].get_virtual_address() <= virtual_address &&
+            lines[mid].get_source_virtual_address() + lines[mid].get_op_length() > virtual_address) {
+
+            return (fuku_instruction *)&lines[mid];
+        }
+        else if (lines[mid].get_virtual_address() > virtual_address) {
+            right = mid;
+        }
+        else {
+            left = mid + 1;
+        }
+    }
+
+    return 0;
+}
+
+fuku_instruction * get_line_by_label_id(const linestorage& lines, const std::vector<uint32_t>& labels_cache, unsigned int label_id) {
+
+    if (labels_cache.size()) {
+        if (label_id > 0 && label_id <= labels_cache.size()) {
+            return (fuku_instruction *)&lines[labels_cache[label_id - 1]];
+        }
+    }
+
+    return 0;
+}

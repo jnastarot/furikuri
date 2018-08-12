@@ -30,18 +30,18 @@ class fuku_code_analyzer {
     std::vector<uint32_t> rel_idx_cache;
     std::vector<uint32_t> ip_rel_idx_cache;
 
-    std::vector<fuku_instruction>  lines;
+    linestorage  lines;
 
     bool fuku_code_analyzer::analyze_code(
         const uint8_t * src, uint32_t src_len,
         uint64_t virtual_address,
-        std::vector<fuku_instruction>&  lines,
+        linestorage&  lines,
         const std::vector<fuku_code_relocation>*	relocations);
 
-    bool fuku_code_analyzer::merge_code(std::vector<fuku_instruction>&  new_lines);
+    bool fuku_code_analyzer::merge_code(linestorage&  new_lines);
 
-    fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
-    fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(std::vector<fuku_instruction>& lines, uint64_t virtual_address);
+    fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(linestorage& lines, uint64_t virtual_address);
+    fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(linestorage& lines, uint64_t virtual_address);
 
     uint32_t fuku_code_analyzer::set_label(fuku_instruction& line);
 public:
@@ -56,7 +56,7 @@ public:
         uint64_t virtual_address,
         const std::vector<fuku_code_relocation>*	relocations);
 
-    bool fuku_code_analyzer::push_code(const std::vector<fuku_instruction>&  code_lines);
+    bool fuku_code_analyzer::push_code(const linestorage&  code_lines);
 public:
     void fuku_code_analyzer::set_arch(fuku_arch arch);
     void fuku_code_analyzer::clear();
@@ -64,6 +64,6 @@ public:
 public:
     fuku_arch    fuku_code_analyzer::get_arch() const;
     unsigned int fuku_code_analyzer::get_label_seed() const;
-    std::vector<fuku_instruction>  fuku_code_analyzer::get_lines() const;
+    linestorage  fuku_code_analyzer::get_lines() const;
 };
 
