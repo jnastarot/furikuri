@@ -12,6 +12,9 @@
     <Filter Include="Исходные файлы\vm_cpu">
       <UniqueIdentifier>{8a8aa3b6-1c5b-4503-bb6e-d75cb3d032c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\vm_cpu\imp">
+      <UniqueIdentifier>{79e42c0d-4493-4444-b727-43c4878c22bc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -22,6 +25,21 @@
     </ClInclude>
     <ClInclude Include="vm_internal.h">
       <Filter>Исходные файлы\vm_cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_operand.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_stack.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_jump.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_movable.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_arith.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

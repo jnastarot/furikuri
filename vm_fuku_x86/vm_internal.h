@@ -60,8 +60,12 @@ struct context_flags {
 };
 
 struct global_context {
-    context_regs  regs;
-    
+
+    union {
+        context_regs  regs;
+        uint32_t d_regs[8];
+    };
+
     union {
         context_flags flags;
         uint32_t d_flag;
@@ -73,9 +77,9 @@ enum vm_opcode_86 {
 
     //sys
     vm_opcode_86_operand_create,
+    vm_opcode_86_operand_set_base_link_reg,
     vm_opcode_86_operand_set_base,
-    vm_opcode_86_operand_set_index,
-    vm_opcode_86_operand_set_scale,
+    vm_opcode_86_operand_set_index_scale,
     vm_opcode_86_operand_set_disp,
 
     //eip changers
@@ -98,7 +102,7 @@ enum vm_opcode_86 {
     vm_opcode_86_popad,
     vm_opcode_86_popfd,
     
-
+    //movable
     vm_opcode_86_mov,
     vm_opcode_86_lea,
     vm_opcode_86_xchg,
@@ -136,6 +140,29 @@ struct vm_pure_code {
     }info;
 
     uint8_t code[1];
+};
+
+struct vm_operand_set_base_link_reg_code {
+    uint8_t reg;
+};
+
+struct vm_operand_set_base_code {
+    uint8_t reg;
+};
+
+struct vm_operand_set_index_scale_code {
+    uint8_t reg;
+    uint8_t scale;
+};
+
+struct vm_operand_set_disp_code {
+    uint32_t disp;
+};
+
+struct vm_double_ops_ex_code {
+    uint8_t src_op_by_ptr : 2;
+    uint8_t dst_op_by_ptr : 2;
+    uint8_t ops_size      : 4;
 };
 
 struct vm_j_local_code {
