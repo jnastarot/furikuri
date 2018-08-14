@@ -5,47 +5,8 @@
 #define PUSH_VM(context,x) {context.real_context.regs.esp -= 4;*(uint32_t*)context.real_context.regs.esp = x;}
 #define POP_VM(context,x)  {x = *(uint32_t*)context.real_context.regs.esp;context.real_context.regs.esp += 4;}
 
-#define PUSHFD_VM(context) {PUSH_VM(context,context.real_context.d_flag); }
-#define POPFD_VM(context)  {POP_VM( context, context.real_context.d_flag);}
-
-#define PUSHAD_VM(context) { PUSH_VM(context,context.real_context.regs.eax);  \
-								PUSH_VM(context,context.real_context.regs.ecx);  \
-								PUSH_VM(context,context.real_context.regs.edx);  \
-								PUSH_VM(context,context.real_context.regs.ebx);  \
-								PUSH_VM(context,context.real_context.regs.esp + 20); \
-								PUSH_VM(context,context.real_context.regs.ebp);  \
-								PUSH_VM(context,context.real_context.regs.esi);  \
-								PUSH_VM(context,context.real_context.regs.edi); }
-
-#define POPAD_VM(context)  {	POP_VM(context,context.real_context.regs.edi); \
-								POP_VM(context,context.real_context.regs.esi); \
-								POP_VM(context,context.real_context.regs.ebp); \
-								POP_VM(context,context.real_context.regs.esp); context.real_context.regs.esp -= 20; \
-								POP_VM(context,context.real_context.regs.ebx); \
-								POP_VM(context,context.real_context.regs.edx); \
-								POP_VM(context,context.real_context.regs.ecx); \
-								POP_VM(context,context.real_context.regs.eax); }
 
 
-void mov_by_size(uint32_t * src, uint32_t * dst, uint8_t size) {
-    switch (size) {
-
-    case 1: {
-        ((uint8_t*)src)[0] = ((uint8_t*)dst)[0];
-        break;
-    }
-
-    case 2: {
-        ((uint16_t*)src)[0] = ((uint16_t*)dst)[0];
-        break;
-    }
-
-    case 4: {
-        ((uint32_t*)src)[0] = ((uint32_t*)dst)[0];
-        break;
-    }
-    }
-}
 
 
 struct vm_context {
@@ -61,7 +22,7 @@ struct vm_context {
     }pure_call_context;
 };
 
-
+#include "vm_macro.h"
 #include "vm_operand.h"
 #include "vm_stack.h"
 #include "vm_jump.h"
@@ -121,25 +82,37 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         }
         case vm_opcode_86_pushad: {
             vm_pushad(context);
-        break;
+            break;
         }
         case vm_opcode_86_pushfd: {
             vm_pushfd(context);
-        break;
+            break;
         }
         case vm_opcode_86_pop: {
             vm_pop(context);
-        break;
+            break;
         }
         case vm_opcode_86_popad: {
             vm_popad(context);
-        break;
+            break;
         }
         case vm_opcode_86_popfd: {
             vm_popfd(context);
-        break;
+            break;
+        }
+        case vm_opcode_86_mov: {
+            vm_mov(context);
+            break;
         }
 
+        case vm_opcode_86_lea: {
+
+            break;
+        }
+        case vm_opcode_86_xchg: {
+
+            break;
+        }
 
         default: {
             printf("unknown opcode!!\n");
@@ -188,9 +161,9 @@ void WINAPI fuku_vm_exit_epilogue(vm_context& context, uint32_t ret_address) {
 
     PUSH_VM(context, ret_address);/*ret address to original code*/
 
-    PUSHFD_VM(context); //load flags
-    PUSHAD_VM(context); //load regs
-
+    vm_pushfd(context);//load flags
+    vm_pushad(context);//load regs
+    
     //virtual free 
     PUSH_VM(context, MEM_RELEASE);                           /*dwFreeType*/
     PUSH_VM(context, 0);			                         /*dwSize*/

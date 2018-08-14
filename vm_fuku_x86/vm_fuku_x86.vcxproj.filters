@@ -41,6 +41,9 @@
     <ClInclude Include="vm_arith.h">
       <Filter>Исходные файлы\vm_cpu\imp</Filter>
     </ClInclude>
+    <ClInclude Include="vm_macro.h">
+      <Filter>Исходные файлы\vm_cpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

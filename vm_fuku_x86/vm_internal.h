@@ -2,6 +2,17 @@
 
 #pragma pack(push,1)
 
+enum r_86 {
+    r_eax,
+    r_ecx,
+    r_edx,
+    r_ebx,
+    r_esp,
+    r_ebp,
+    r_esi,
+    r_edi
+};
+
 enum j_condition {
     overflow        = 0,    jo   = 0,
     no_overflow     = 1,    jno  = 1,
@@ -103,8 +114,7 @@ enum vm_opcode_86 {
     vm_opcode_86_popfd,
     
     //movable
-    vm_opcode_86_mov,
-    vm_opcode_86_lea,
+    vm_opcode_86_mov, //like lea
     vm_opcode_86_xchg,
 
     //logical
@@ -159,10 +169,22 @@ struct vm_operand_set_disp_code {
     uint32_t disp;
 };
 
-struct vm_double_ops_ex_code {
-    uint8_t src_op_by_ptr : 2;
-    uint8_t dst_op_by_ptr : 2;
-    uint8_t ops_size      : 4;
+struct vm_ops_ex_code {
+
+    union {
+        struct {
+            uint8_t src_is_ptr : 2;
+            uint8_t dst_is_ptr : 2;
+            uint8_t ops_size : 4;
+        }info;
+        uint8_t ex_code;
+    };
+
+    vm_ops_ex_code(bool src_is_ptr, bool dst_is_ptr, uint8_t ops_size) {
+        info.src_is_ptr = src_is_ptr;
+        info.dst_is_ptr = dst_is_ptr;
+        info.ops_size = ops_size;
+    }
 };
 
 struct vm_j_local_code {
