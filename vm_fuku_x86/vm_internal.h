@@ -93,15 +93,11 @@ enum vm_opcode_86 {
     vm_opcode_86_operand_set_index_scale,
     vm_opcode_86_operand_set_disp,
 
-    //eip changers
-    vm_opcode_86_jmp_local, /*jmp and jcc*/
-    vm_opcode_86_jmp_external,
-    vm_opcode_86_jcc_local,
-    vm_opcode_86_jcc_external,
-
+    //code graph changers
+    vm_opcode_86_jump_local, /*jmp and jcc*/
+    vm_opcode_86_jump_external,
     vm_opcode_86_call_local,
     vm_opcode_86_call_external,
-
     vm_opcode_86_return,
 
     //stack changers
@@ -187,7 +183,7 @@ struct vm_ops_ex_code {
     }
 };
 
-struct vm_j_local_code {
+struct vm_jump_code {
 
     struct {
         uint8_t condition : 5;
@@ -198,17 +194,9 @@ struct vm_j_local_code {
     uint32_t offset;
 };
 
-struct vm_j_external_code {
-
-    struct {
-        uint8_t condition : 5;
-        uint8_t back_jump : 1;
-        uint8_t invert_condition : 2;
-    }info;
-
-
-
+struct vm_call_code {
+    uint32_t offset    : 31;
+    uint32_t back_jump : 1; 
 };
-
 
 #pragma pack(pop)

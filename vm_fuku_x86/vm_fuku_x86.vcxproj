@@ -156,7 +156,7 @@
     <ClInclude Include="vm_arith.h" />
     <ClInclude Include="vm_cpu.h" />
     <ClInclude Include="vm_internal.h" />
-    <ClInclude Include="vm_jump.h" />
+    <ClInclude Include="vm_control_flow.h" />
     <ClInclude Include="vm_macro.h" />
     <ClInclude Include="vm_movable.h" />
     <ClInclude Include="vm_operand.h" />

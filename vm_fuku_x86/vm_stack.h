@@ -4,7 +4,7 @@
 void vm_push(vm_context& context) {
     vm_ops_ex_code * ex_code = (vm_ops_ex_code *)&context.vm_code[0];
 
-    uint32_t* src = get_src_operand(context, *ex_code);
+    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 1 , 1);
 
     context.real_context.regs.esp -= 4;
     mov_by_size((uint32_t*)context.real_context.regs.esp, src, ex_code->info.ops_size);
@@ -17,7 +17,7 @@ void vm_push(vm_context& context) {
 void vm_pop(vm_context& context) {
     vm_ops_ex_code * ex_code = (vm_ops_ex_code *)&context.vm_code[0];
 
-    uint32_t* src = get_src_operand(context, *ex_code);
+    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 1, 1);
 
     mov_by_size(src, (uint32_t*)context.real_context.regs.esp, ex_code->info.ops_size);
     context.real_context.regs.esp += ex_code->info.ops_size;

@@ -2,13 +2,6 @@
 #include "vm_cpu.h"
 
 
-#define PUSH_VM(context,x) {context.real_context.regs.esp -= 4;*(uint32_t*)context.real_context.regs.esp = x;}
-#define POP_VM(context,x)  {x = *(uint32_t*)context.real_context.regs.esp;context.real_context.regs.esp += 4;}
-
-
-
-
-
 struct vm_context {
     global_context real_context;
     std::vector<uint32_t> operands;
@@ -22,18 +15,17 @@ struct vm_context {
     }pure_call_context;
 };
 
+
+void vm_exit(vm_context& context, uint32_t ret_address);
+void vm_pure(vm_context& context, uint8_t * instruction_ptr, uint32_t instruction_len);
+
 #include "vm_macro.h"
 #include "vm_operand.h"
 #include "vm_stack.h"
-#include "vm_jump.h"
+#include "vm_control_flow.h"
 #include "vm_movable.h"
 #include "vm_arith.h"
 
-void WINAPI fuku_vm_entry(void * pcode);
-void WINAPI fuku_vm_exit_epilogue(vm_context& context, uint32_t ret_address);
-
-void fuku_vm_pure_code_handler(vm_context& context);
-bool fuku_vm_jcc_cond(vm_context& context, uint8_t condition, bool inverse);
 
 void WINAPI fuku_vm_handler(uint32_t original_stack) {
     vm_context context;
@@ -49,7 +41,22 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         switch (opcode){
 
         case vm_opcode_86_pure: {
-            fuku_vm_pure_code_handler(context);
+            vm_pure_code * instruction = (vm_pure_code *)&context.vm_code[0];
+            uint8_t inst_[16];
+            
+            memcpy(inst_, instruction->code, instruction->info.code_len);
+
+            if (instruction->info.reloc_offset_1) {
+                //*(uint32_t*)&shell_pure[19 + instruction->info.reloc_offset_1] += vm_context.image_base - vm_context.original_image_base;
+            }
+
+            if (instruction->info.reloc_offset_2) {
+                // *(uint32_t*)&shell_pure[19 + instruction->info.reloc_offset_2] += vm_context.image_base - vm_context.original_image_base;
+            }
+
+            vm_pure(context, inst_, instruction->info.code_len);
+
+            context.vm_code += context.vm_code[0] + 2;
             break;
         }
 
@@ -72,6 +79,29 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         }
         case vm_opcode_86_operand_set_disp: {
             vm_operand_set_disp(context);
+            break;
+        }
+
+
+        //code graph changers
+        case vm_opcode_86_jump_local: {
+            vm_jump_local(context);
+            break;
+        }
+        case vm_opcode_86_jump_external: {
+            vm_jump_external(context);
+            break;
+        }
+        case vm_opcode_86_call_local: {
+            vm_call_local(context);
+            break;
+        }
+        case vm_opcode_86_call_external: {
+            vm_call_external(context);
+            break;
+        }
+        case vm_opcode_86_return: {
+            vm_return(context);
             break;
         }
 
@@ -100,19 +130,20 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             vm_popfd(context);
             break;
         }
-        case vm_opcode_86_mov: {
+
+        //movable
+        case vm_opcode_86_mov: { //mov and lea
             vm_mov(context);
             break;
         }
-
-        case vm_opcode_86_lea: {
-
-            break;
-        }
         case vm_opcode_86_xchg: {
-
+            vm_xchg(context);
             break;
         }
+
+
+        //arithmetic
+
 
         default: {
             printf("unknown opcode!!\n");
@@ -140,13 +171,11 @@ DLLEXPORT __declspec (naked) void WINAPI fuku_vm_entry(void * pcode) {
         pushfd    //save flags
         pushad    //save regs
 
-        mov eax, VirtualAlloc
-
         push 0x40     //push PAGE_EXECURE_READWRITE
         push 0x1000   //push MEM_COMMIT
         push 0x1000   //push SIZE
         push 0        //push BASE ADDRESS
-        call eax      //call VirtualAlloc
+        call VirtualAlloc      //call VirtualAlloc
 
         xchg eax, esp //set new stack pointer
         add esp, 0x1000
@@ -156,7 +185,7 @@ DLLEXPORT __declspec (naked) void WINAPI fuku_vm_entry(void * pcode) {
     }
 }
 
-void WINAPI fuku_vm_exit_epilogue(vm_context& context, uint32_t ret_address) {
+void vm_exit(vm_context& context, uint32_t ret_address) {
     uint32_t original_esp_offset = (offsetof(vm_context, real_context.regs.esp));
 
     PUSH_VM(context, ret_address);/*ret address to original code*/
@@ -168,6 +197,8 @@ void WINAPI fuku_vm_exit_epilogue(vm_context& context, uint32_t ret_address) {
     PUSH_VM(context, MEM_RELEASE);                           /*dwFreeType*/
     PUSH_VM(context, 0);			                         /*dwSize*/
     PUSH_VM(context, ((uint32_t(&context)) & 0xFFFFF000));   /*lpAddress*/
+
+    context.operands.~vector();
 
     __asm {
         mov eax, context
@@ -183,7 +214,7 @@ void WINAPI fuku_vm_exit_epilogue(vm_context& context, uint32_t ret_address) {
 }
 
 
-void fuku_vm_pure_code_handler(vm_context& context) {
+void vm_pure(vm_context& context,uint8_t * instruction_ptr, uint32_t instruction_len) {
 
     uint8_t shell_pure[] = {
         0x89, 0x25, 0, 0, 0, 0,             //mov [vm_context_imm],esp
@@ -202,17 +233,7 @@ void fuku_vm_pure_code_handler(vm_context& context) {
 
     uint8_t * shell_ptr = shell_pure;
 
-    vm_pure_code * instruction = (vm_pure_code *)&context.vm_code[0];
-    
-    memcpy(&shell_pure[19], instruction->code, instruction->info.code_len);
-
-    if (instruction->info.reloc_offset_1) {
-        //*(uint32_t*)&shell_pure[19 + instruction->info.reloc_offset_1] += vm_context.image_base - vm_context.original_image_base;
-    }
-
-    if (instruction->info.reloc_offset_2) {
-       // *(uint32_t*)&shell_pure[19 + instruction->info.reloc_offset_2] += vm_context.image_base - vm_context.original_image_base;
-    }
+    memcpy(&shell_pure[19], instruction_ptr, instruction_len);
 
     //load original context
     context.pure_call_context.saved_regs[7] = context.real_context.regs.eax;
@@ -255,41 +276,6 @@ void fuku_vm_pure_code_handler(vm_context& context) {
     context.real_context.regs.esi = context.pure_call_context.saved_regs[1];
     context.real_context.regs.edi = context.pure_call_context.saved_regs[0];
     context.real_context.d_flag   = context.pure_call_context.saved_flags;
-    
-    context.vm_code += context.vm_code[0] + 2;
 }
 
 
-bool fuku_vm_jcc_cond(vm_context& context, uint8_t condition , bool inverse) {
-    bool result = false;
-
-    if (!condition) { //Jump near if overflow (OF=1)
-        result = context.real_context.flags._of;
-    }
-    else if (condition == 1) {//Jump if not above or equal (CF=1)
-        result = context.real_context.flags._cf;
-    }
-    else if (condition == 2) {//Jump if equal (ZF=1)
-        result = context.real_context.flags._zf;
-    }
-    else if (condition == 3) {//Jump if below or equal (CF=1 or ZF=1)
-        result = (context.real_context.flags._cf || context.real_context.flags._zf);
-    }
-    else if (condition == 4) {//Jump if sign (SF=1)
-        result = context.real_context.flags._sf;
-    }
-    else if (condition == 5) {//Jump if parity (PF=1)
-        result = context.real_context.flags._pf;
-    }
-    else if (condition == 6) {//Jump if less (SF<>OF)
-        result = (context.real_context.flags._sf != context.real_context.flags._of);
-    }
-    else if (condition == 7) {//Jump if less or equal (ZF=1 or SF<>OF)
-        result = (context.real_context.flags._zf || (context.real_context.flags._sf != context.real_context.flags._of));
-    }
-    else {
-        result = true;
-    }
-
-    return inverse == true ? !result : result;
-}

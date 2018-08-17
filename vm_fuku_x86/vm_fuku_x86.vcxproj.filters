@@ -32,9 +32,6 @@
     <ClInclude Include="vm_stack.h">
       <Filter>Исходные файлы\vm_cpu\imp</Filter>
     </ClInclude>
-    <ClInclude Include="vm_jump.h">
-      <Filter>Исходные файлы\vm_cpu\imp</Filter>
-    </ClInclude>
     <ClInclude Include="vm_movable.h">
       <Filter>Исходные файлы\vm_cpu\imp</Filter>
     </ClInclude>
@@ -43,6 +40,9 @@
     </ClInclude>
     <ClInclude Include="vm_macro.h">
       <Filter>Исходные файлы\vm_cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_control_flow.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

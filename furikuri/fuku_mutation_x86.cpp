@@ -962,16 +962,16 @@ bool fuku_mutation_x86::fukutate_ret(linestorage& lines, unsigned int current_li
     if (((target_line.get_flags() & fuku_instruction_bad_stack) == 0)) {
         if (target_line.get_op_code()[0] == 0xC3) { //ret
 
-            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4)));//lea esp,[esp + (4 + stack_offset)]
-            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4)).set_flags(fuku_instruction_bad_stack));           //jmp [esp - (4 + stack_offset)] 
+            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4)));                   //lea esp,[esp + 4]
+            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4)).set_flags(fuku_instruction_bad_stack));           //jmp [esp - 4] 
 
             return true;
 
         }
         else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
             uint16_t ret_stack = *(uint16_t*)&target_line.get_op_code()[1];
-            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)).set_useless_flags(target_line.get_useless_flags()));                 //lea esp,[esp + (4 + stack_offset)]
-            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(fuku_instruction_bad_stack).set_useless_flags(target_line.get_useless_flags()));         //jmp [esp - (4 + stack_offset)] 
+            out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)).set_useless_flags(target_line.get_useless_flags()));     //lea esp,[esp + (4 + stack_offset)]
+            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4)).set_flags(fuku_instruction_bad_stack).set_useless_flags(target_line.get_useless_flags()));         //jmp [esp - 4] 
 
             return true;
         }
