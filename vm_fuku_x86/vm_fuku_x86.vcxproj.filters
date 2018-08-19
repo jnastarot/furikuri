@@ -44,6 +44,12 @@
     <ClInclude Include="vm_control_flow.h">
       <Filter>Исходные файлы\vm_cpu\imp</Filter>
     </ClInclude>
+    <ClInclude Include="vm_logical.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
+    </ClInclude>
+    <ClInclude Include="vm_flags_mods.h">
+      <Filter>Исходные файлы\vm_cpu\imp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

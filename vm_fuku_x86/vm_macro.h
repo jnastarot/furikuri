@@ -3,6 +3,11 @@
 #define PUSH_VM(context,x) {context.real_context.regs.esp -= 4;*(uint32_t*)context.real_context.regs.esp = x;}
 #define POP_VM(context,x)  {x = *(uint32_t*)context.real_context.regs.esp;context.real_context.regs.esp += 4;}
 
+
+#define SIZE_TO_BITS(size)     (size << 3) //8 16 32
+#define SIGN_BIT_BY_SIZE(size) ((1 << SIZE_TO_BITS(size)) - 1)//0x80 0x8000 0x80000000
+#define MAX_SIZE_BY_SIZE(size) ( 1 << (SIZE_TO_BITS(size) - 1))//0xFF 0xFFFF 0xFFFFFFFF
+
 /*
 imm   //not a ptr
 eax   //ptr
@@ -10,25 +15,6 @@ eax   //ptr
 */
 
 
-inline void mov_by_size(uint32_t * src, uint32_t * dst, uint8_t size) {
-    switch (size) {
-
-    case 1: {
-        ((uint8_t*)src)[0] = ((uint8_t*)dst)[0];
-        break;
-    }
-
-    case 2: {
-        ((uint16_t*)src)[0] = ((uint16_t*)dst)[0];
-        break;
-    }
-
-    case 4: {
-        *src = *dst;
-        break;
-    }
-    }
-}
 
 inline uint32_t * get_operand(vm_context& context , bool is_ptr, uint32_t op_num , uint32_t op_total) {
     uint32_t * operand = &context.operands[context.operands.size() - op_total + (op_num - 1)];
@@ -80,26 +66,87 @@ inline bool is_jump(vm_context& context, uint8_t condition, bool inverse) {
     return inverse == true ? !result : result;
 }
 
-//CF OF ZF SF PF
+inline bool get_parity_flag(uint32_t result) {
+   
+    bool parity = true;
+    for (uint8_t i = 1; i < 8; i++) {
 
-//CF OF ZF SF
+        if (result & (1 << i)) {
+            parity = !parity;
+       }
+    }
 
-inline bool get_overflow_flag_result() {
-
-    return true;
+    return parity;
 }
 
-inline bool get_carry_flag_result() {
+inline bool get_overflow_flag(uint32_t l_op, uint32_t r_op, uint32_t result, uint8_t size) {
+    uint32_t sign_bit = SIGN_BIT_BY_SIZE(size);
 
-    return true;
+    if ( (l_op & sign_bit) == (r_op & sign_bit) ) {
+        return (l_op & sign_bit) != (result & sign_bit);
+    }
+    else {
+        return false;
+    }
 }
 
-inline bool get_zero_flag_result() {
+inline bool get_sign_flag(uint32_t result, uint8_t size) {
+    uint32_t sign_bit = SIGN_BIT_BY_SIZE(size);
 
-    return true;
+    return result & sign_bit;
 }
 
-inline bool get_sign_flag_result() {
+inline bool get_adjust_flag(uint32_t l_op, uint32_t r_op) {
+    return (l_op % 0x10 + r_op % 0x10) / 0x10;
+}
 
-    return true;
+inline uint32_t impl_add(vm_context& context, uint32_t l_op, uint32_t r_op, uint8_t size) {
+    
+    uint32_t sign_bit = SIGN_BIT_BY_SIZE(size);
+    uint64_t mask = uint64_t(1) << SIZE_TO_BITS(size);
+
+    l_op = l_op & (mask - 1);
+    r_op = r_op & (mask - 1);
+
+    uint64_t sum = l_op + r_op;
+
+    context.real_context.flags._zf = !(sum & (mask - 1));
+    context.real_context.flags._af = get_adjust_flag(l_op, r_op);
+    context.real_context.flags._cf = (sum / mask);
+    context.real_context.flags._sf = get_sign_flag(uint32_t(sum), size);
+    context.real_context.flags._pf = get_parity_flag(uint32_t(sum));
+    context.real_context.flags._of = get_overflow_flag(l_op, r_op, uint32_t(sum), size);
+
+    return uint32_t(sum);
+}
+
+inline uint32_t impl_sub(vm_context& context, uint32_t l_op, uint32_t r_op, uint8_t size) {
+
+    uint32_t sign_bit = SIGN_BIT_BY_SIZE(size);
+    uint64_t mask = uint64_t(1) << SIZE_TO_BITS(size);
+
+    l_op = l_op & (mask - 1);
+    r_op = r_op & (mask - 1);
+
+    uint64_t sum = l_op - r_op;
+
+    context.real_context.flags._zf = !(sum & (mask - 1));
+    context.real_context.flags._af = get_adjust_flag(l_op, r_op);
+    context.real_context.flags._sf = get_sign_flag(uint32_t(sum), size);
+    context.real_context.flags._pf = get_parity_flag(uint32_t(sum));
+    context.real_context.flags._of = get_overflow_flag(l_op, r_op, uint32_t(sum), size);
+
+    return uint32_t(sum);
+}
+
+inline void impl_logical(vm_context& context, uint32_t result, uint8_t size) {
+
+    uint32_t sign_bit = SIGN_BIT_BY_SIZE(size);
+    uint64_t mask = uint64_t(1) << SIZE_TO_BITS(size);
+
+    context.real_context.flags._cf = 0;
+    context.real_context.flags._of = 0;
+    context.real_context.flags._zf = !(result & (mask - 1));
+    context.real_context.flags._sf = result & sign_bit;
+    context.real_context.flags._pf = get_parity_flag(result);
 }

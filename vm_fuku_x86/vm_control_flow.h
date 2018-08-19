@@ -32,7 +32,7 @@ void vm_call_local(vm_context& context) {
 
     uint32_t call_dst = uint32_t(context.vm_code + (call_code->back_jump == true ? -((int32_t)(call_code->offset - 1)) : (call_code->offset - 1)));
 
-    PUSH_VM(context, (uint32_t)(context.vm_code + sizeof(vm_call_code)));
+    PUSH_VM(context, ((uint32_t)(context.vm_code + sizeof(vm_call_code)) | 0x80000000));
 
     context.vm_code = (uint8_t*)call_dst;
 }

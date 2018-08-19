@@ -92,6 +92,7 @@ enum vm_opcode_86 {
     vm_opcode_86_operand_set_base,
     vm_opcode_86_operand_set_index_scale,
     vm_opcode_86_operand_set_disp,
+    vm_opcode_86_operand_set_relocatable,
 
     //code graph changers
     vm_opcode_86_jump_local, /*jmp and jcc*/
@@ -114,23 +115,37 @@ enum vm_opcode_86 {
     vm_opcode_86_xchg,
 
     //logical
-    vm_opcode_86_cmp,
     vm_opcode_86_test,
-
     vm_opcode_86_and,
     vm_opcode_86_or,
     vm_opcode_86_xor,
     vm_opcode_86_not,
-    
-    //math
+    vm_opcode_86_shl,
+    vm_opcode_86_shr,
+    vm_opcode_86_sar,
+    vm_opcode_86_rol,
+    vm_opcode_86_ror,
+    vm_opcode_86_rcl,
+    vm_opcode_86_rcr,
+
+    //aritch
+    vm_opcode_86_cmp,
     vm_opcode_86_neg,
     vm_opcode_86_add,
+    vm_opcode_86_adc,
     vm_opcode_86_sub,
-
+    vm_opcode_86_sbb,
     vm_opcode_86_mul,
+    vm_opcode_86_lmul,
     vm_opcode_86_div,
+    vm_opcode_86_ldiv,
 
-
+    //flag mods
+    vm_opcode_86_clc,
+    vm_opcode_86_cmc,
+    vm_opcode_86_stc,
+    vm_opcode_86_cld,
+    vm_opcode_86_std,
 
     vm_opcode_86_vm_exit,
 };
@@ -171,7 +186,7 @@ struct vm_ops_ex_code {
         struct {
             uint8_t src_is_ptr : 2;
             uint8_t dst_is_ptr : 2;
-            uint8_t ops_size : 4;
+            uint8_t ops_size   : 4;
         }info;
         uint8_t ex_code;
     };

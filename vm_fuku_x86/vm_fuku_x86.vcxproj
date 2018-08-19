@@ -115,7 +115,7 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -123,6 +123,7 @@
       <ConformanceMode>true</ConformanceMode>
       <DebugInformationFormat>None</DebugInformationFormat>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,8 +156,10 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="vm_arith.h" />
     <ClInclude Include="vm_cpu.h" />
+    <ClInclude Include="vm_flags_mods.h" />
     <ClInclude Include="vm_internal.h" />
     <ClInclude Include="vm_control_flow.h" />
+    <ClInclude Include="vm_logical.h" />
     <ClInclude Include="vm_macro.h" />
     <ClInclude Include="vm_movable.h" />
     <ClInclude Include="vm_operand.h" />

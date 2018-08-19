@@ -25,6 +25,8 @@ void vm_pure(vm_context& context, uint8_t * instruction_ptr, uint32_t instructio
 #include "vm_control_flow.h"
 #include "vm_movable.h"
 #include "vm_arith.h"
+#include "vm_logical.h"
+#include "vm_flags_mods.h"
 
 
 void WINAPI fuku_vm_handler(uint32_t original_stack) {
@@ -81,7 +83,10 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             vm_operand_set_disp(context);
             break;
         }
+        case vm_opcode_86_operand_set_relocatable : {
 
+            break;
+        }
 
         //code graph changers
         case vm_opcode_86_jump_local: {
@@ -143,7 +148,102 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
 
         //arithmetic
+        case vm_opcode_86_cmp: {
+            vm_cmp(context);
+            break;
+        }
+        case vm_opcode_86_neg: {
+            vm_neg(context);
+            break;
+        }
+        case vm_opcode_86_add: {
+            vm_add(context);
+            break;
+        }
+        case vm_opcode_86_adc: {
+            vm_adc(context);
+            break;
+        }
+        case vm_opcode_86_sub: {
+            vm_sub(context);
+            break;
+        }
+        case vm_opcode_86_sbb: {
+            vm_sbb(context);
+            break;
+        }
 
+        //logical
+        case vm_opcode_86_test: {
+            vm_test(context);
+            break;
+        }
+        case vm_opcode_86_and: {
+            vm_and(context);
+            break;
+        }
+        case vm_opcode_86_or: {
+            vm_or(context);
+            break;
+        }
+        case vm_opcode_86_xor: {
+            vm_xor(context);
+            break;
+        }
+        case vm_opcode_86_not: {
+            vm_not(context);
+            break;
+        }
+        case vm_opcode_86_shl: {
+            vm_shl(context);
+            break;
+        }
+        case vm_opcode_86_shr: {
+            vm_shr(context);
+            break;
+        }
+        case vm_opcode_86_sar: {
+            vm_sar(context);
+            break;
+        }
+        case vm_opcode_86_rol: {
+            vm_rol(context);
+            break;
+        }
+        case vm_opcode_86_ror: {
+            vm_ror(context);
+            break;
+        }
+        case vm_opcode_86_rcl: {
+            vm_rcl(context);
+            break;
+        }
+        case vm_opcode_86_rcr: {
+            vm_rcr(context);
+            break;
+        }
+
+        //flag mods
+        case vm_opcode_86_clc: {
+            vm_clc(context);
+            break;
+        }
+        case vm_opcode_86_cmc: {
+            vm_cmc(context);
+            break;
+        }
+        case vm_opcode_86_stc: {
+            vm_stc(context);
+            break;
+        }
+        case vm_opcode_86_cld: {
+            vm_cld(context);
+            break;
+        }
+        case vm_opcode_86_std: {
+            vm_std(context);
+            break;
+        }
 
         default: {
             printf("unknown opcode!!\n");
