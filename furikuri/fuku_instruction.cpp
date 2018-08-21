@@ -384,13 +384,3 @@ fuku_instruction * get_line_by_va(const linestorage& lines, uint64_t virtual_add
     return 0;
 }
 
-fuku_instruction * get_line_by_label_id(const linestorage& lines, const std::vector<uint32_t>& labels_cache, unsigned int label_id) {
-
-    if (labels_cache.size()) {
-        if (label_id > 0 && label_id <= labels_cache.size()) {
-            return (fuku_instruction *)&lines[labels_cache[label_id - 1]];
-        }
-    }
-
-    return 0;
-}

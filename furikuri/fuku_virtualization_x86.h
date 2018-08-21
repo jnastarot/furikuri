@@ -1,6 +1,6 @@
 #pragma once
 class fuku_virtualization_x86 :
-    public fuku_virtualization {
+    public fuku_virtualizer {
 
 
 public:

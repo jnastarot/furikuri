@@ -119,4 +119,3 @@ public:
 typedef std::vector<fuku_instruction> linestorage;
 
 fuku_instruction * get_line_by_va(const linestorage& lines, uint64_t virtual_address);
-fuku_instruction * get_line_by_label_id(const linestorage& lines, const std::vector<uint32_t>& labels_cache, unsigned int label_id);

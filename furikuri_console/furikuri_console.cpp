@@ -55,8 +55,8 @@ int main(){
 
     
     shibari_module _module(
-       // std::string("..\\..\\app for test\\linked_programm.exe")
-        std::string("..\\..\\app for test\\swhtest.exe")
+        std::string("..\\..\\app for test\\linked_programm.exe")
+        //std::string("..\\..\\app for test\\swhtest.exe")
     );
 
     furikuri fuku;
@@ -65,8 +65,8 @@ int main(){
         std::vector<uint8_t> out_image;
         
 
-      //  fuku.add_code_list({ 0x10F9 , 0x139 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
-        fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
+        fuku.add_code_list({ 0x10F9 , 0x139 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
+        //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
         
         if (fuku.fuku_protect(out_image)) {
             FILE* hTargetFile;

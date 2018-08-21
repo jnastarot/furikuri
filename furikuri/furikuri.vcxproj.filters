@@ -66,20 +66,20 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x64">
       <UniqueIdentifier>{8c1583e0-a42d-4039-84a1-24d892d64829}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp">
-      <UniqueIdentifier>{120955fa-a672-41be-a201-73a7b3d8da10}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x86">
-      <UniqueIdentifier>{b6814b8a-4984-45b7-82fd-5bcabcbe3b7a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x64">
-      <UniqueIdentifier>{b7e713aa-eafd-43e6-9156-5ba1c1c70954}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_instruction">
       <UniqueIdentifier>{1992578b-db89-4276-aca4-97eecbc1c7a3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_vm_instruction">
       <UniqueIdentifier>{6e58bcfb-01b6-42b9-a60f-11edb9514a20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp">
+      <UniqueIdentifier>{120955fa-a672-41be-a201-73a7b3d8da10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x86">
+      <UniqueIdentifier>{b6814b8a-4984-45b7-82fd-5bcabcbe3b7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x64">
+      <UniqueIdentifier>{b7e713aa-eafd-43e6-9156-5ba1c1c70954}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -140,17 +140,17 @@
     <ClInclude Include="fuku_mutation_imp.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp</Filter>
     </ClInclude>
-    <ClInclude Include="fuku_virtualization_imp.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp</Filter>
-    </ClInclude>
     <ClInclude Include="fuku_vm_instruction.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_vm_instruction</Filter>
     </ClInclude>
     <ClInclude Include="fuku_virtualization_x64.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x64</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x64</Filter>
     </ClInclude>
     <ClInclude Include="fuku_virtualization_x86.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x86</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x86</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_virtualizer_imp.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -206,10 +206,10 @@
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_vm_instruction</Filter>
     </ClCompile>
     <ClCompile Include="fuku_virtualization_x64.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x64</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x64</Filter>
     </ClCompile>
     <ClCompile Include="fuku_virtualization_x86.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualization_imp\x86</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x86</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -9,6 +9,7 @@ enum fuku_code_type {
     fuku_code_hybrid,//obfuscation + virtualization
 };
 
+class fuku_code_analyzer;
 class fuku_obfuscator;
 class fuku_instruction;
 class fuku_mutation;
@@ -30,6 +31,8 @@ struct fuku_vm_settings {
 
     shibari_module* _module;//vm holder
     uint32_t  vm_entry_rva; //vm offset
+
+    fuku_virtualizer * virtualizer;
 };
 
 struct fuku_protected_region {

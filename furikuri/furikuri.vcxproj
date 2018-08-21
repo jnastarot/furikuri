@@ -159,7 +159,7 @@
     <ClInclude Include="fuku_pdb.h" />
     <ClInclude Include="fuku_protector.h" />
     <ClInclude Include="fuku_tds.h" />
-    <ClInclude Include="fuku_virtualization_imp.h" />
+    <ClInclude Include="fuku_virtualizer_imp.h" />
     <ClInclude Include="fuku_virtualization_x64.h" />
     <ClInclude Include="fuku_virtualization_x86.h" />
     <ClInclude Include="fuku_virtual_machine.h" />
