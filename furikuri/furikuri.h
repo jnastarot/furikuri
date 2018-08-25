@@ -13,7 +13,7 @@ class fuku_code_analyzer;
 class fuku_obfuscator;
 class fuku_instruction;
 class fuku_mutation;
-class fuku_virtualization;
+class fuku_virtualizer;
 
 struct fuku_ob_settings {
     unsigned int complexity;        //number of passes for single line
@@ -58,7 +58,7 @@ struct fuku_code_list {
 
 #include "fuku_code_analyzer.h"
 #include "fuku_obfuscator.h"
-#include "fuku_virtual_machine.h"
+#include "fuku_virtualizer_imp.h"
 #include "fuku_debug_info.h"
 #include "fuku_protector.h"
 

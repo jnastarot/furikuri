@@ -6,7 +6,7 @@ class fuku_mutation {
 public:
     virtual fuku_mutation::~fuku_mutation() {};
 
-    virtual void fuku_mutation::obfuscate(linestorage& lines) {};
+    virtual void fuku_mutation::obfuscate(fuku_analyzed_code& code) {};
     virtual void fuku_mutation::generate_junk(std::vector<uint8_t>& junk, size_t junk_size) {};
 };
 

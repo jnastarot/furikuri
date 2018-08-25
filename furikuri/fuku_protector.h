@@ -17,33 +17,41 @@ struct fuku_code_profile {
 
     fuku_code_type type;
 
-    fuku_code_analyzer analyzed_code;
+    fuku_analyzed_code code;
+
+
+    uint32_t virtual_machine_entry;
+
 
     union {
-        fuku_obfuscator*       obfuscator;
-        fuku_virtual_machine * virtual_machine;
+        fuku_obfuscator *    obfuscator;
+        fuku_virtualizer *  virtualizer;
     }_ptr;
 
     fuku_code_profile::fuku_code_profile();
     fuku_code_profile::~fuku_code_profile();
 };
 
-class fuku_protector { 
+class fuku_protector {
     shibari_module target_module;
 
     std::vector<fuku_code_profile> profiles;
 
     fuku_code_profile main_obfuscator, main_vm;
 
-    
+
     void    fuku_protector::sort_association_tables();
     fuku_code_association * fuku_protector::find_obf_association(uint32_t rva);
 
     bool    fuku_protector::test_regions();
     bool    fuku_protector::initialize_profiles();
+    // void    fuku_protector::merge_profiles(uint32_t dest_address_rva);
     void    fuku_protector::merge_profiles(uint32_t dest_address_rva);
     bool    fuku_protector::fill_code(uint32_t dest_address_rva);
     bool    fuku_protector::finish_protected_code();
+
+    bool    fuku_protector::obfuscate_profile(fuku_code_profile& profile);
+    bool    fuku_protector::virtualize_profile(fuku_code_profile& profile, bool is_hybrid);
 public:
     fuku_protector::fuku_protector(const shibari_module& module);
     fuku_protector::~fuku_protector();
@@ -59,4 +67,3 @@ public:
 public:
     const shibari_module& get_target_module() const;
 };
-

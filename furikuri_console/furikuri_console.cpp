@@ -51,7 +51,7 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main(){
 
-    srand(2);
+    srand(3);
 
     
     shibari_module _module(

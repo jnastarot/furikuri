@@ -1,6 +1,7 @@
 #pragma once
 
 enum fuku_arch {
+    fuku_arch_unknown,
     fuku_arch_x32,
     fuku_arch_x64
 };
@@ -41,6 +42,7 @@ struct fuku_analyzed_code {
 
 class fuku_code_analyzer {
     fuku_analyzed_code code;
+    std::vector<size_t> original_lines_idx;
 
     bool fuku_code_analyzer::analyze_code(
         const uint8_t * src, uint32_t src_len,
@@ -52,6 +54,7 @@ class fuku_code_analyzer {
 
     fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(linestorage& lines, uint64_t virtual_address);
     fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(linestorage& lines, uint64_t virtual_address);
+    fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va_in_idx(linestorage& lines, std::vector<size_t>& original_lines_idx, uint64_t virtual_address);
 
     uint32_t fuku_code_analyzer::set_label(fuku_instruction& line);
 public:
@@ -59,7 +62,8 @@ public:
     fuku_code_analyzer::fuku_code_analyzer(const fuku_code_analyzer& analyze);
     fuku_code_analyzer::~fuku_code_analyzer();
 
-    fuku_code_analyzer& fuku_code_analyzer::operator=(const fuku_code_analyzer& analyze);
+    fuku_code_analyzer& fuku_code_analyzer::operator=(const fuku_code_analyzer& code);
+    fuku_code_analyzer& fuku_code_analyzer::operator=(const fuku_analyzed_code& code);
 
     bool fuku_code_analyzer::push_code(
         const uint8_t * src, uint32_t src_len,

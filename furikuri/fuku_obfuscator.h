@@ -28,7 +28,7 @@ public:
     fuku_obfuscator::~fuku_obfuscator();
 
     void fuku_obfuscator::obfuscate_code();
-    std::vector<uint8_t> fuku_obfuscator::get_code();
+    std::vector<uint8_t> fuku_obfuscator::get_raw_code();
 public:
     void fuku_obfuscator::set_code(const fuku_code_analyzer& code);
     void fuku_obfuscator::set_code(const fuku_analyzed_code& code);
@@ -48,4 +48,6 @@ public:
     const std::vector<fuku_code_association>    fuku_obfuscator::get_association_table() const;
     const std::vector<fuku_code_relocation>     fuku_obfuscator::get_relocation_table() const;
     const std::vector<fuku_code_ip_relocation>  fuku_obfuscator::get_ip_relocation_table() const;
+
+    const fuku_analyzed_code& fuku_obfuscator::get_code() const;
 };

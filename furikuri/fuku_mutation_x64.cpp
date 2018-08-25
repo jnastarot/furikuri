@@ -44,8 +44,8 @@ void fuku_mutation_x64::obfuscate_lines(linestorage& lines, unsigned int recurse
     lines = obf_lines;
 }
 
-void fuku_mutation_x64::obfuscate(linestorage& lines) {
-    obfuscate_lines(lines, -1);
+void fuku_mutation_x64::obfuscate(fuku_analyzed_code& code) {
+    obfuscate_lines(code.lines, -1);
 }
 
 uint32_t fuku_mutation_x64::set_label(fuku_instruction& line) {

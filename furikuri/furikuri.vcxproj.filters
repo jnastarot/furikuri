@@ -131,9 +131,6 @@
     <ClInclude Include="fuku_debug_info.h">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info</Filter>
     </ClInclude>
-    <ClInclude Include="fuku_virtual_machine.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm</Filter>
-    </ClInclude>
     <ClInclude Include="fuku_code_analyzer.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_analyzer</Filter>
     </ClInclude>
@@ -150,7 +147,7 @@
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x86</Filter>
     </ClInclude>
     <ClInclude Include="fuku_virtualizer_imp.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -195,9 +192,6 @@
     </ClCompile>
     <ClCompile Include="fuku_bolrand_map.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_debug_info\fuku_map\bolrand</Filter>
-    </ClCompile>
-    <ClCompile Include="fuku_virtual_machine.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm</Filter>
     </ClCompile>
     <ClCompile Include="fuku_code_analyzer.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_analyzer</Filter>

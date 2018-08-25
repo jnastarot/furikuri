@@ -67,6 +67,10 @@ const std::vector<fuku_code_ip_relocation> fuku_obfuscator::get_ip_relocation_ta
     return *this->ip_relocation_table;
 }
 
+const fuku_analyzed_code& fuku_obfuscator::get_code() const {
+    return this->code;
+}
+
 void fuku_obfuscator::obfuscate_code() {
 
     fuku_mutation * mutator = (code.arch == fuku_arch::fuku_arch_x32) ?
@@ -80,7 +84,7 @@ void fuku_obfuscator::obfuscate_code() {
     for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
         lines_correction(code.lines, destination_virtual_address);
-        mutator->obfuscate(this->code.lines);
+        mutator->obfuscate(code);
         
         if (settings.block_chance > 0.f) {
             spagetti_code(code.lines, destination_virtual_address); //mix lines
@@ -97,7 +101,7 @@ void fuku_obfuscator::obfuscate_code() {
     finalize_code();
 }
 
-std::vector<uint8_t> fuku_obfuscator::get_code() {
+std::vector<uint8_t> fuku_obfuscator::get_raw_code() {
     return lines_to_bin(code.lines);
 }
 

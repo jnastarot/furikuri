@@ -32,4 +32,10 @@ using namespace std;
 
 #define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(1,1000) <= (10*(x))) //0.f - 100.f in
 
+#ifdef _DEBUG
+    #define FUKU_DEBUG {printf("%s:%d | %s\n",__FILE__,__LINE__,__FUNCTION__);}
+#else
+    #define FUKU_DEBUG {}
+#endif
+
 #include "furikuri.h"

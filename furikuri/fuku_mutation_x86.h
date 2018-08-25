@@ -44,7 +44,7 @@ public:
     fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings, unsigned int * label_seed);
     fuku_mutation_x86::~fuku_mutation_x86();
 
-    void fuku_mutation_x86::obfuscate(linestorage& lines);
+    void fuku_mutation_x86::obfuscate(fuku_analyzed_code& code);
 
     void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
 };

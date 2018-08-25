@@ -162,7 +162,6 @@
     <ClInclude Include="fuku_virtualizer_imp.h" />
     <ClInclude Include="fuku_virtualization_x64.h" />
     <ClInclude Include="fuku_virtualization_x86.h" />
-    <ClInclude Include="fuku_virtual_machine.h" />
     <ClInclude Include="fuku_vm_instruction.h" />
     <ClInclude Include="furikuri.h" />
     <ClInclude Include="fuku_obfuscator.h" />
@@ -185,7 +184,6 @@
     <ClCompile Include="fuku_tds.cpp" />
     <ClCompile Include="fuku_virtualization_x64.cpp" />
     <ClCompile Include="fuku_virtualization_x86.cpp" />
-    <ClCompile Include="fuku_virtual_machine.cpp" />
     <ClCompile Include="fuku_vm_instruction.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />

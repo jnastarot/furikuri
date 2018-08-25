@@ -13,6 +13,7 @@ enum r_86 {
     r_edi
 };
 
+/*
 enum j_condition {
     overflow        = 0,    jo   = 0,
     no_overflow     = 1,    jno  = 1,
@@ -33,6 +34,7 @@ enum j_condition {
 
     always          = 16,
 };
+*/
 
 struct context_regs {   
     uint32_t edi;
