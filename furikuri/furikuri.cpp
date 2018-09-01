@@ -11,6 +11,16 @@ bool fuku_ob_settings::operator==(const fuku_ob_settings& set) {
         );
 }
 
+bool fuku_ob_settings::is_null() const {
+    return (
+        this->complexity &&
+        this->number_of_passes &&
+        this->junk_chance &&
+        this->block_chance &&
+        this->mutate_chance
+        );
+}
+
 fuku_code_list& fuku_code_list::operator=(const fuku_code_list& set) {
 
     this->functions = set.functions;

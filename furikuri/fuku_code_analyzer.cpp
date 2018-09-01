@@ -3,7 +3,7 @@
 
 
 fuku_analyzed_code::fuku_analyzed_code() {
-    this->arch = fuku_arch::fuku_arch_x32;
+    this->arch = fuku_arch::fuku_arch_unknown;
     this->label_seed = 1;
 }
 
@@ -28,6 +28,16 @@ fuku_analyzed_code& fuku_analyzed_code::operator=(const fuku_code_analyzer& anal
     this->lines             = analyzer.get_lines();
 
     return *this;
+}
+
+void fuku_analyzed_code::clear() {
+    this->arch = fuku_arch::fuku_arch_unknown;
+    this->label_seed = 1;
+    this->labels_cache.clear();
+    this->jumps_idx_cache.clear();
+    this->rel_idx_cache.clear();
+    this->ip_rel_idx_cache.clear();
+    this->lines.clear();
 }
 
 fuku_code_analyzer::fuku_code_analyzer() {}
@@ -204,15 +214,18 @@ bool fuku_code_analyzer::analyze_code(
 
 
 
-bool fuku_code_analyzer::merge_code(linestorage&  new_lines) {
+bool fuku_code_analyzer::merge_code(linestorage&  new_lines,const std::vector<size_t>* cached_new_lines_idxs) {
 
-
-    
     std::vector<size_t> new_lines_idxs;
 
-    for (size_t line_idx = 0; line_idx < new_lines.size(); line_idx++) {
-        if (new_lines[line_idx].get_source_virtual_address() != -1) {
-            new_lines_idxs.push_back(line_idx);
+    if (cached_new_lines_idxs) {
+        new_lines_idxs = *cached_new_lines_idxs;
+    }
+    else {
+        for (size_t line_idx = 0; line_idx < new_lines.size(); line_idx++) {
+            if (new_lines[line_idx].get_source_virtual_address() != -1) {
+                new_lines_idxs.push_back(line_idx);
+            }
         }
     }
 
@@ -343,7 +356,7 @@ bool fuku_code_analyzer::push_code(
 
     if (analyze_code(src, src_len, virtual_address, new_lines, relocations)) {
 
-        return merge_code(new_lines);
+        return merge_code(new_lines, 0);
     }
 
     return false;
@@ -385,9 +398,49 @@ bool fuku_code_analyzer::push_code(const linestorage&  code_lines) {
 
     this->code.label_seed += new_label_seed;
 
-    return merge_code(new_lines);
+    return merge_code(new_lines, 0);
 }
 
+bool fuku_code_analyzer::push_code(const fuku_code_analyzer&  code) {
+
+    if (code.code.arch != this->code.arch) { return false; }
+
+    linestorage new_lines = code.code.lines;
+    
+    unsigned int new_label_seed = 0;
+
+    for (auto& line : new_lines) { //fix old labels to new labels
+
+        uint32_t label_id = line.get_label_id();
+        uint32_t link_label_id = line.get_link_label_id();
+        uint32_t rel_f_label_id = line.get_relocation_f_label_id();
+        uint32_t rel_s_label_id = line.get_relocation_s_label_id();
+
+        if (label_id) {
+            if (new_label_seed < label_id) {
+                new_label_seed = label_id;
+            }
+
+            line.set_label_id(label_id + this->code.label_seed - 1);
+        }
+
+        if (link_label_id) {
+            line.set_link_label_id(link_label_id + this->code.label_seed - 1);
+        }
+
+        if (rel_f_label_id) {
+            line.set_relocation_f_label_id(rel_f_label_id + this->code.label_seed - 1);
+        }
+
+        if (rel_s_label_id) {
+            line.set_relocation_s_label_id(rel_s_label_id + this->code.label_seed - 1);
+        }
+    }
+
+    this->code.label_seed += new_label_seed;
+
+    return merge_code(new_lines, &code.original_lines_idx);
+}
 
 uint32_t fuku_code_analyzer::set_label(fuku_instruction& line) {
     if (!line.get_label_id()) {

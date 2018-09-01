@@ -521,23 +521,6 @@ void fuku_obfuscator::finalize_code() {
     }
 }
 
-std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(linestorage&  lines) {
-
-    std::vector<uint8_t> lines_dump;
-    size_t dump_size = 0;
-
-    for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) { dump_size += lines[line_idx].get_op_length(); }
-    lines_dump.resize(dump_size);
-
-    size_t opcode_caret = 0;
-    for (auto &line : lines) {
-        memcpy(&lines_dump.data()[opcode_caret], line.get_op_code(), line.get_op_length());
-        opcode_caret += line.get_op_length();
-    }
-
-    return lines_dump;
-}
-
 uint32_t fuku_obfuscator::set_label(fuku_instruction& line) {
     if (!line.get_label_id()) {
         line.set_label_id(this->code.label_seed);

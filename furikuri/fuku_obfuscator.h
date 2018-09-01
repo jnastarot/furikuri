@@ -19,8 +19,6 @@ class fuku_obfuscator {
     void    fuku_obfuscator::finalize_code();
     void    fuku_obfuscator::useless_flags_profiler(); 
 
-    std::vector<uint8_t>  fuku_obfuscator::lines_to_bin(linestorage&  lines);
-
     uint32_t fuku_obfuscator::set_label(fuku_instruction& line);
     uint32_t fuku_obfuscator::get_maxlabel() const;
 public:

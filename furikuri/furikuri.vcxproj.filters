@@ -21,9 +21,6 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_asm\x64">
       <UniqueIdentifier>{c6bdc549-d0ba-469a-9003-57ca0ab99970}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_protector">
-      <UniqueIdentifier>{b1ec361b-10a5-4861-b39b-f8c1d18bb7d1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_code">
       <UniqueIdentifier>{acd4d3f4-33f1-43b5-94da-77899a6d2ec3}</UniqueIdentifier>
     </Filter>
@@ -80,6 +77,12 @@
     </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm\fuku_virtualizer_imp\x64">
       <UniqueIdentifier>{b7e713aa-eafd-43e6-9156-5ba1c1c70954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_protector">
+      <UniqueIdentifier>{b1ec361b-10a5-4861-b39b-f8c1d18bb7d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_protector\fuku_prot">
+      <UniqueIdentifier>{c0c9f967-82f1-4350-9757-80f028b78f15}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +151,12 @@
     </ClInclude>
     <ClInclude Include="fuku_virtualizer_imp.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_defender\fuku_vm</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_prot_ob.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_prot</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_prot_vm.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_prot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

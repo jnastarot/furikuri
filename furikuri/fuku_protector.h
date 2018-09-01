@@ -6,52 +6,50 @@ enum fuku_protector_code {
     fuku_protector_error_initialization,
 };
 
-
-struct fuku_code_profile {
-    std::vector<fuku_protected_region>   regions;
-    std::vector<fuku_code_association>   association_table;
-    std::vector<fuku_code_relocation>    relocation_table;
-    std::vector<fuku_code_ip_relocation> ip_relocation_table;
-
-    fuku_ob_settings settings;
-
-    fuku_code_type type;
-
-    fuku_analyzed_code code;
-
-
+struct fuku_vm_environment {
     uint32_t virtual_machine_entry;
+    fuku_virtualizer *  virtualizer;
 
-
-    union {
-        fuku_obfuscator *    obfuscator;
-        fuku_virtualizer *  virtualizer;
-    }_ptr;
-
-    fuku_code_profile::fuku_code_profile();
-    fuku_code_profile::~fuku_code_profile();
+    fuku_vm_environment();
+    fuku_vm_environment(uint32_t virtual_machine_entry, fuku_virtualizer *  virtualizer);
+    fuku_vm_environment(const fuku_vm_environment& env);
+    bool operator==(const fuku_vm_environment& env) const;
+    bool operator<(const fuku_vm_environment& rhs) const;
 };
+
+struct fuku_protection_item {
+    fuku_code_analyzer an_code;
+    fuku_ob_settings settings;
+    std::vector<fuku_protected_region> regions;
+};
+
+struct fuku_protection_profile {
+    std::vector<fuku_protected_region> regions;
+    std::vector<fuku_code_association> association_table;
+    std::vector<fuku_code_relocation>  relocation_table;
+
+    std::vector<fuku_protection_item> items;
+};
+
+
 
 class fuku_protector {
     shibari_module target_module;
 
-    std::vector<fuku_code_profile> profiles;
+    fuku_protection_profile ob_profile;
+    std::map<fuku_vm_environment, fuku_protection_profile> vm_profiles;
 
-    fuku_code_profile main_obfuscator, main_vm;
+    fuku_code_association * fuku_protector::find_profile_association(fuku_protection_profile& profile, uint32_t rva);
 
+    bool    fuku_protector::test_regions_scope();  
+    bool    fuku_protector::initialize_profiles_vm();
+    bool    fuku_protector::initialize_profiles_ob();
+    bool    fuku_protector::obfuscate_profile();
+    bool    fuku_protector::virtualize_profiles();
 
-    void    fuku_protector::sort_association_tables();
-    fuku_code_association * fuku_protector::find_obf_association(uint32_t rva);
-
-    bool    fuku_protector::test_regions();
-    bool    fuku_protector::initialize_profiles();
-    // void    fuku_protector::merge_profiles(uint32_t dest_address_rva);
-    void    fuku_protector::merge_profiles(uint32_t dest_address_rva);
-    bool    fuku_protector::fill_code(uint32_t dest_address_rva);
-    bool    fuku_protector::finish_protected_code();
-
-    bool    fuku_protector::obfuscate_profile(fuku_code_profile& profile);
-    bool    fuku_protector::virtualize_profile(fuku_code_profile& profile, bool is_hybrid);
+    bool    fuku_protector::finish_protected_ob_code();
+    bool    fuku_protector::finish_protected_vm_code();
+    bool    fuku_protector::finish_module();
 public:
     fuku_protector::fuku_protector(const shibari_module& module);
     fuku_protector::~fuku_protector();

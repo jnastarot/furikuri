@@ -38,6 +38,8 @@ struct fuku_analyzed_code {
     fuku_analyzed_code& operator=(const fuku_code_analyzer& analyzer);
 
     fuku_analyzed_code();
+
+    void clear();
 };
 
 class fuku_code_analyzer {
@@ -50,7 +52,7 @@ class fuku_code_analyzer {
         linestorage&  lines,
         const std::vector<fuku_code_relocation>*	relocations);
 
-    bool fuku_code_analyzer::merge_code(linestorage&  new_lines);
+    bool fuku_code_analyzer::merge_code(linestorage&  new_lines,const std::vector<size_t>* cached_new_lines_idxs);
 
     fuku_instruction * fuku_code_analyzer::get_range_line_by_source_va(linestorage& lines, uint64_t virtual_address);
     fuku_instruction * fuku_code_analyzer::get_direct_line_by_source_va(linestorage& lines, uint64_t virtual_address);
@@ -71,6 +73,7 @@ public:
         const std::vector<fuku_code_relocation>*	relocations);
 
     bool fuku_code_analyzer::push_code(const linestorage&  code_lines);
+    bool fuku_code_analyzer::push_code(const fuku_code_analyzer&  code);
 public:
     void fuku_code_analyzer::set_arch(fuku_arch arch);
     void fuku_code_analyzer::clear();

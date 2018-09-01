@@ -384,3 +384,19 @@ fuku_instruction * get_line_by_va(const linestorage& lines, uint64_t virtual_add
     return 0;
 }
 
+std::vector<uint8_t> lines_to_bin(linestorage&  lines) {
+
+    std::vector<uint8_t> lines_dump;
+    size_t dump_size = 0;
+
+    for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) { dump_size += lines[line_idx].get_op_length(); }
+    lines_dump.resize(dump_size);
+
+    size_t opcode_caret = 0;
+    for (auto &line : lines) {
+        memcpy(&lines_dump.data()[opcode_caret], line.get_op_code(), line.get_op_length());
+        opcode_caret += line.get_op_length();
+    }
+
+    return lines_dump;
+}

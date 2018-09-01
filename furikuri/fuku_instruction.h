@@ -118,4 +118,5 @@ public:
 
 typedef std::vector<fuku_instruction> linestorage;
 
+std::vector<uint8_t> lines_to_bin(linestorage&  lines);
 fuku_instruction * get_line_by_va(const linestorage& lines, uint64_t virtual_address);

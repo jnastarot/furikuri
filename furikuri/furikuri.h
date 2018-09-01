@@ -23,10 +23,10 @@ struct fuku_ob_settings {
     float mutate_chance; //0.f - 100.f chance of mutation line
 
     bool fuku_ob_settings::operator==(const fuku_ob_settings& set);
+    bool is_null() const;
 };
 
 struct fuku_vm_settings {
-    bool used_obfuscation;
     fuku_ob_settings ob_settings;
 
     shibari_module* _module;//vm holder
