@@ -49,25 +49,41 @@ unsigned char lzo_depack_32[] = {//0xCC,
     0x5E, 0x5B, 0x5D, 0xC3
 };
 
-int main(){
+int main() {
 
     srand(3);
 
-    
     shibari_module _module(
         std::string("..\\..\\app for test\\linked_programm.exe")
+        //std::string("..\\..\\app for test\\swhtest.exe")
+    );
+
+    shibari_module _vm_module(
+        std::string("..\\Release\\vm_fuku_x86.dll")
         //std::string("..\\..\\app for test\\swhtest.exe")
     );
 
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
-        std::vector<uint8_t> out_image;
-        
+        fuku.add_extended_module(&_vm_module);
 
-        fuku.add_code_list({ 0x10F9 , 0x139 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
+
+        std::vector<uint8_t> out_image;
+
+
+      //  fuku.add_ob_code_list({ 0x10F9 , 0x139 }, &_module, { 2,2,50.f,50.f,50.f });
+        fuku_virtualization_x86 vm;
+
+        fuku.add_vm_code_list({ 0x10F9 , 0x139 }, &_module, fuku_vm_settings({
+            { 2,2,50.f,50.f,50.f },
+            &_vm_module,
+            _vm_module.get_image_exports().get_items()[0].get_rva(),
+            &vm
+        }));
+
         //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
-        
+
         if (fuku.fuku_protect(out_image)) {
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
@@ -80,7 +96,7 @@ int main(){
     }
 
     //*/
-   
+
 
 
     /*
@@ -115,11 +131,11 @@ int main(){
         obfuscator.set_settings({ 2,2,30.f,30.f,30.f });
         obfuscator.set_relocation_table(&relocations);
 
-                
+
         unsigned int s_time = GetTickCount();
 
         obfuscator.push_code(lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
-        
+
         std::vector<uint8_t> __obf_unpacker = obfuscator.obfuscate_code();
         printf("%d obfuscated in %.4f sec | size scale %.2f |", i,(GetTickCount() - s_time) / 1000.f, (float)__obf_unpacker.size() / sizeof(lzo_depack_32));
 
@@ -128,7 +144,7 @@ int main(){
         DWORD old_p;
         VirtualProtect(__obf_unpacker_, __obf_unpacker.size(), PAGE_EXECUTE_READWRITE, &old_p);
         VirtualProtect(lzo_depack_32, sizeof(lzo_depack_32), PAGE_EXECUTE_READWRITE, &old_p);
-        
+
         _depack_algo depack = (_depack_algo)__obf_unpacker_;
 
         unsigned long unpack_size = 0x1000;

@@ -4,9 +4,9 @@
 
 
 enum fuku_code_type {
-    fuku_code_obfuscate,
-    fuku_code_virtual,
-    fuku_code_hybrid,//obfuscation + virtualization
+    fuku_code_obfuscation,
+    fuku_code_virtualization,
+    //fuku_code_hybrid,//obfuscation + virtualization
 };
 
 class fuku_code_analyzer;
@@ -29,8 +29,8 @@ struct fuku_ob_settings {
 struct fuku_vm_settings {
     fuku_ob_settings ob_settings;
 
-    shibari_module* _module;//vm holder
-    uint32_t  vm_entry_rva; //vm offset
+    shibari_module* vm_holder_module;//vm holder
+    uint32_t  vm_entry_rva;          //vm offset
 
     fuku_virtualizer * virtualizer;
 };
@@ -41,12 +41,16 @@ struct fuku_protected_region {
 };
 
 struct fuku_code_list {
-    std::vector<fuku_protected_region> functions;
     fuku_code_type type;
 
+    std::vector<fuku_protected_region> functions;
+   
     fuku_ob_settings settings;
+    shibari_module*  target_module;
 
-    shibari_module* _module;
+    shibari_module*  vm_holder_module;
+    uint32_t         vm_entry_rva;
+    fuku_virtualizer * virtualizer;
 
     fuku_code_list& fuku_code_list::operator=(const fuku_code_list& set);
 };
@@ -76,7 +80,8 @@ public:
     bool furikuri::set_main_module(shibari_module* module,std::string module_path = "");
     bool furikuri::add_extended_module(shibari_module* module, std::string module_path = "");
 
-    bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, shibari_module* _module, fuku_ob_settings settings);
+    bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_ob_settings& settings);
+    bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_vm_settings& settings);
 
     void furikuri::clear_code_lists();
     void furikuri::clear_extended_modules(); //delete only from pointer table without destruction classes

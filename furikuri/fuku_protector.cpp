@@ -50,8 +50,14 @@ fuku_protector_code fuku_protector::protect_module() {
 
                         return fuku_protector_code::fuku_protector_ok;
                     }
+
+                    return fuku_protector_code::fuku_protector_error_module_processing;
                 }
+
+                return fuku_protector_code::fuku_protector_error_post_processing;
             }
+
+            return fuku_protector_code::fuku_protector_error_processing;
         }
 
         return fuku_protector_code::fuku_protector_error_initialization;
@@ -67,10 +73,13 @@ bool fuku_protector::test_regions_scope() {
     std::vector<fuku_protected_region>   regions;
 
     for (auto& item : ob_profile.items) {
-        for (auto& region : item.regions) {
-            regions.push_back(region);
-        }
+        regions.insert(regions.end(), item.regions.begin(), item.regions.end());
     }
+
+    for (auto& item : vm_profiles) {
+        regions.insert(regions.end(), item.second.regions.begin(), item.second.regions.end());
+    }
+
 
     std::sort(regions.begin(), regions.end(), [](fuku_protected_region& lhs, fuku_protected_region& rhs) {
         return lhs.region_rva < rhs.region_rva;

@@ -6,6 +6,9 @@ fuku_analyzed_code::fuku_analyzed_code() {
     this->arch = fuku_arch::fuku_arch_unknown;
     this->label_seed = 1;
 }
+fuku_analyzed_code::fuku_analyzed_code(const fuku_code_analyzer& analyzer) {
+    this->operator=(analyzer);
+}
 
 fuku_analyzed_code& fuku_analyzed_code::operator=(const fuku_analyzed_code& an_code) {
     this->arch              = an_code.arch;

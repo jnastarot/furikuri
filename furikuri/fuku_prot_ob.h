@@ -1,5 +1,9 @@
 #pragma once
 
+void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings) {
+    ob_profile.items.push_back({ fuku_code_analyzer() , settings, regions });
+}
+
 bool    fuku_protector::initialize_profiles_ob() {
 
     pe_image_io image_io(target_module.get_image());
@@ -77,14 +81,11 @@ bool    fuku_protector::initialize_profiles_ob() {
     return true;
 }
 
-void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings) {
-    ob_profile.items.push_back({ fuku_code_analyzer() , settings, regions });
-}
-
 bool fuku_protector::obfuscate_profile() {
 
     if (ob_profile.items.size()) {
 
+        pe_image_io image_io(target_module.get_image(), enma_io_mode::enma_io_mode_allow_expand);
         fuku_code_analyzer an_code;
         an_code.set_arch(target_module.get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
 
@@ -111,9 +112,7 @@ bool fuku_protector::obfuscate_profile() {
             target_module.get_image().get_last_section()->get_virtual_address() +
             target_module.get_image().get_last_section()->get_virtual_size(), target_module.get_image().get_section_align());
 
-        pe_image_io image_io(target_module.get_image(), enma_io_mode::enma_io_mode_allow_expand);
-
-
+        
         fuku_obfuscator obfuscator;
         obfuscator.set_association_table(&ob_profile.association_table);
         obfuscator.set_relocation_table(&ob_profile.relocation_table);
@@ -139,29 +138,28 @@ bool fuku_protector::obfuscate_profile() {
 
 bool    fuku_protector::finish_protected_ob_code() {
 
-    std::sort(ob_profile.association_table.begin(), ob_profile.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
-        return lhs.prev_virtual_address < rhs.prev_virtual_address;
-    });
-
-    auto& image_relocs = target_module.get_image_relocations();
-
-    fuku_asm_x86 fuku_asm;
-    pe_image_io image_io(target_module.get_image());
-
-    uint64_t base_address = target_module.get_image().get_image_base();
-
-
-    for (auto& reloc : image_relocs.get_items()) {
-        reloc.data = 0;
-        if (image_io.set_image_offset(reloc.relative_virtual_address).read(
-            &reloc.data, target_module.get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
-
-            return false;
-        }
-        reloc.data = target_module.get_image().va_to_rva(reloc.data);
-    }
-
     if (ob_profile.regions.size()) {
+
+        fuku_asm_x86 fuku_asm;
+        pe_image_io image_io(target_module.get_image());
+        uint64_t base_address = target_module.get_image().get_image_base();
+        auto&   image_relocs = target_module.get_image_relocations();
+        bool     is32arch = target_module.get_image().is_x32_image();
+
+        std::sort(ob_profile.association_table.begin(), ob_profile.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
+            return lhs.prev_virtual_address < rhs.prev_virtual_address;
+        });
+
+        for (auto& reloc : image_relocs.get_items()) {
+            reloc.data = 0;
+            if (image_io.set_image_offset(reloc.relative_virtual_address).read(
+                &reloc.data, is32arch ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
+
+                return false;
+            }
+            reloc.data = target_module.get_image().va_to_rva(reloc.data);
+        }
+
 
         for (auto& region : ob_profile.regions) {
             for (auto& reloc : image_relocs.get_items()) {                              //fix relocations
@@ -175,7 +173,7 @@ bool    fuku_protector::finish_protected_ob_code() {
                         reloc.data = assoc->virtual_address;
 
                         if (image_io.set_image_offset(reloc.relative_virtual_address).write(
-                            &reloc.data, target_module.get_image().is_x32_image() ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
+                            &reloc.data, is32arch ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
 
                             return false;
                         }
@@ -199,36 +197,33 @@ bool    fuku_protector::finish_protected_ob_code() {
         }
 
         for (auto& reloc : ob_profile.relocation_table) {
+            image_relocs.add_item(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
+        }
 
-            uint32_t rel = uint32_t(reloc.virtual_address - base_address);
+        {
+            fuku_code_association * ep_assoc = find_profile_association(ob_profile, target_module.get_image().get_entry_point());
+            if (ep_assoc) {
+                target_module.get_image().set_entry_point(uint32_t(ep_assoc->virtual_address - base_address));
+            }
+        }
 
-            image_relocs.add_item(rel, reloc.relocation_id);
+        for (auto& ext_ep : target_module.get_module_entrys()) {
+            fuku_code_association * ext_ep_assoc = find_profile_association(ob_profile, ext_ep.entry_point_rva);
+            if (ext_ep_assoc) {
+                ext_ep.entry_point_rva = uint32_t(ext_ep_assoc->virtual_address - base_address);
+            }
+        }
+
+
+        for (auto& export_item : target_module.get_image_exports().get_items()) {
+
+            fuku_code_association * item_assoc = find_profile_association(ob_profile, export_item.get_rva());
+            if (item_assoc) {
+                export_item.set_rva(uint32_t(item_assoc->virtual_address - base_address));
+            }
         }
     }
 
-
-    {
-        fuku_code_association * ep_assoc = find_profile_association(ob_profile, target_module.get_image().get_entry_point());
-        if (ep_assoc) {
-            target_module.get_image().set_entry_point(uint32_t(ep_assoc->virtual_address - base_address));
-        }
-    }
-
-    for (auto& ext_ep : target_module.get_module_entrys()) {
-        fuku_code_association * ext_ep_assoc = find_profile_association(ob_profile, ext_ep.entry_point_rva);
-        if (ext_ep_assoc) {
-            ext_ep.entry_point_rva = uint32_t(ext_ep_assoc->virtual_address - base_address);
-        }
-    }
-
-  
-    for (auto& export_item : target_module.get_image_exports().get_items()) {
-
-        fuku_code_association * item_assoc = find_profile_association(ob_profile, export_item.get_rva());
-        if (item_assoc) {
-            export_item.set_rva(uint32_t(item_assoc->virtual_address - base_address));
-        }
-    }
 
     return true;
 }

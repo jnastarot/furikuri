@@ -13,10 +13,10 @@ bool fuku_ob_settings::operator==(const fuku_ob_settings& set) {
 
 bool fuku_ob_settings::is_null() const {
     return (
-        this->complexity &&
-        this->number_of_passes &&
-        this->junk_chance &&
-        this->block_chance &&
+        this->complexity ||
+        this->number_of_passes ||
+        this->junk_chance ||
+        this->block_chance ||
         this->mutate_chance
         );
 }
@@ -26,7 +26,10 @@ fuku_code_list& fuku_code_list::operator=(const fuku_code_list& set) {
     this->functions = set.functions;
     this->type      = set.type;
     this->settings  = set.settings;
-    this->_module   = set._module;
+    this->target_module = set.target_module;
+    this->vm_holder_module = set.vm_holder_module;
+    this->vm_entry_rva = set.vm_entry_rva;
+    this->virtualizer = set.virtualizer;
 
     return *this;
 }
@@ -34,9 +37,8 @@ fuku_code_list& fuku_code_list::operator=(const fuku_code_list& set) {
 furikuri::furikuri()
 :main_module(0){}
 
+furikuri::~furikuri(){}
 
-furikuri::~furikuri()
-{}
 
 bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
     bool main_has_relocations = main_module->get_image_relocations().size() != 0;
@@ -48,7 +50,7 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
     fuku_protector protector(*main_module);
 
     for (auto& list : code_lists) {
-        uint32_t module_offset = list._module->get_module_position().get_address_offset();
+        uint32_t module_offset = list.target_module->get_module_position().get_address_offset();
 
         if (module_offset) {
             for (auto& func : list.functions) {
@@ -56,11 +58,17 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
             }
         }
 
-        if (list.type == fuku_code_type::fuku_code_obfuscate) {
+        if (list.type == fuku_code_type::fuku_code_obfuscation) {
             protector.add_ob_profile(list.functions, list.settings);
         }
         else {
-            //todo for vm
+
+            protector.add_vm_profile(list.functions, {
+                list.settings,
+                list.vm_holder_module,
+                list.vm_entry_rva,
+                list.virtualizer          
+            });
         }
         
     }
@@ -94,16 +102,16 @@ bool furikuri::add_extended_module(shibari_module* module, std::string module_pa
 }
 
 
-bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, shibari_module* _module, fuku_ob_settings settings) {
+bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_ob_settings& settings) {
 
     bool valid_module = false;
 
-    if (main_module == _module) {
+    if (main_module == target_module) {
         valid_module = true;
     }
     else {
         for (auto ext_module : extended_modules) {
-            if (ext_module == _module) {
+            if (ext_module == target_module) {
                 valid_module = true;
                 break;
             }
@@ -112,9 +120,9 @@ bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, 
 
     if (valid_module) {
         for (auto&list : code_lists) {
-            if (list._module == _module) {
+            if (list.target_module == target_module) {
 
-                if (list.type == type) {
+                if (list.type == fuku_code_type::fuku_code_obfuscation) {
                     if (list.settings == settings) {
                         list.functions.push_back(region);
                         return true;
@@ -122,13 +130,65 @@ bool furikuri::add_code_list(fuku_protected_region region, fuku_code_type type, 
                 }
             }
         }
-        fuku_code_list list;
-        list.type = type;
-        list.settings = settings;
-        list._module = _module;
-        list.functions.push_back(region);
 
-        code_lists.push_back(list);
+        code_lists.push_back({
+            fuku_code_type::fuku_code_obfuscation,
+            std::vector<fuku_protected_region>(1, region),
+            settings,
+            target_module,
+            0, 0, 0
+        });
+
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_vm_settings& settings) {
+
+    bool valid_module = false;
+
+    if (main_module == target_module) {
+        valid_module = true;
+    }
+    else {
+        for (auto ext_module : extended_modules) {
+            if (ext_module == target_module) {
+                valid_module = true;
+                break;
+            }
+        }
+    }
+
+    if (valid_module) {
+        for (auto&list : code_lists) {
+            if (list.target_module == target_module) {
+
+                if (list.type == fuku_code_type::fuku_code_virtualization) {
+                    if (list.settings == settings.ob_settings &&
+                        list.vm_holder_module == settings.vm_holder_module &&
+                        list.vm_entry_rva == settings.vm_entry_rva &&
+                        list.virtualizer == settings.virtualizer) {
+
+                        list.functions.push_back(region);
+                        return true;
+                    }
+                }
+            }
+        }
+
+        code_lists.push_back({
+            fuku_code_type::fuku_code_virtualization,
+            std::vector<fuku_protected_region>(1, region),
+            settings.ob_settings,
+            target_module,
+
+            settings.vm_holder_module,
+            settings.vm_entry_rva,
+            settings.virtualizer
+            });
 
         return true;
     }

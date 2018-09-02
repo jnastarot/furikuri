@@ -34,10 +34,10 @@ struct fuku_analyzed_code {
 
     linestorage  lines;
 
+    fuku_analyzed_code();
+    fuku_analyzed_code(const fuku_code_analyzer& analyzer);
     fuku_analyzed_code& operator=(const fuku_analyzed_code& an_code);
     fuku_analyzed_code& operator=(const fuku_code_analyzer& analyzer);
-
-    fuku_analyzed_code();
 
     void clear();
 };

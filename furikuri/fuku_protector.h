@@ -4,6 +4,9 @@ enum fuku_protector_code {
     fuku_protector_ok,
     fuku_protector_error_code_range,
     fuku_protector_error_initialization,
+    fuku_protector_error_processing,
+    fuku_protector_error_post_processing,
+    fuku_protector_error_module_processing,
 };
 
 struct fuku_vm_environment {
