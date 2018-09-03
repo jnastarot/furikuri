@@ -186,17 +186,19 @@ struct vm_ops_ex_code {
 
     union {
         struct {
-            uint8_t src_is_ptr : 2;
-            uint8_t dst_is_ptr : 2;
-            uint8_t ops_size   : 4;
+            uint8_t src_is_ptr : 1;
+            uint8_t dst_is_ptr : 1;
+            uint8_t op_1_size  : 3;
+            uint8_t op_2_size  : 3;
         }info;
         uint8_t ex_code;
     };
 
-    vm_ops_ex_code(bool src_is_ptr, bool dst_is_ptr, uint8_t ops_size) {
+    vm_ops_ex_code(bool src_is_ptr, bool dst_is_ptr, uint8_t op_1_size, uint8_t op_2_size) {
         info.src_is_ptr = src_is_ptr;
         info.dst_is_ptr = dst_is_ptr;
-        info.ops_size = ops_size;
+        info.op_1_size = op_1_size;
+        info.op_2_size = op_2_size;
     }
 };
 
