@@ -14,7 +14,7 @@ fuku_vm_result fuku_virtualization_x64::build_bytecode(fuku_analyzed_code& code,
     return fuku_vm_result::fuku_vm_error;
 }
 
-std::vector<uint8_t> fuku_virtualization_x64::create_vm_jumpout(uint64_t src_address, uint64_t dst_address) const {
+std::vector<uint8_t> fuku_virtualization_x64::create_vm_jumpout(uint64_t src_address, uint64_t dst_address, uint64_t vm_entry_address, std::vector<fuku_code_relocation>& relocation_table) const {
     return std::vector<uint8_t>();
 }
 

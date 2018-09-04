@@ -30,7 +30,7 @@ void vm_jump_external(vm_context& context) {
 void vm_call_local(vm_context& context) {
     vm_call_code * call_code = (vm_call_code *)&context.vm_code[0];
 
-    uint32_t call_dst = uint32_t(context.vm_code + (call_code->back_jump == true ? -((int32_t)(call_code->offset - 1)) : (call_code->offset - 1)));
+    uint32_t call_dst = uint32_t(&context.vm_code[-1] + (call_code->back_jump == true ? -call_code->offset : call_code->offset));
 
     PUSH_VM(context, ((uint32_t)(context.vm_code + sizeof(vm_call_code)) | 0x80000000));
 
@@ -40,7 +40,7 @@ void vm_call_local(vm_context& context) {
 void vm_call_external(vm_context& context) {
     vm_call_code * call_code = (vm_call_code *)&context.vm_code[0];
     
-    uint32_t call_dst = uint32_t(context.vm_code + (call_code->back_jump == true ? -((int32_t)(call_code->offset - 1)) : (call_code->offset - 1)));
+    uint32_t call_dst = uint32_t(&context.vm_code[-1] + (call_code->back_jump == true ? -call_code->offset : call_code->offset));
     uint8_t inst_[6] = { 0xFF, 0x25, 0, 0, 0, 0 };
     *(uint32_t*)&inst_[2] = (uint32_t)&call_dst;
 

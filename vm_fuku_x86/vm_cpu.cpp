@@ -40,8 +40,31 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
     while (1) {
         vm_opcode_86 opcode = (vm_opcode_86)context.vm_code++[0];
         
-        switch (opcode){
+        printf("| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
+            context.real_context.regs.eax,
+            context.real_context.regs.ecx,
+            context.real_context.regs.edx,
+            context.real_context.regs.ebx,
+            context.real_context.regs.esp,
+            context.real_context.regs.ebp,
+            context.real_context.regs.esi,
+            context.real_context.regs.edi,
+            context.real_context.d_flag
+        );
 
+        printf("OP : %02d\n", opcode);
+
+        switch (opcode){
+            /*
+            uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+            */
         case vm_opcode_86_pure: {
             vm_pure_code * instruction = (vm_pure_code *)&context.vm_code[0];
             uint8_t inst_[16];
@@ -58,7 +81,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
             vm_pure(context, inst_, instruction->info.code_len);
 
-            context.vm_code += context.vm_code[0] + 2;
+            context.vm_code += instruction->info.code_len + 2;
             break;
         }
 
@@ -90,18 +113,22 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
         //code graph changers
         case vm_opcode_86_jump_local: {
+            printf("local jmp\n");
             vm_jump_local(context);
             break;
         }
         case vm_opcode_86_jump_external: {
+            printf("external jmp\n");
             vm_jump_external(context);
             break;
         }
         case vm_opcode_86_call_local: {
+            printf("local call\n");
             vm_call_local(context);
             break;
         }
         case vm_opcode_86_call_external: {
+            printf("external call\n");
             vm_call_external(context);
             break;
         }

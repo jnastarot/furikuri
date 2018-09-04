@@ -177,18 +177,22 @@ bool    fuku_protector::finish_protected_vm_code() {
                 fuku_code_association * dst_func_assoc = find_profile_association(profile.second, region.region_rva);   //set jumps to start of virtualized funcs
 
                 if (dst_func_assoc) {
-                    auto _jmp = profile.first.virtualizer->create_vm_jumpout((region.region_rva + base_address), dst_func_assoc->virtual_address); 
+                    auto _jmp = profile.first.virtualizer->create_vm_jumpout((region.region_rva + base_address), dst_func_assoc->virtual_address, 
+                        profile.first.virtual_machine_entry + base_address, profile.second.relocation_table);
 
                     if (image_io.set_image_offset(region.region_rva).write(_jmp) != enma_io_success) {
 
                         return false;
                     }
+
+                } else {
+
                 }
             }
-        }
 
-        for (auto& reloc : ob_profile.relocation_table) {
-            image_relocs.add_item(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
+            for (auto& reloc : profile.second.relocation_table) {
+                image_relocs.add_item(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
+            }
         }
     }
 

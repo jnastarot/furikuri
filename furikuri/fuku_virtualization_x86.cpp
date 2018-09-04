@@ -191,6 +191,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
     std::vector<fuku_code_relocation>& relocation_table, std::vector<fuku_code_association>& association_table, 
     uint64_t destination_virtual_address) {
 
+    association_table.clear();
     lines.clear();
 
     _CodeInfo code_info = { 0, 0, 0, 0 ,
@@ -207,10 +208,9 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         auto& current_line = code.lines[line_idx];
         operands.clear();
 
-        uint8_t bbb[] = { 0xC2 , 0x12, 0 };
 
-        code_info.code = bbb;// cur_line.get_op_code();
-        code_info.codeLen = sizeof(bbb);// cur_line.get_op_length();
+        code_info.code = current_line.get_op_code();
+        code_info.codeLen = current_line.get_op_length();
         code_info.codeOffset = current_line.get_virtual_address();
 
         distorm_decompose64(&code_info, &current_inst, 1, &used_inst);
@@ -260,6 +260,8 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
                         ((uint8_t*)&jump_code.offset)[0] , ((uint8_t*)&jump_code.offset)[1], ((uint8_t*)&jump_code.offset)[2], ((uint8_t*)&jump_code.offset)[3]
                         })))
                 );
+
+                vm_lines[vm_lines.size() - 1].set_custom_data(&current_line);
             }
 
             break;
@@ -273,8 +275,10 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
                 vm_lines[vm_lines.size() - 1].set_link_label_id(current_line.get_link_label_id());
             }
             else {
-                vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_jump_external,
-                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_jump_external, 0, 0, 0, 0 }))));
+                vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_external,
+                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_external, 0, 0, 0, 0 }))));
+
+                vm_lines[vm_lines.size() - 1].set_custom_data(&current_line);
             }
 
             break;
@@ -286,7 +290,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_return, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_return)));
             break;
         }
-
+                    /*
         case I_PUSH: {
             uint8_t ex_code = get_ext_code(current_inst);
             get_operands(current_inst, current_line, operands);
@@ -501,29 +505,119 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
         if (vm_lines.size() == 0) { __debugbreak(); }
 
+        vm_lines[0].set_source_virtual_address(current_line.get_source_virtual_address());
         vm_lines[0].set_label_id(current_line.get_label_id());
 
         lines.insert(lines.end(), vm_lines.begin(), vm_lines.end());
     }
 
-    post_process_lines();
+    post_process_lines(destination_virtual_address);
+
+    for (auto& line : lines) {
+        if (line.get_source_virtual_address() != -1) {
+            association_table.push_back({ line.get_source_virtual_address() , line.get_virtual_address()});
+        }
+    }
 
     return fuku_vm_result::fuku_vm_ok;
 }
 
-void fuku_virtualization_x86::post_process_lines() {
+void fuku_virtualization_x86::post_process_lines(uint64_t destination_virtual_address) {
+    
+    std::vector<uint32_t> label_cache;
 
+    {
+        uint64_t line_va = destination_virtual_address;
+        for (uint32_t idx = 0; idx < this->lines.size(); idx++) {
+            auto& line = lines[idx];
 
+            if (line.get_label_id()) {
+                label_cache.push_back(idx);
+            }
+
+            line.set_virtual_address(line_va);
+            line_va += line.get_pcode().size();
+        }
+    }
+
+    for (auto& line : lines) {
+
+        switch (line.get_type()) {
+        
+        case vm_opcode_86_jump_local: {
+            vm_jump_code* j_code = (vm_jump_code*)(&line.get_pcode()[1]);
+            fuku_vm_instruction& dst_line = lines[label_cache[line.get_link_label_id() - 1]];
+
+            j_code->info.back_jump = line.get_virtual_address() > dst_line.get_virtual_address();
+            j_code->offset = uint32_t(max(line.get_virtual_address(), dst_line.get_virtual_address()) - min(line.get_virtual_address(), dst_line.get_virtual_address()));
+            break;
+        }
+
+        case vm_opcode_86_jump_external: {
+            vm_jump_code* j_code = (vm_jump_code*)(&line.get_pcode()[1]);
+            fuku_instruction * inst = (fuku_instruction*)(line.get_custom_data());
+
+            j_code->info.back_jump = line.get_virtual_address() > inst->get_ip_relocation_destination();
+            j_code->offset = uint32_t(max(line.get_virtual_address(), inst->get_ip_relocation_destination()) - min(line.get_virtual_address(), inst->get_ip_relocation_destination()));
+            break;
+        }
+
+        case vm_opcode_86_call_local: {
+            vm_call_code* call_code = (vm_call_code*)(&line.get_pcode()[1]);
+            fuku_vm_instruction& dst_line = lines[label_cache[line.get_link_label_id() - 1]];
+
+            call_code->back_jump = line.get_virtual_address() > dst_line.get_virtual_address();
+            call_code->offset = max(line.get_virtual_address(), dst_line.get_virtual_address()) - min(line.get_virtual_address(), dst_line.get_virtual_address());
+            break;
+        }
+
+        case vm_opcode_86_call_external: {
+            vm_call_code* call_code = (vm_call_code*)(&line.get_pcode()[1]);
+            fuku_instruction * inst = (fuku_instruction*)(line.get_custom_data());
+
+            call_code->back_jump = line.get_virtual_address() > inst->get_ip_relocation_destination();
+            call_code->offset = max(line.get_virtual_address(), inst->get_ip_relocation_destination()) - min(line.get_virtual_address(), inst->get_ip_relocation_destination());
+            break;
+        }
+
+        default: {
+            break;
+        }
+
+        }
+    }
 }
 
+std::vector<uint8_t> fuku_virtualization_x86::create_vm_jumpout(uint64_t src_address, uint64_t dst_address, uint64_t vm_entry_address, std::vector<fuku_code_relocation>& relocation_table) const {
 
-std::vector<uint8_t> fuku_virtualization_x86::create_vm_jumpout(uint64_t src_address, uint64_t dst_address) const {
+    std::vector<uint8_t> j_out;
+    j_out.resize(10);
+    
+    j_out[0] = 0x68;
+    j_out[5] = 0xE9;
 
-    return std::vector<uint8_t>();
+    *(uint32_t*)&j_out[1] = (uint32_t)dst_address;
+    *(uint32_t*)&j_out[6] = uint32_t(vm_entry_address - (src_address + 5)) - 5;
+
+    relocation_table.push_back({ src_address + 1 , 0});
+
+    return j_out;
 }
 
 std::vector<uint8_t> fuku_virtualization_x86::get_bytecode() const {
-    return std::vector<uint8_t>();
+    std::vector<uint8_t> lines_dump;
+    size_t dump_size = 0;
+
+    for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) { dump_size += lines[line_idx].get_pcode().size(); }
+    lines_dump.resize(dump_size);
+
+    size_t opcode_caret = 0;
+    for (auto &line : lines) {
+        memcpy(&lines_dump.data()[opcode_caret], line.get_pcode().data(), line.get_pcode().size());
+        opcode_caret += line.get_pcode().size();
+    }
+
+    return lines_dump;
 }
 
 fuku_arch fuku_virtualization_x86::get_target_arch() const { 
