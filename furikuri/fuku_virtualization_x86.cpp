@@ -538,6 +538,10 @@ void fuku_virtualization_x86::post_process_lines(uint64_t destination_virtual_ad
             line.set_virtual_address(line_va);
             line_va += line.get_pcode().size();
         }
+
+        std::sort(label_cache.begin(), label_cache.end(), [&, this](uint32_t lhs, uint32_t rhs) {
+            return this->lines[lhs].get_label_id() < this->lines[rhs].get_label_id();
+        });
     }
 
     for (auto& line : lines) {

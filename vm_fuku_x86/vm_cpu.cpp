@@ -30,16 +30,20 @@ void vm_pure(vm_context& context, uint8_t * instruction_ptr, uint32_t instructio
 
 
 void WINAPI fuku_vm_handler(uint32_t original_stack) {
+
     vm_context context;
 
     memcpy(&context.real_context, (void*)(original_stack), sizeof(global_context));
-    context.real_context.regs.esp += 4;
 
-    context.vm_code = (uint8_t*)(*(uint32_t*)(context.real_context.regs.esp));
+    context.vm_code = (uint8_t*)(*(uint32_t*)(context.real_context.regs.esp + 4));
+
+    context.real_context.regs.esp += sizeof(global_context) + 4;
+
 
     while (1) {
+
         vm_opcode_86 opcode = (vm_opcode_86)context.vm_code++[0];
-        
+
         printf("| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
             context.real_context.regs.eax,
             context.real_context.regs.ecx,
@@ -54,7 +58,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
         printf("OP : %02d\n", opcode);
 
-        switch (opcode){
+        switch (opcode) {
             /*
             uint32_t edi;
     uint32_t esi;
@@ -68,7 +72,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         case vm_opcode_86_pure: {
             vm_pure_code * instruction = (vm_pure_code *)&context.vm_code[0];
             uint8_t inst_[16];
-            
+
             memcpy(inst_, instruction->code, instruction->info.code_len);
 
             if (instruction->info.reloc_offset_1) {
@@ -85,7 +89,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             break;
         }
 
-        //operand vm
+                                //operand vm
         case vm_opcode_86_operand_create: {
             vm_operand_create(context);
             break;
@@ -106,12 +110,12 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             vm_operand_set_disp(context);
             break;
         }
-        case vm_opcode_86_operand_set_relocatable : {
+        case vm_opcode_86_operand_set_relocatable: {
 
             break;
         }
 
-        //code graph changers
+                                                   //code graph changers
         case vm_opcode_86_jump_local: {
             printf("local jmp\n");
             vm_jump_local(context);
@@ -133,11 +137,12 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             break;
         }
         case vm_opcode_86_return: {
+            
             vm_return(context);
             break;
         }
 
-        //stack
+                                  //stack
         case vm_opcode_86_push: {
             vm_push(context);
             break;
@@ -163,7 +168,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             break;
         }
 
-        //movable
+                                 //movable
         case vm_opcode_86_mov: { //mov and lea
             vm_mov(context);
             break;
@@ -174,7 +179,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         }
 
 
-        //arithmetic
+                                //arithmetic
         case vm_opcode_86_cmp: {
             vm_cmp(context);
             break;
@@ -200,7 +205,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             break;
         }
 
-        //logical
+                               //logical
         case vm_opcode_86_test: {
             vm_test(context);
             break;
@@ -250,7 +255,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             break;
         }
 
-        //flag mods
+                               //flag mods
         case vm_opcode_86_clc: {
             vm_clc(context);
             break;
@@ -278,7 +283,10 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         }
 
         }
+
     }
+
+
 }
 
 

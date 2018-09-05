@@ -5,9 +5,11 @@ void vm_jump_local(vm_context& context) {
     vm_jump_code * jump_code = (vm_jump_code *)&context.vm_code[0];
 
     bool jump = is_jump(context, jump_code->info.condition, jump_code->info.invert_condition);
-    
+    printf("jump %d %x %x %08x %08x\n", jump, jump_code->info.condition, jump_code->info.invert_condition, jump_code->info.back_jump, jump_code->offset);
     if (jump) {
-        context.vm_code += jump_code->info.back_jump == true ? -((int32_t)(jump_code->offset - 1)) : (jump_code->offset - 1);
+        printf("context.vm_code = %x | ", context.vm_code);
+        context.vm_code = &context.vm_code[(jump_code->info.back_jump == true ? -(int32_t)jump_code->offset : jump_code->offset) -1];
+        printf("%x |\n ", context.vm_code);
     }
     else {
         context.vm_code += sizeof(vm_jump_code);
@@ -20,7 +22,7 @@ void vm_jump_external(vm_context& context) {
     bool jump = is_jump(context, jump_code->info.condition, jump_code->info.invert_condition);
 
     if (jump) {    
-        vm_exit(context, uint32_t(context.vm_code + (jump_code->info.back_jump == true ? -((int32_t)(jump_code->offset - 1)) : (jump_code->offset - 1))));
+        vm_exit(context, uint32_t(&context.vm_code[(jump_code->info.back_jump == true ? -(int32_t)jump_code->offset : jump_code->offset) - 1]));
     }
     else {
         context.vm_code += sizeof(vm_jump_code);
@@ -30,8 +32,8 @@ void vm_jump_external(vm_context& context) {
 void vm_call_local(vm_context& context) {
     vm_call_code * call_code = (vm_call_code *)&context.vm_code[0];
 
-    uint32_t call_dst = uint32_t(&context.vm_code[-1] + (call_code->back_jump == true ? -call_code->offset : call_code->offset));
-
+    uint32_t call_dst = uint32_t(&context.vm_code[(call_code->back_jump == true ? -(int32_t)call_code->offset : call_code->offset) - 1]);
+    
     PUSH_VM(context, ((uint32_t)(context.vm_code + sizeof(vm_call_code)) | 0x80000000));
 
     context.vm_code = (uint8_t*)call_dst;
@@ -40,8 +42,11 @@ void vm_call_local(vm_context& context) {
 void vm_call_external(vm_context& context) {
     vm_call_code * call_code = (vm_call_code *)&context.vm_code[0];
     
-    uint32_t call_dst = uint32_t(&context.vm_code[-1] + (call_code->back_jump == true ? -call_code->offset : call_code->offset));
-    uint8_t inst_[6] = { 0xFF, 0x25, 0, 0, 0, 0 };
+    uint32_t call_dst = uint32_t(&context.vm_code[(call_code->back_jump == true ? -(int32_t)call_code->offset : call_code->offset) - 1]);
+
+    printf("call_dst %x\n", call_dst);
+
+    uint8_t inst_[6] = { 0xFF, 0x15, 0, 0, 0, 0 };
     *(uint32_t*)&inst_[2] = (uint32_t)&call_dst;
 
     vm_pure(context, inst_, 6);
