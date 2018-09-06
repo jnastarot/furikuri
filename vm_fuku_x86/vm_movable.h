@@ -4,8 +4,8 @@
 void vm_mov(vm_context& context) {
     vm_ops_ex_code * ex_code = (vm_ops_ex_code *)&context.vm_code[0];
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(dst, src, ex_code->info.op_2_size);
  
@@ -17,8 +17,8 @@ void vm_mov(vm_context& context) {
 void vm_xchg(vm_context& context) {
     vm_ops_ex_code * ex_code = (vm_ops_ex_code *)&context.vm_code[0];
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     uint32_t dst_data;
 

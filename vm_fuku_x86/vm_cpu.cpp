@@ -39,12 +39,11 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
     context.real_context.regs.esp += sizeof(global_context) + 4;
 
-
     while (1) {
 
         vm_opcode_86 opcode = (vm_opcode_86)context.vm_code++[0];
 
-        printf("| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
+        fprintf(stdout, "| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
             context.real_context.regs.eax,
             context.real_context.regs.ecx,
             context.real_context.regs.edx,
@@ -55,20 +54,11 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             context.real_context.regs.edi,
             context.real_context.d_flag
         );
-
-        printf("OP : %02d\n", opcode);
-
+        
+        fprintf(stdout, "OPCODE : %02d %08x\n", opcode, context.vm_code -1);
+        
         switch (opcode) {
-            /*
-            uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp;
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t eax;
-            */
+
         case vm_opcode_86_pure: {
             vm_pure_code * instruction = (vm_pure_code *)&context.vm_code[0];
             uint8_t inst_[16];
@@ -117,27 +107,22 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
                                                    //code graph changers
         case vm_opcode_86_jump_local: {
-            printf("local jmp\n");
             vm_jump_local(context);
             break;
         }
         case vm_opcode_86_jump_external: {
-            printf("external jmp\n");
             vm_jump_external(context);
             break;
         }
         case vm_opcode_86_call_local: {
-            printf("local call\n");
             vm_call_local(context);
             break;
         }
         case vm_opcode_86_call_external: {
-            printf("external call\n");
             vm_call_external(context);
             break;
         }
-        case vm_opcode_86_return: {
-            
+        case vm_opcode_86_return: {     
             vm_return(context);
             break;
         }
@@ -278,8 +263,8 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
         }
 
         default: {
-            printf("unknown opcode!!\n");
-            throw 0;
+          //  printf("unknown opcode!!\n");
+          //  throw 0;
         }
 
         }

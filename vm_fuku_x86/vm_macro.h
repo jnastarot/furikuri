@@ -16,11 +16,18 @@ eax   //ptr
 
 
 
-inline uint32_t * get_operand(vm_context& context , bool is_ptr, uint32_t op_num , uint32_t op_total) {
+inline uint32_t * get_operand(vm_context& context , vm_ops_ex_code excode, uint32_t op_num , uint32_t op_total) {
     uint32_t * operand = &context.operands[context.operands.size() - op_total + (op_num - 1)];
 
-    if (is_ptr) {
-        operand = (uint32_t *)*operand;
+    if (op_num == op_total) {
+        if (excode.info.src_is_ptr) {
+            operand = (uint32_t *)*operand;
+        }
+    }
+    else {
+        if (excode.info.dst_is_ptr) {
+            operand = (uint32_t *)*operand;
+        }
     }
 
     return operand;

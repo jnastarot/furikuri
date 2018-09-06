@@ -203,19 +203,12 @@ struct vm_ops_ex_code {
 };
 
 struct vm_jump_code {
-
-    struct {
+    union {
         uint8_t condition : 5;
         uint8_t back_jump : 1;
         uint8_t invert_condition : 2;
-    }info;
-
-    uint32_t offset;
-};
-
-struct vm_call_code {
-    uint32_t offset    : 31;
-    uint32_t back_jump : 1; 
+        uint8_t j_code;
+    };
 };
 
 #pragma pack(pop)

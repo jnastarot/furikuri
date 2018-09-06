@@ -3,13 +3,13 @@
 
 
 fuku_vm_instruction::fuku_vm_instruction()
-    : source_virtual_address(0), virtual_address(0), label_id(0), link_label_id(0), type(0), custom_data(0) {}
+    : source_virtual_address(0), virtual_address(0), label_id(0), link_label_id(0), type(0), original(0), custom_data(0) {}
 
 fuku_vm_instruction::fuku_vm_instruction(uint16_t type) 
-    : source_virtual_address(0), virtual_address(0), label_id(0), link_label_id(0), type(type), custom_data(0) {}
+    : source_virtual_address(0), virtual_address(0), label_id(0), link_label_id(0), type(type), original(0), custom_data(0) {}
 
 fuku_vm_instruction::fuku_vm_instruction(uint16_t type, std::vector<uint8_t>& pcode) 
-    : source_virtual_address(0), virtual_address(0), label_id(0), link_label_id(0), type(type), pcode(pcode), custom_data(0) {}
+    : source_virtual_address(0), virtual_address(0), label_id(0), link_label_id(0), type(type), original(0), pcode(pcode), custom_data(0) {}
 
 fuku_vm_instruction::fuku_vm_instruction(const fuku_vm_instruction& _pcode) {
     operator=(_pcode);
@@ -27,6 +27,7 @@ fuku_vm_instruction& fuku_vm_instruction::operator=(const fuku_vm_instruction& _
     this->label_id      = _pcode.label_id;
     this->link_label_id = _pcode.link_label_id;
     this->type = _pcode.type;
+    this->original = _pcode.original;
     this->custom_data = _pcode.custom_data;
 
     return *this;
@@ -50,6 +51,10 @@ void  fuku_vm_instruction::set_link_label_id(uint32_t link_label_id) {
 
 void  fuku_vm_instruction::set_type(uint16_t type) {
     this->type = type;
+}
+
+void  fuku_vm_instruction::set_original(fuku_instruction * line) {
+    this->original = line;
 }
 
 void  fuku_vm_instruction::set_custom_data(void * custom_data) {
@@ -102,6 +107,10 @@ uint32_t  fuku_vm_instruction::get_link_label_id() const {
 
 uint16_t  fuku_vm_instruction::get_type() const {
     return this->type;
+}
+
+fuku_instruction * fuku_vm_instruction::get_original() const {
+    return this->original;
 }
 
 void * fuku_vm_instruction::get_custom_data() const {

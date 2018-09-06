@@ -11,6 +11,8 @@ class fuku_vm_instruction {
 
     uint16_t type;
 
+    fuku_instruction * original;
+
     void * custom_data;
 public:
     fuku_vm_instruction::fuku_vm_instruction();
@@ -26,6 +28,7 @@ public:
     void  set_label_id(uint32_t label_id);
     void  set_link_label_id(uint32_t link_label_id);
     void  set_type(uint16_t type);
+    void  set_original(fuku_instruction * line);
     void  set_custom_data(void * custom_data);
     void  set_pcode(const std::vector<uint8_t>& _pcode);
 
@@ -41,6 +44,8 @@ public:
     uint32_t  get_label_id() const;			    
     uint32_t  get_link_label_id() const;        
     uint16_t  get_type() const;
+    fuku_instruction * get_original() const;
+
     void *    get_custom_data() const;
 
     std::vector<uint8_t>& get_pcode();

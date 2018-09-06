@@ -6,8 +6,8 @@ void vm_and(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);
@@ -29,8 +29,8 @@ void vm_or(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);
@@ -52,8 +52,8 @@ void vm_xor(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);
@@ -74,7 +74,7 @@ void vm_not(vm_context& context) {
 
     uint64_t op_1 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 1);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 1);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
 
@@ -92,8 +92,8 @@ void vm_test(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);
@@ -114,8 +114,8 @@ void vm_shl(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);
@@ -143,8 +143,8 @@ void vm_shr(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);
@@ -178,8 +178,8 @@ void vm_rol(vm_context& context) {
     uint64_t op_1 = 0;
     uint64_t op_2 = 0;
 
-    uint32_t* dst = get_operand(context, ex_code->info.dst_is_ptr, 1, 2);
-    uint32_t* src = get_operand(context, ex_code->info.src_is_ptr, 2, 2);
+    uint32_t* dst = get_operand(context, *ex_code, 1, 2);
+    uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
     memcpy(&op_1, dst, ex_code->info.op_1_size);
     memcpy(&op_2, src, ex_code->info.op_2_size);

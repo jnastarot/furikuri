@@ -121,44 +121,47 @@ void fuku_virtualization_x86::get_operands(const _DInst& inst,const fuku_instruc
         }
 
         case O_IMM: { //instruction.imm.
-            
+            operands = create_operand_disp(inst.imm.dword);
             break;
         }
 
         case O_IMM1: { //instruction.imm.ex.i1.
-            
 
             break;
         }
 
         case O_IMM2: { //instruction.imm.ex.i2.
-            
 
             break;
         }
 
         case O_DISP: {//memory dereference with displacement only, instruction.disp.
-            
+            operands = create_operand_disp(inst.disp);
             break;
         }
 
-        case O_SMEM: {//simple memory dereference with optional displacement (a single register memory dereference).
+        case O_MEM: {//simple memory dereference with optional displacement (a single register memory dereference).
             
-
+            operands = create_operand_reg_disp(inst.ops[i].index & 0x0F, inst.disp);
             
             break;
         }
-        case O_MEM: { //complex memory dereference (optional fields: s/i/b/disp).
-            
+        case O_SMEM: { //complex memory dereference (optional fields: s/i/b/disp).
 
+            if (inst.base == R_NONE) {
+                operands = create_operand_sib(inst.ops[i].index, inst.scale, inst.disp);
+            }
+            else {
+                operands = create_operand_sib(inst.base, inst.ops[i].index , inst.scale, inst.disp);
+            }
+                    
             break;
         }
         case O_PC: { //the relative address of a branch instruction (instruction.imm.addr).
-
+            operands = create_operand_disp((uint32_t)INSTRUCTION_GET_TARGET(&inst));
             break;
         }
         case O_PTR: {//the absolute target address of a far branch instruction (instruction.imm.ptr.seg/off).
-
             break;
         }
 
@@ -179,7 +182,7 @@ uint8_t fuku_virtualization_x86::get_ext_code(const _DInst& inst) {
             ex_code.info.op_2_size = inst.ops[1].size / 8;
         }
         else {
-            ex_code.info.src_is_ptr = inst.ops[0].type == O_SMEM || inst.ops[0].type == O_MEM || inst.ops[1].type == O_DISP;
+            ex_code.info.src_is_ptr = inst.ops[0].type == O_SMEM || inst.ops[0].type == O_MEM || inst.ops[0].type == O_DISP;
             ex_code.info.op_1_size = inst.ops[0].size / 8;
         } 
     }
@@ -209,6 +212,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         operands.clear();
 
 
+        
         code_info.code = current_line.get_op_code();
         code_info.codeLen = current_line.get_op_length();
         code_info.codeOffset = current_line.get_virtual_address();
@@ -231,54 +235,64 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             vm_jump_code jump_code;
             
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+
             if (current_line.get_type() == I_JMP) {
-                jump_code.info.condition = 8;
-                jump_code.info.invert_condition = 0;
+                jump_code.condition = 8;
+                jump_code.invert_condition = 0;
             }
             else {
-                uint8_t jmp_cc = (current_line.get_op_code()[current_line.get_op_pref_size()] & 0x0F);
-                jump_code.info.condition = jmp_cc / 2;
-                jump_code.info.invert_condition = jmp_cc & 1;
+                uint8_t jmp_cc;
+
+                if (current_line.get_op_code()[current_line.get_op_pref_size()] == 0x0F) {
+                    jmp_cc = (current_line.get_op_code()[current_line.get_op_pref_size() + 1] & 0x0F);
+                }
+                else {
+                    jmp_cc = (current_line.get_op_code()[current_line.get_op_pref_size()] & 0x0F);
+                }
+                
+                jump_code.condition = jmp_cc / 2;
+                jump_code.invert_condition = jmp_cc & 1;
             }
 
             if (current_line.get_link_label_id()) {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_jump_local,
-                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ 
-                        (uint8_t)vm_opcode_86_jump_local,
-                        *(uint8_t*)&jump_code.info ,
-                        ((uint8_t*)&jump_code.offset)[0] , ((uint8_t*)&jump_code.offset)[1], ((uint8_t*)&jump_code.offset)[2], ((uint8_t*)&jump_code.offset)[3]
-                        })))
+                    std::vector<uint8_t>(std::initializer_list<uint8_t>({  (uint8_t)vm_opcode_86_jump_local, jump_code.j_code, ex_code })))
                 );
 
-                vm_lines[vm_lines.size() - 1].set_link_label_id(current_line.get_link_label_id());
+                vm_lines[vm_lines.size() - 2].set_link_label_id(current_line.get_link_label_id());
             }
             else {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_jump_external,
-                    std::vector<uint8_t>(std::initializer_list<uint8_t>({
-                        (uint8_t)vm_opcode_86_jump_external,
-                        *(uint8_t*)&jump_code.info ,
-                        ((uint8_t*)&jump_code.offset)[0] , ((uint8_t*)&jump_code.offset)[1], ((uint8_t*)&jump_code.offset)[2], ((uint8_t*)&jump_code.offset)[3]
-                        })))
+                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_jump_external, jump_code.j_code, ex_code })))
                 );
 
-                vm_lines[vm_lines.size() - 1].set_custom_data(&current_line);
+                vm_lines[vm_lines.size() - 2].set_original(&current_line);
             }
 
             break;
         }
 
         case I_CALL: {
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+
             if (current_line.get_link_label_id()) {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_local,
-                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_local, 0, 0, 0, 0}))));
+                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_local, ex_code }))));
 
-                vm_lines[vm_lines.size() - 1].set_link_label_id(current_line.get_link_label_id());
+                vm_lines[vm_lines.size() - 2].set_link_label_id(current_line.get_link_label_id());
             }
             else {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_external,
-                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_external, 0, 0, 0, 0 }))));
+                    std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_external, ex_code }))));
 
-                vm_lines[vm_lines.size() - 1].set_custom_data(&current_line);
+                vm_lines[vm_lines.size() - 2].set_original(&current_line);
             }
 
             break;
@@ -290,12 +304,12 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_return, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_return)));
             break;
         }
-                    /*
+            /*
         case I_PUSH: {
             uint8_t ex_code = get_ext_code(current_inst);
             get_operands(current_inst, current_line, operands);
 
-            lines.insert(lines.end(), operands.begin(), operands.end());
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_push, 
                 std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_push, ex_code })))
             );
@@ -316,7 +330,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             uint8_t ex_code = get_ext_code(current_inst);
             get_operands(current_inst, current_line, operands);
 
-            lines.insert(lines.end(), operands.begin(), operands.end());
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_pop,
                 std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_pop, ex_code })))
             );
@@ -337,7 +351,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             uint8_t ex_code = get_ext_code(current_inst);
             get_operands(current_inst, current_line, operands);
 
-            lines.insert(lines.end(), operands.begin(), operands.end());
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_mov,
                 std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_mov, ex_code })))
             );
@@ -350,7 +364,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             get_operands(current_inst, current_line, operands);
 
-            lines.insert(lines.end(), operands.begin(), operands.end());
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_mov,
                 std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_mov, ex_code })))
             ); uint8_t di_jcc[] = { 134 , 138 , 143 , 147 , 152 , 156 , 161 , 166 , 170 , 174 , 179 , 183 , 188 , 192 , 197 , 202 };
@@ -548,41 +562,16 @@ void fuku_virtualization_x86::post_process_lines(uint64_t destination_virtual_ad
 
         switch (line.get_type()) {
         
-        case vm_opcode_86_jump_local: {
-            vm_jump_code* j_code = (vm_jump_code*)(&line.get_pcode()[1]);
-            fuku_vm_instruction& dst_line = lines[label_cache[line.get_link_label_id() - 1]];
+        case vm_opcode_86_operand_set_disp: {
 
-            j_code->info.back_jump = line.get_virtual_address() > dst_line.get_virtual_address();
-            j_code->offset = uint32_t(max(line.get_virtual_address(), dst_line.get_virtual_address()) - min(line.get_virtual_address(), dst_line.get_virtual_address()));
+            if (line.get_link_label_id()) {
+                (*(uint32_t*)&line.get_pcode()[1]) = lines[label_cache[line.get_link_label_id() - 1]].get_virtual_address();
+            }
+
             break;
         }
 
-        case vm_opcode_86_jump_external: {
-            vm_jump_code* j_code = (vm_jump_code*)(&line.get_pcode()[1]);
-            fuku_instruction * inst = (fuku_instruction*)(line.get_custom_data());
 
-            j_code->info.back_jump = line.get_virtual_address() > inst->get_ip_relocation_destination();
-            j_code->offset = uint32_t(max(line.get_virtual_address(), inst->get_ip_relocation_destination()) - min(line.get_virtual_address(), inst->get_ip_relocation_destination()));
-            break;
-        }
-
-        case vm_opcode_86_call_local: {
-            vm_call_code* call_code = (vm_call_code*)(&line.get_pcode()[1]);
-            fuku_vm_instruction& dst_line = lines[label_cache[line.get_link_label_id() - 1]];
-
-            call_code->back_jump = line.get_virtual_address() > dst_line.get_virtual_address();
-            call_code->offset = max(line.get_virtual_address(), dst_line.get_virtual_address()) - min(line.get_virtual_address(), dst_line.get_virtual_address());
-            break;
-        }
-
-        case vm_opcode_86_call_external: {
-            vm_call_code* call_code = (vm_call_code*)(&line.get_pcode()[1]);
-            fuku_instruction * inst = (fuku_instruction*)(line.get_custom_data());
-
-            call_code->back_jump = line.get_virtual_address() > inst->get_ip_relocation_destination();
-            call_code->offset = max(line.get_virtual_address(), inst->get_ip_relocation_destination()) - min(line.get_virtual_address(), inst->get_ip_relocation_destination());
-            break;
-        }
 
         default: {
             break;
