@@ -6,11 +6,11 @@ void vm_jump_local(vm_context& context) {
     vm_ops_ex_code * ex_code = (vm_ops_ex_code *)&context.vm_code[1];
 
     bool jump = is_jump(context, jump_code->condition, jump_code->invert_condition);
-   // fprintf(stdout, "jump %d %x %x %08x %08x\n", jump, jump_code->info.condition, jump_code->info.invert_condition, jump_code->info.back_jump, jump_code->offset);
+  //  fprintf(stdout, "jump %d %x %x %08x\n", jump, jump_code->condition, jump_code->invert_condition, (uint8_t*)*get_operand(context, *ex_code, 1, 1));
     if (jump) {
-      //  fprintf(stdout, "context.vm_code = %x | ", context.vm_code);
+   //     fprintf(stdout, "context.vm_code = %x | ", context.vm_code);
         context.vm_code = (uint8_t*)*get_operand(context, *ex_code, 1, 1);
-      //  fprintf(stdout, "%x |\n ", context.vm_code);
+   //     fprintf(stdout, "%x |\n ", context.vm_code);
     }
     else {
         context.vm_code += sizeof(vm_jump_code) + sizeof(vm_ops_ex_code);
@@ -25,7 +25,7 @@ void vm_jump_external(vm_context& context) {
 
 
     bool jump = is_jump(context, jump_code->condition, jump_code->invert_condition);
-
+    
     if (jump) {    
         vm_exit(context, *get_operand(context, *ex_code, 1, 1));
     }
@@ -53,7 +53,7 @@ void vm_call_external(vm_context& context) {
     uint32_t call_dst = *get_operand(context, *ex_code, 1, 1);
 
     free_operand(context, 1);
-    fprintf(stdout, "call_dst %x\n", call_dst);
+  //  fprintf(stdout, "call_dst %x\n", call_dst);
 
     uint8_t inst_[6] = { 0xFF, 0x15, 0, 0, 0, 0 };
     *(uint32_t*)&inst_[2] = (uint32_t)&call_dst;

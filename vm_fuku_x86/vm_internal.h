@@ -204,8 +204,7 @@ struct vm_ops_ex_code {
 
 struct vm_jump_code {
     union {
-        uint8_t condition : 5;
-        uint8_t back_jump : 1;
+        uint8_t condition        : 6;
         uint8_t invert_condition : 2;
         uint8_t j_code;
     };

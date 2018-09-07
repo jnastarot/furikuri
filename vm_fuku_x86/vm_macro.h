@@ -115,7 +115,7 @@ inline uint32_t impl_add(vm_context& context, uint32_t l_op, uint32_t r_op, uint
     l_op = l_op & (mask - 1);
     r_op = r_op & (mask - 1);
 
-    uint64_t sum = l_op + r_op;
+    uint64_t sum = uint64_t(l_op) + uint64_t(r_op);
 
     context.real_context.flags._zf = !(sum & (mask - 1));
     context.real_context.flags._af = get_adjust_flag(l_op, r_op);
@@ -135,10 +135,11 @@ inline uint32_t impl_sub(vm_context& context, uint32_t l_op, uint32_t r_op, uint
     l_op = l_op & (mask - 1);
     r_op = r_op & (mask - 1);
 
-    uint64_t sum = l_op - r_op;
+    uint64_t sum = uint64_t(l_op) - uint64_t(r_op);
 
     context.real_context.flags._zf = !(sum & (mask - 1));
     context.real_context.flags._af = get_adjust_flag(l_op, r_op);
+    context.real_context.flags._cf = (sum / mask);
     context.real_context.flags._sf = get_sign_flag(uint32_t(sum), size);
     context.real_context.flags._pf = get_parity_flag(uint32_t(sum));
     context.real_context.flags._of = get_overflow_flag(l_op, r_op, uint32_t(sum), size);

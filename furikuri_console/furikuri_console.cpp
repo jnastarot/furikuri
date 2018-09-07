@@ -54,21 +54,17 @@ int main() {
     srand(3);
 
     shibari_module _module(
-        std::string("..\\..\\app for test\\loader.exe")//std::string("..\\..\\app for test\\swhtest.exe")
+        std::string("..\\..\\app for test\\Client.exe")//std::string("..\\..\\app for test\\swhtest.exe")
     );
-    shibari_module _module_1(
-        std::string("..\\..\\app for test\\TestDll.dll")       
-    );
-    _module_1.get_module_exports().add_name("user32.dll");
 
     shibari_module _vm_module(
-        std::string("..\\Debug\\vm_fuku_x86.dll")
+        std::string("..\\Release\\vm_fuku_x86.dll")
     );
 
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
-        fuku.add_extended_module(&_module_1);
+     
         fuku.add_extended_module(&_vm_module);
 
 
@@ -78,7 +74,7 @@ int main() {
       //  fuku.add_ob_code_list({ 0x10F9 , 0x171 }, &_module, { 2,2,50.f,50.f,50.f });
         fuku_virtualization_x86 vm;
 
-        fuku.add_vm_code_list({ 0x10F7 , 0x177 }, &_module, fuku_vm_settings({
+        fuku.add_vm_code_list({ 0x1040 , 0xA6 }, &_module, fuku_vm_settings({
             {0, 0, 0, 0, 0},// { 2,2,50.f,50.f,50.f },
             &_vm_module,
             _vm_module.get_image_exports().get_items()[0].get_rva(),

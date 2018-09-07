@@ -39,11 +39,23 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
     context.real_context.regs.esp += sizeof(global_context) + 4;
 
+  /*  fprintf(stdout, "| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
+        &context.real_context.regs.eax,
+        &context.real_context.regs.ecx,
+        &context.real_context.regs.edx,
+        &context.real_context.regs.ebx,
+        &context.real_context.regs.esp,
+        &context.real_context.regs.ebp,
+        &context.real_context.regs.esi,
+        &context.real_context.regs.edi,
+        &context.real_context.d_flag
+    );
+    */
     while (1) {
 
         vm_opcode_86 opcode = (vm_opcode_86)context.vm_code++[0];
 
-        fprintf(stdout, "| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
+        /*fprintf(stdout, "| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x |\n",
             context.real_context.regs.eax,
             context.real_context.regs.ecx,
             context.real_context.regs.edx,
@@ -54,8 +66,8 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             context.real_context.regs.edi,
             context.real_context.d_flag
         );
-        
-        fprintf(stdout, "OPCODE : %02d %08x\n", opcode, context.vm_code -1);
+        */
+       // fprintf(stdout, "OPCODE : %02d %08x OPSIZE %d\n", opcode, context.vm_code -1, context.operands.size());
         
         switch (opcode) {
 
