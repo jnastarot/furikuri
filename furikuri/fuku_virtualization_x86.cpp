@@ -468,7 +468,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-
+/*
         case I_TEST: {
             printf("TEST ");
 
@@ -590,7 +590,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-/*
+
         case I_CMP: {
             printf("CMP ");
 
@@ -603,7 +603,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-  */      
+        
         case I_ADD: {
             printf("ADD ");
 

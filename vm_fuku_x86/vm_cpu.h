@@ -6,7 +6,7 @@
 DLLEXPORT void WINAPI fuku_vm_entry(void * pcode);
 
 
-
+void test_arith();
 
 
 
