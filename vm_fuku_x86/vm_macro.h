@@ -138,25 +138,28 @@ inline uint32_t impl_sub(vm_context& context, uint32_t l_op, uint32_t r_op, uint
 
 inline void impl_logical(vm_context& context, uint32_t result, uint8_t size) {
 
-    uint32_t sign_bit = SIGN_BIT_BY_SIZE(size);
     uint64_t mask = uint64_t(1) << SIZE_TO_BITS(size);
 
     context.real_context.flags._cf = 0;
     context.real_context.flags._of = 0;
+    context.real_context.flags._af = 0;
     context.real_context.flags._zf = !(result & (mask - 1));
-    context.real_context.flags._sf = result & sign_bit;
+    context.real_context.flags._sf = get_sign_flag(result, size);
     context.real_context.flags._pf = get_parity_flag(result);
 }
 
 /*
-
-context_flags __declspec(naked) WINAPI t_add(uint32_t l_op, uint32_t r_op, uint32_t flags) {
+context_flags __declspec(naked) WINAPI t_test(uint32_t l_op, uint32_t r_op, uint32_t flags) {
 
     __asm {
+        mov eax, [esp + 12]
+        push eax
+        popfd
+
         mov eax, [esp + 4]
         mov ecx, [esp + 8]
 
-        add eax, ecx
+        and eax, ecx
 
         pushfd
         pop eax
@@ -164,20 +167,7 @@ context_flags __declspec(naked) WINAPI t_add(uint32_t l_op, uint32_t r_op, uint3
         ret
     }
 }
-context_flags __declspec(naked) WINAPI t_sub(uint32_t l_op, uint32_t r_op, uint32_t flags) {
 
-    __asm {
-        mov eax, [esp + 4]
-        mov ecx, [esp + 8]
-
-        sub eax, ecx
-
-        pushfd
-        pop eax
-
-        ret
-    }
-}
 
 void test_arith() {
 
@@ -190,8 +180,8 @@ void test_arith() {
         context.real_context.d_flag = fl;
 
         
-        impl_sub(context, op_1, op_2, 4);
-        context_flags r_fl = t_sub(op_1, op_2, fl);
+       // impl_sub(context, op_1, op_2, 4);
+        context_flags r_fl = t_test(op_1, op_2, fl);
 
         if (context.real_context.flags._zf != r_fl._zf ||
             context.real_context.flags._af != r_fl._af ||
@@ -220,40 +210,7 @@ void test_arith() {
         else {
             printf("sub success %08x %08x %08x  R: %08x  E: %08x\n", op_1, op_2, fl, context.real_context.d_flag, r_fl);
         }
-        
-
-
-        impl_add(context, op_1, op_2, 4);
-        r_fl = t_add(op_1, op_2, fl);
-
-        if (context.real_context.flags._zf != r_fl._zf ||
-            context.real_context.flags._af != r_fl._af ||
-            context.real_context.flags._cf != r_fl._cf ||
-            context.real_context.flags._sf != r_fl._sf ||
-            context.real_context.flags._pf != r_fl._pf ||
-            context.real_context.flags._of != r_fl._of
-            ) {
-            printf("add error   %08x %08x %08x  R: %08x  E: %08x\n", op_1, op_2, fl, context.real_context.d_flag, r_fl);
-            printf("        ZF AF CF SF PF OF\n");
-            printf("        %02x %02x %02x %02x %02x %02x\n", context.real_context.flags._zf,
-                context.real_context.flags._af,
-                context.real_context.flags._cf,
-                context.real_context.flags._sf,
-                context.real_context.flags._pf,
-                context.real_context.flags._of
-            );
-            printf("        %02x %02x %02x %02x %02x %02x\n", r_fl._zf,
-                r_fl._af,
-                r_fl._cf,
-                r_fl._sf,
-                r_fl._pf,
-                r_fl._of
-            );
-        }
-        else {
-            printf("add success %08x %08x %08x  R: %08x  E: %08x\n", op_1, op_2, fl, context.real_context.d_flag, r_fl);
-        }
-
+       
 
         Sleep(50);
     }

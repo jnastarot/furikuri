@@ -468,7 +468,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-/*
+
         case I_TEST: {
             printf("TEST ");
 
@@ -560,23 +560,57 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             break;
         }
-        case I_ROL: {
+        */
 
+        case I_ROL: {
+            printf("ROL ");
+
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_rol,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_rol, ex_code })))
+            );
             break;
         }
         case I_ROR: {
+            printf("ROR ");
 
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_ror,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_ror, ex_code })))
+            );
             break;
         }
         case I_RCL: {
+            printf("RCL ");
 
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_rcl,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_rcl, ex_code })))
+            );
             break;
         }
         case I_RCR: {
+            printf("RCR ");
 
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_rcr,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_rcr, ex_code })))
+            );
             break;
         }
-*/
+
 
         case I_NEG: {
             printf("NEG ");
