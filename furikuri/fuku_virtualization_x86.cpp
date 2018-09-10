@@ -531,6 +531,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
+                    
         case I_SHL: {
             printf("SHL ");
 
@@ -555,12 +556,19 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-                    /*
+                    
         case I_SAR: {
+            printf("SAR ");
 
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_sar,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_sar, ex_code })))
+            );
             break;
-        }
-        */
+        }   
 
         case I_ROL: {
             printf("ROL ");

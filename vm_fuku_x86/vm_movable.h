@@ -7,10 +7,6 @@ void vm_mov(vm_context& context) {
     uint32_t* dst = get_operand(context, *ex_code, 1, 2);
     uint32_t* src = get_operand(context, *ex_code, 2, 2);
 
-    
-   // fprintf(stdout, "OP1 %08x OP2 %08x\n", context.operands[0], context.operands[1]);
-   // fprintf(stdout, "MOV [D:%d S:%d] [DST %x ] , [SRC %x ]\n", ex_code->info.dst_is_ptr, ex_code->info.src_is_ptr, dst, src);
-
     memcpy(dst, src, ex_code->info.op_2_size);
  
     free_operand(context, 2);

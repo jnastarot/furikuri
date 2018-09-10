@@ -148,8 +148,10 @@ inline void impl_logical(vm_context& context, uint32_t result, uint8_t size) {
     context.real_context.flags._pf = get_parity_flag(result);
 }
 
+
+
 /*
-context_flags __declspec(naked) WINAPI t_test(uint32_t l_op, uint32_t r_op, uint32_t flags) {
+context_flags __declspec(naked) WINAPI test_flags(uint32_t l_op, uint32_t r_op, uint32_t flags) {
 
     __asm {
         mov eax, [esp + 12]
@@ -168,21 +170,69 @@ context_flags __declspec(naked) WINAPI t_test(uint32_t l_op, uint32_t r_op, uint
     }
 }
 
+uint32_t __declspec(naked) WINAPI test_result(uint32_t l_op, uint32_t r_op, uint32_t flags) {
+
+    __asm {
+        mov eax, [esp + 12]
+        push eax
+        popfd
+
+        mov eax, [esp + 4]
+        mov ecx, [esp + 8]
+
+        ror eax, cl
+
+        ret
+    }
+}
+
+void vm_ror(vm_context& context);
 
 void test_arith() {
-
+    srand(122332);
     while (1) {
         uint32_t fl = (uint32_t)rand();
         uint32_t op_1 = (uint32_t)rand() | rand()<<15;
         uint32_t op_2 = (uint32_t)rand() | rand()<<15;
 
+        fl = 0;// &= 1;
+        //op_2 &= 0x31;
+
         vm_context context;
+        vm_ops_ex_code code(1, 1, 4, 1);
+
         context.real_context.d_flag = fl;
+        context.real_context.regs.eax = op_1;
+        context.real_context.regs.ecx = op_2;
+        context.vm_code = (uint8_t*)&code;
+        context.operands.push_back((uint32_t)&context.real_context.regs.eax);
+        context.operands.push_back((uint32_t)&context.real_context.regs.ecx);
+        
+
+        vm_ror(context);
+
+
+        uint32_t r_result = test_result(op_1, op_2, fl);
 
         
-       // impl_sub(context, op_1, op_2, 4);
-        context_flags r_fl = t_test(op_1, op_2, fl);
+        if (context.real_context.regs.eax != r_result) {
+            printf("error   %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.regs.eax, r_result);
+        }
+        else {
+            printf("success %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.regs.eax, r_result);
+        }
+        
 
+        /*
+        if ((uint8_t)context.real_context.regs.eax != (uint8_t)r_result) {
+            printf("error   %08x %08x R: %08x  E: %08x\n", op_1, op_2, (uint8_t)context.real_context.regs.eax, (uint8_t)r_result);
+        }
+        else {
+            printf("success %08x %08x R: %08x  E: %08x\n", op_1, op_2, (uint8_t)context.real_context.regs.eax, (uint8_t)r_result);
+        }*/
+        
+
+        /*
         if (context.real_context.flags._zf != r_fl._zf ||
             context.real_context.flags._af != r_fl._af ||
             context.real_context.flags._cf != r_fl._cf ||
@@ -214,4 +264,4 @@ void test_arith() {
 
         Sleep(50);
     }
-}*/
+}//*/
