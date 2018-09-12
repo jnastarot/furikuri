@@ -57,15 +57,45 @@ int main() {
         std::string("..\\..\\app for test\\vm_test.exe")//std::string("..\\..\\app for test\\swhtest.exe")
     );
 
+    
+    pe_image_io image_io(_module.get_image(), enma_io_mode_allow_expand);
+    image_io.seek_to_end();
+
+    imported_library lib;
+    lib.set_library_name("vm_fuku_x86.dll");
+    lib.set_rva_iat(image_io.get_image_offset());
+
+    imported_func func;
+    func.set_func_name("_fuku_vm_entry@4");
+    func.set_iat_rva(image_io.get_image_offset());
+
+    lib.add_item(func);
+
+    _module.get_image_imports().add_library(lib);
+
+    uint8_t jmpvm[] = { 0xFF ,0x25 ,0,0,0,0 };
+    *(uint32_t*)&jmpvm[2] = image_io.get_image_offset() + _module.get_image().get_image_base();
+
+
+    image_io.memory_set(8,0);
+
+
+    uint32_t rva_vm = image_io.get_image_offset();
+    image_io.write(jmpvm, sizeof(jmpvm));
+
+    
+
+    
+    /*
     shibari_module _vm_module(
         std::string("..\\Release\\vm_fuku_x86.dll")
-    );
+    );*/
 
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
      
-        fuku.add_extended_module(&_vm_module);
+       // fuku.add_extended_module(&_vm_module);
 
 
         std::vector<uint8_t> out_image;
@@ -73,13 +103,53 @@ int main() {
 
       //  fuku.add_ob_code_list({ 0x10F9 , 0x171 }, &_module, { 2,2,50.f,50.f,50.f });
         fuku_virtualization_x86 vm;
+        //0x1000 , 0x6F0
 
+        /*
+        fuku.add_vm_code_list({ 0x16F0 , 0x1A6 }, &_module, fuku_vm_settings({
+            { 0, 0, 0, 0, 0 },// { 2,2,50.f,50.f,50.f },
+            &_module,
+            rva_vm,
+           // &_vm_module,
+           // _vm_module.get_image_exports().get_items()[0].get_rva(),
+            &vm
+            }));
+            */
+
+        //fuku_ob_settings ob_set = { 1,1,50.f,50.f,50.f };
+        //fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
+        
         fuku.add_vm_code_list({ 0x1000 , 0x6F0 }, &_module, fuku_vm_settings({
             {0, 0, 0, 0, 0},// { 2,2,50.f,50.f,50.f },
-            &_vm_module,
-            _vm_module.get_image_exports().get_items()[0].get_rva(),
+            &_module,
+            rva_vm,
             &vm
         }));
+        
+        
+        fuku.add_vm_code_list({ 0x174B , 0x5F }, &_module, fuku_vm_settings({
+            {0, 0, 0, 0, 0},// { 2,2,50.f,50.f,50.f },
+            &_module,
+            rva_vm,
+            &vm
+        }));
+
+        fuku.add_vm_code_list({ 0x17AA , 0x18 }, &_module, fuku_vm_settings({
+            { 0, 0, 0, 0, 0 },// { 2,2,50.f,50.f,50.f },
+            &_module,
+            rva_vm,
+            &vm
+            }));
+
+        
+        fuku.add_vm_code_list({ 0x17C2 , 0xD4 }, &_module, fuku_vm_settings({
+            { 0, 0, 0, 0, 0 },// { 2,2,50.f,50.f,50.f },
+            &_module,
+            rva_vm,
+            &vm
+            }));
+            //*/
+        
 
         //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
 

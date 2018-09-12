@@ -230,22 +230,34 @@ uint8_t fuku_virtualization_x86::get_ext_code(const _DInst& inst) {
             ex_code.info.src_is_ptr = inst.ops[1].type == O_SMEM || inst.ops[1].type == O_MEM || inst.ops[1].type == O_DISP ;
             ex_code.info.dst_is_ptr = inst.ops[0].type == O_SMEM || inst.ops[0].type == O_MEM || inst.ops[0].type == O_DISP || inst.ops[0].type == O_REG;
             ex_code.info.op_1_size = inst.ops[0].size / 8;
-            ex_code.info.op_2_size = inst.ops[1].size / 8;
+            
+            if (inst.ops[1].type == O_IMM) {
+                ex_code.info.op_2_size = 4;
+            }
+            else {
+                ex_code.info.op_2_size = inst.ops[1].size / 8;
+            }
 
 
             if (ex_code.info.dst_is_ptr) {
-                printf(" [DST PTR] ", ex_code.info.dst_is_ptr);
+                printf(" [DST PTR] ");
             }
             if (ex_code.info.src_is_ptr) {
-                printf(" [SRC PTR] ", ex_code.info.src_is_ptr);
+                printf(" [SRC PTR] ");
             }
             
         }
         else {
             ex_code.info.src_is_ptr = inst.ops[0].type == O_SMEM || inst.ops[0].type == O_MEM || inst.ops[0].type == O_DISP || inst.ops[0].type == O_REG;
-            ex_code.info.op_1_size = inst.ops[0].size / 8;
 
-            printf(" [SRC PTR] ", ex_code.info.src_is_ptr);
+            if (inst.ops[0].type == O_IMM) {
+                ex_code.info.op_1_size = 4;
+            }
+            else {
+                ex_code.info.op_1_size = inst.ops[0].size / 8;
+            }
+
+            printf(" [SRC PTR] ");
         } 
     }
 
@@ -275,7 +287,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         auto& current_line = code.lines[line_idx];
         operands.clear();
 
-       // if (current_line.get_source_virtual_address() == 0x401098) { __debugbreak(); }
+        if (current_line.get_source_virtual_address() == 0x4017F8) { __debugbreak(); }
         
         code_info.code = current_line.get_op_code();
         code_info.codeLen = current_line.get_op_length();
@@ -309,8 +321,8 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
 
             if (current_line.get_type() == I_JMP) {
-                jump_code.condition = 8;
-                jump_code.invert_condition = 0;
+                jump_code.code.condition = 8;
+                jump_code.code.invert_condition = 0;
             }
             else {
                 uint8_t jmp_cc;
@@ -322,8 +334,8 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
                     jmp_cc = (current_line.get_op_code()[current_line.get_op_pref_size()] & 0x0F);
                 }
                 
-                jump_code.condition = jmp_cc / 2;
-                jump_code.invert_condition = jmp_cc & 1;
+                jump_code.code.condition = jmp_cc / 2;
+                jump_code.code.invert_condition = jmp_cc & 1;
             }
 
             if (current_line.get_link_label_id()) {
@@ -394,11 +406,15 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         }
 
         case I_PUSHA: {
+            printf("PUSHAD \n");
+
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_pushad, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_pushad)));
             break;
         }
 
         case I_PUSHF: {
+            printf("PUSHFD \n");
+
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_pushfd, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_pushfd)));
             break;
         }
@@ -417,11 +433,15 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         }
 
         case I_POPA: {
+            printf("POPAD \n");
+
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_popad, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_popad)));
             break;
         }
 
         case I_POPF: {
+            printf("POPFD \n");
+
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_popfd, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_popfd)));
             break;
         }
@@ -718,26 +738,31 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         }
 */
         case I_CLC: {
+            printf("CLC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_clc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_clc)));
             break;
         }
 
         case I_CMC: {
+            printf("CMC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_cmc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_cmc)));
             break;
         }
 
         case I_STC: {
+            printf("STC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_stc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_stc)));
             break;
         }
 
         case I_CLD: {
+            printf("CLD \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_cld, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_cld)));
             break;
         }
 
         case I_STD: {
+            printf("STD \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_std, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_std)));
             break;
         }

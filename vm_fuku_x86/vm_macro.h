@@ -150,7 +150,7 @@ inline void impl_logical(vm_context& context, uint32_t result, uint8_t size) {
 
 
 
-/*
+
 context_flags __declspec(naked) WINAPI test_flags(uint32_t l_op, uint32_t r_op, uint32_t flags) {
 
     __asm {
@@ -180,48 +180,61 @@ uint32_t __declspec(naked) WINAPI test_result(uint32_t l_op, uint32_t r_op, uint
         mov eax, [esp + 4]
         mov ecx, [esp + 8]
 
-        ror eax, cl
+        and eax, ecx
 
         ret
     }
 }
 
-void vm_ror(vm_context& context);
+void vm_and(vm_context& context);
 
 void test_arith() {
     srand(122332);
     while (1) {
         uint32_t fl = (uint32_t)rand();
-        uint32_t op_1 = (uint32_t)rand() | rand()<<15;
-        uint32_t op_2 = (uint32_t)rand() | rand()<<15;
+        uint32_t op_1 = (uint32_t)rand() | rand()<<17;
+        uint32_t op_2 = (uint32_t)rand() | rand()<<17;
 
-        fl = 0;// &= 1;
+#define flag_filter (1 | 4 | 16 | 64 | 128 | 2048)
+
+
+        fl &= flag_filter;
         //op_2 &= 0x31;
 
+
         vm_context context;
-        vm_ops_ex_code code(1, 1, 4, 1);
+        vm_ops_ex_code code(0, 1, 4, 4);
 
         context.real_context.d_flag = fl;
         context.real_context.regs.eax = op_1;
         context.real_context.regs.ecx = op_2;
         context.vm_code = (uint8_t*)&code;
         context.operands.push_back((uint32_t)&context.real_context.regs.eax);
-        context.operands.push_back((uint32_t)&context.real_context.regs.ecx);
+        context.operands.push_back((uint32_t)context.real_context.regs.ecx);
         
 
-        vm_ror(context);
+        vm_and(context);
 
 
-        uint32_t r_result = test_result(op_1, op_2, fl);
+        uint32_t      r_result = test_result(op_1, op_2, fl);
+        context_flags r_flags_c = test_flags(op_1, op_2, fl);
+        uint32_t r_flags = *(uint32_t*)&r_flags_c;
 
+        r_flags &= flag_filter;
         
         if (context.real_context.regs.eax != r_result) {
-            printf("error   %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.regs.eax, r_result);
+            printf("result error   %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.regs.eax, r_result);
         }
         else {
-            printf("success %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.regs.eax, r_result);
+            printf("result success %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.regs.eax, r_result);
         }
-        
+
+        if (context.real_context.d_flag != r_flags) {
+            printf("flags  error   %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.d_flag, r_flags);
+        }
+        else {
+            printf("flags  success %08x %08x R: %08x  E: %08x\n", op_1, op_2, context.real_context.d_flag, r_flags);
+        }
 
         /*
         if ((uint8_t)context.real_context.regs.eax != (uint8_t)r_result) {
@@ -260,7 +273,7 @@ void test_arith() {
         else {
             printf("sub success %08x %08x %08x  R: %08x  E: %08x\n", op_1, op_2, fl, context.real_context.d_flag, r_fl);
         }
-       
+       */
 
         Sleep(50);
     }
