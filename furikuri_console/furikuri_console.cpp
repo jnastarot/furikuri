@@ -57,6 +57,7 @@ int main() {
         std::string("..\\..\\app for test\\vm_test.exe")//std::string("..\\..\\app for test\\swhtest.exe")
     );
 
+    /*
     
     pe_image_io image_io(_module.get_image(), enma_io_mode_allow_expand);
     image_io.seek_to_end();
@@ -82,70 +83,65 @@ int main() {
 
     uint32_t rva_vm = image_io.get_image_offset();
     image_io.write(jmpvm, sizeof(jmpvm));
-
+    */
     
-
-    
-    /*
+   
     shibari_module _vm_module(
         std::string("..\\Release\\vm_fuku_x86.dll")
-    );*/
+    );
 
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
-     
-       // fuku.add_extended_module(&_vm_module);
+        fuku.add_extended_module(&_vm_module);
 
 
         std::vector<uint8_t> out_image;
 
-
-      //  fuku.add_ob_code_list({ 0x10F9 , 0x171 }, &_module, { 2,2,50.f,50.f,50.f });
+     //   fuku_ob_settings settings = { 2,2,50.f,50.f,50.f };
+     //   fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, settings);
         fuku_virtualization_x86 vm;
         //0x1000 , 0x6F0
 
-        /*
+      
         fuku.add_vm_code_list({ 0x16F0 , 0x1A6 }, &_module, fuku_vm_settings({
-            { 0, 0, 0, 0, 0 },// { 2,2,50.f,50.f,50.f },
-            &_module,
-            rva_vm,
-           // &_vm_module,
-           // _vm_module.get_image_exports().get_items()[0].get_rva(),
+            { 1,1,00.f,60.f,00.f },// { 2,2,50.f,50.f,50.f },
+            &_vm_module,
+            _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
             }));
-            */
+            
 
         //fuku_ob_settings ob_set = { 1,1,50.f,50.f,50.f };
         //fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
         
         fuku.add_vm_code_list({ 0x1000 , 0x6F0 }, &_module, fuku_vm_settings({
-            {0, 0, 0, 0, 0},// { 2,2,50.f,50.f,50.f },
-            &_module,
-            rva_vm,
+            { 2,1,00.f,60.f,00.f },// { 2,2,50.f,50.f,50.f },
+            &_vm_module,
+            _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
         }));
         
-        
+        /*
         fuku.add_vm_code_list({ 0x174B , 0x5F }, &_module, fuku_vm_settings({
             {0, 0, 0, 0, 0},// { 2,2,50.f,50.f,50.f },
-            &_module,
-            rva_vm,
+            &_vm_module,
+            _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
         }));
 
         fuku.add_vm_code_list({ 0x17AA , 0x18 }, &_module, fuku_vm_settings({
             { 0, 0, 0, 0, 0 },// { 2,2,50.f,50.f,50.f },
-            &_module,
-            rva_vm,
+            &_vm_module,
+            _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
             }));
 
         
         fuku.add_vm_code_list({ 0x17C2 , 0xD4 }, &_module, fuku_vm_settings({
             { 0, 0, 0, 0, 0 },// { 2,2,50.f,50.f,50.f },
-            &_module,
-            rva_vm,
+            &_vm_module,
+            _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
             }));
             //*/

@@ -175,7 +175,7 @@ void fuku_mutation_x86::fukutation(linestorage& lines, unsigned int current_line
             }
             break;
         }
-
+                   
         case I_TEST: {
             if (!fukutate_test(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
@@ -195,7 +195,7 @@ void fuku_mutation_x86::fukutation(linestorage& lines, unsigned int current_line
             }
             break;
         }
-
+                    
         case  I_JO: case  I_JNO:
         case  I_JB: case  I_JAE:
         case  I_JZ: case  I_JNZ:
@@ -210,7 +210,7 @@ void fuku_mutation_x86::fukutation(linestorage& lines, unsigned int current_line
             break;
         }
 
-        
+                    
         case I_RET: {
             if (!fukutate_ret(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
@@ -971,10 +971,11 @@ bool fuku_mutation_x86::fukutate_ret(linestorage& lines, unsigned int current_li
         else if (target_line.get_op_code()[0] == 0xC2) { //ret 0x0000
             uint16_t ret_stack = *(uint16_t*)&target_line.get_op_code()[1];
             out_lines.push_back(f_asm.lea(fuku_reg86::r_ESP, fuku_operand86(fuku_reg86::r_ESP, 4 + ret_stack)).set_useless_flags(target_line.get_useless_flags()));     //lea esp,[esp + (4 + stack_offset)]
-            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4)).set_flags(fuku_instruction_bad_stack).set_useless_flags(target_line.get_useless_flags()));         //jmp [esp - 4] 
+            out_lines.push_back(f_asm.jmp(fuku_operand86(r_ESP, -4 - ret_stack)).set_flags(fuku_instruction_bad_stack).set_useless_flags(target_line.get_useless_flags()));         //jmp [esp - 4 - stack_offset] 
 
             return true;
         }
+        
     }
 
     return false;
@@ -1325,7 +1326,7 @@ void fuku_mutation_x86::fuku_junk_7b(linestorage& out_lines,
             line.set_relocation_f_imm_offset(1);
 
             if (label_seed) {
-                line.set_relocation_f_label_id(FUKU_GET_RAND(1, get_maxlabel()));
+                line.set_relocation_f_label_id(FUKU_GET_RAND(1, get_maxlabel() - 1));
             }
 
             line.set_flags(fuku_instruction_has_relocation);

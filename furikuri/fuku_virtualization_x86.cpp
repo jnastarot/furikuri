@@ -151,15 +151,14 @@ void fuku_virtualization_x86::get_operands(const _DInst& inst,const fuku_instruc
 
     std::vector<fuku_vm_instruction> current_op;
 
-    operands.clear();
-
     for (int i = 0; i < OPERANDS_NO; i++) {
         if (i != 0 && inst.ops[i].type) { printf(","); }
 
         switch (inst.ops[i].type) {
         
         case O_NONE: {
-            break;
+            printf("\n"); 
+            return;
         }
 
         case O_REG: { //index holds global register index.
@@ -287,8 +286,6 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         auto& current_line = code.lines[line_idx];
         operands.clear();
 
-        if (current_line.get_source_virtual_address() == 0x4017F8) { __debugbreak(); }
-        
         code_info.code = current_line.get_op_code();
         code_info.codeLen = current_line.get_op_length();
         code_info.codeOffset = current_line.get_virtual_address();
@@ -692,6 +689,26 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
+        case I_INC: {
+            printf("INC ");
+
+            uint8_t ex_code = get_ext_code(current_inst);
+            (*(vm_ops_ex_code*)&ex_code).info.dst_is_ptr = true;
+            (*(vm_ops_ex_code*)&ex_code).info.src_is_ptr = false;
+            (*(vm_ops_ex_code*)&ex_code).info.op_2_size = (*(vm_ops_ex_code*)&ex_code).info.op_1_size;
+            
+            get_operands(current_inst, current_line, operands);
+            std::vector<fuku_vm_instruction> imm_op = create_operand_disp(1);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.insert(vm_lines.end(), imm_op.begin(), imm_op.end());
+
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_add,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_add, ex_code })))
+            );
+            break;
+        }
+
         case I_SUB: {
             printf("SUB ");
 
@@ -717,6 +734,27 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
+
+        case I_DEC: {
+            printf("DEC ");
+
+            uint8_t ex_code = get_ext_code(current_inst);
+            (*(vm_ops_ex_code*)&ex_code).info.dst_is_ptr = true;
+            (*(vm_ops_ex_code*)&ex_code).info.src_is_ptr = false;
+            (*(vm_ops_ex_code*)&ex_code).info.op_2_size = (*(vm_ops_ex_code*)&ex_code).info.op_1_size;
+
+            get_operands(current_inst, current_line, operands);
+            std::vector<fuku_vm_instruction> imm_op = create_operand_disp(1);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.insert(vm_lines.end(), imm_op.begin(), imm_op.end());
+
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_sub,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_sub, ex_code })))
+            );
+            break;
+        }
+
 /*
         case I_MUL: {
 
@@ -727,16 +765,33 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             break;
         }
+        */
         case I_DIV: {
+            printf("DIV ");
 
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_div,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_div, ex_code })))
+            );
             break;
         }
 
         case I_IDIV: {
+            printf("IDIV ");
 
+            uint8_t ex_code = get_ext_code(current_inst);
+            get_operands(current_inst, current_line, operands);
+
+            vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
+            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_idiv,
+                std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_idiv, ex_code })))
+            );
             break;
         }
-*/
+
         case I_CLC: {
             printf("CLC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_clc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_clc)));

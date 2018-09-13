@@ -159,9 +159,9 @@ context_flags __declspec(naked) WINAPI test_flags(uint32_t l_op, uint32_t r_op, 
         popfd
 
         mov eax, [esp + 4]
-        mov ecx, [esp + 8]
+        mov edx, [esp + 8]
 
-        and eax, ecx
+        idiv eax
 
         pushfd
         pop eax
@@ -178,22 +178,22 @@ uint32_t __declspec(naked) WINAPI test_result(uint32_t l_op, uint32_t r_op, uint
         popfd
 
         mov eax, [esp + 4]
-        mov ecx, [esp + 8]
+        mov edx, [esp + 8]
 
-        and eax, ecx
+        idiv eax
 
         ret
     }
 }
 
-void vm_and(vm_context& context);
+void vm_idiv(vm_context& context);
 
 void test_arith() {
     srand(122332);
     while (1) {
         uint32_t fl = (uint32_t)rand();
         uint32_t op_1 = (uint32_t)rand() | rand()<<17;
-        uint32_t op_2 = (uint32_t)rand() | rand()<<17;
+        uint32_t op_2 = (uint32_t)rand() | rand()<<12;
 
 #define flag_filter (1 | 4 | 16 | 64 | 128 | 2048)
 
@@ -203,17 +203,15 @@ void test_arith() {
 
 
         vm_context context;
-        vm_ops_ex_code code(0, 1, 4, 4);
+        vm_ops_ex_code code(0, 0, 4, 4);
 
         context.real_context.d_flag = fl;
         context.real_context.regs.eax = op_1;
-        context.real_context.regs.ecx = op_2;
+        context.real_context.regs.edx = op_2;
         context.vm_code = (uint8_t*)&code;
-        context.operands.push_back((uint32_t)&context.real_context.regs.eax);
-        context.operands.push_back((uint32_t)context.real_context.regs.ecx);
-        
+        context.operands.push_back(op_1);
 
-        vm_and(context);
+        vm_idiv(context);
 
 
         uint32_t      r_result = test_result(op_1, op_2, fl);

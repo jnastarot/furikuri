@@ -138,9 +138,9 @@ enum vm_opcode_86 {
     vm_opcode_86_sub,
     vm_opcode_86_sbb,
     vm_opcode_86_mul,
-    vm_opcode_86_lmul,
+    vm_opcode_86_imul,
     vm_opcode_86_div,
-    vm_opcode_86_ldiv,
+    vm_opcode_86_idiv,
 
     //flag mods
     vm_opcode_86_clc,

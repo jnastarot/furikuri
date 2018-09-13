@@ -184,7 +184,7 @@ void fuku_obfuscator::lines_correction(linestorage& lines, uint64_t virtual_addr
     this->code.ip_rel_idx_cache.clear();
 
     this->code.labels_cache.resize(code.label_seed - 1);
-
+   // memset(this->code.labels_cache.data(), 0, this->code.labels_cache.size() * sizeof(uint32_t));
 
     for (uint32_t line_idx = 0; line_idx < lines.size(); line_idx++) {
         auto &line = lines[line_idx];
