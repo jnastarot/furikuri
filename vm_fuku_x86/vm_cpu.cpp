@@ -83,7 +83,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
 
         vm_opcode_86 opcode = (vm_opcode_86)context.vm_code++[0];
 
-        /*
+        
         printf("| EAX:%08x | ECX:%08x | EDX:%08x | EBX:%08x | ESP:%08x | EBP:%08x | ESI:%08x | EDI:%08x | FLAGS:%08x | OPCODE : %02d %08x OPSIZE %d\n",
             context.real_context.regs.eax,
             context.real_context.regs.ecx,
@@ -96,7 +96,7 @@ void WINAPI fuku_vm_handler(uint32_t original_stack) {
             context.real_context.d_flag,
             opcode, context.vm_code - 1, context.operands.size()
         );
-        */
+        
 
         switch (opcode) {
 

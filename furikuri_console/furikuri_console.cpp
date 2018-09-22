@@ -3,8 +3,8 @@
 
 
 
-#pragma comment(lib,"..\\..\\LZO\\lzo2_d_86.lib")
-#include "..\..\LZO\lzo1z.h"
+//#pragma comment(lib,"..\\..\\LZO\\lzo2_d_86.lib")
+//#include "..\..\LZO\lzo1z.h"
 
 unsigned char lzo_depack_32[] = {//0xCC,
     0x55, 0x8B, 0xEC, 0x8B, 0x55, 0x08, 0x8B, 0x45, 0x14, 0x01, 0x55, 0x0C, 0x53, 0x33, 0xDB, 0x56,
@@ -103,20 +103,20 @@ int main() {
         fuku_virtualization_x86 vm;
         //0x1000 , 0x6F0
 
-      
+      /*
         fuku.add_vm_code_list({ 0x16F0 , 0x1A6 }, &_module, fuku_vm_settings({
-            { 1,1,00.f,60.f,00.f },// { 2,2,50.f,50.f,50.f },
+            { 0,0,00.f,00.f,00.f },// { 2,2,50.f,50.f,50.f },
             &_vm_module,
             _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
             }));
-            
+            */
 
         //fuku_ob_settings ob_set = { 1,1,50.f,50.f,50.f };
         //fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
         
         fuku.add_vm_code_list({ 0x1000 , 0x6F0 }, &_module, fuku_vm_settings({
-            { 2,1,00.f,60.f,00.f },// { 2,2,50.f,50.f,50.f },
+            { 0,0,00.f,00.f,00.f },// { 2,2,50.f,50.f,50.f },
             &_vm_module,
             _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm

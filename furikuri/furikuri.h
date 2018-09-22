@@ -6,7 +6,6 @@
 enum fuku_code_type {
     fuku_code_obfuscation,
     fuku_code_virtualization,
-    //fuku_code_hybrid,//obfuscation + virtualization
 };
 
 class fuku_code_analyzer;

@@ -130,7 +130,7 @@ void vm_div(vm_context& context) {
     uint64_t op_1 = 0;
 
     uint32_t* src = get_operand(context, *ex_code, 1, 1);
-    memcpy(&op_1, src, ex_code->info.op_2_size);
+    memcpy(&op_1, src, ex_code->info.op_1_size);
 
     uint64_t result = 0;
 
