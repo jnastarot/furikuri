@@ -43,10 +43,10 @@ class fuku_mutation_x64 :
     uint32_t fuku_mutation_x64::set_label(fuku_instruction& line);
     uint32_t fuku_mutation_x64::get_maxlabel();
 public:
-    fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings, unsigned int * label_seed);
+    fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings);
     fuku_mutation_x64::~fuku_mutation_x64();
 
-    void fuku_mutation_x64::obfuscate(fuku_analyzed_code& code);
+    void fuku_mutation_x64::obfuscate(const fuku_code_holder& code_holder);
 
     void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
 };

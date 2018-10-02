@@ -113,7 +113,7 @@ bool    fuku_protector::finish_module() {
 fuku_code_association * fuku_protector::find_profile_association(fuku_protection_profile& profile, uint32_t rva) {
 
     for (auto& region : profile.regions) {
-
+        
         if (region.region_rva <= rva && region.region_rva + region.region_size > rva) {
             uint64_t real_address = target_module.get_image().rva_to_va((uint32_t)rva);
 
@@ -124,10 +124,10 @@ fuku_code_association * fuku_protector::find_profile_association(fuku_protection
             while (left < right) {
                 mid = left + (right - left) / 2;
 
-                if (profile.association_table[mid].prev_virtual_address == real_address) {
+                if (profile.association_table[mid].original_virtual_address == real_address) {
                     return &profile.association_table[mid];
                 }
-                else if (profile.association_table[mid].prev_virtual_address > real_address) {
+                else if (profile.association_table[mid].original_virtual_address > real_address) {
                     right = mid;
                 }
                 else {

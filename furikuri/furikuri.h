@@ -1,11 +1,16 @@
 #pragma once
-#include "..\distorm_lib\include\distorm.h"
-#include "..\distorm_lib\include\mnemonics.h"
 
+#include "..\capstone\include\capstone\capstone.h"
 
 enum fuku_code_type {
     fuku_code_obfuscation,
     fuku_code_virtualization,
+};
+
+enum fuku_arch {
+    fuku_arch_unknown,
+    fuku_arch_x32,
+    fuku_arch_x64
 };
 
 class fuku_code_analyzer;
@@ -58,7 +63,7 @@ struct fuku_code_list {
 #include "fuku_vm_instruction.h"
 
 #include "fuku_asm.h"
-
+#include "fuku_code_holder.h"
 #include "fuku_code_analyzer.h"
 #include "fuku_obfuscator.h"
 #include "fuku_virtualizer_imp.h"

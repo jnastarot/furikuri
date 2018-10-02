@@ -6,7 +6,6 @@ class fuku_mutation_x86 :
 
     fuku_asm_x86 f_asm;
     fuku_ob_settings settings;
-    unsigned int * label_seed;
 
     void fuku_mutation_x86::fuku_junk_1b(linestorage& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
     void fuku_mutation_x86::fuku_junk_2b(linestorage& out_lines, fuku_instruction* next_line, bool unstable_stack, uint16_t allow_flags_changes);
@@ -41,10 +40,10 @@ class fuku_mutation_x86 :
     uint32_t fuku_mutation_x86::set_label(fuku_instruction& line);
     uint32_t fuku_mutation_x86::get_maxlabel();
 public:
-    fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings, unsigned int * label_seed);
+    fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings);
     fuku_mutation_x86::~fuku_mutation_x86();
 
-    void fuku_mutation_x86::obfuscate(fuku_analyzed_code& code);
+    void fuku_mutation_x86::obfuscate(const fuku_code_holder& code_holder);
 
     void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
 };

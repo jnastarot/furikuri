@@ -147,8 +147,9 @@ std::vector<fuku_vm_instruction> fuku_virtualization_x86::create_operand_sib(uin
 }
 
 
-void fuku_virtualization_x86::get_operands(const _DInst& inst,const fuku_instruction& line, std::vector<fuku_vm_instruction>& operands) {
+void fuku_virtualization_x86::get_operands(const cs_insn *insn,const fuku_instruction& line, std::vector<fuku_vm_instruction>& operands) {
 
+    /*
     std::vector<fuku_vm_instruction> current_op;
 
     for (int i = 0; i < OPERANDS_NO; i++) {
@@ -215,14 +216,14 @@ void fuku_virtualization_x86::get_operands(const _DInst& inst,const fuku_instruc
 
         current_op.clear();
     }
-
+    */
     printf("\n");
 }
 
-uint8_t fuku_virtualization_x86::get_ext_code(const _DInst& inst) {
+uint8_t fuku_virtualization_x86::get_ext_code(const cs_insn *insn) {
     
     vm_ops_ex_code ex_code(0,0,0,0);
-
+    /*
     if (inst.ops[0].type != O_NONE) {
 
         if (inst.ops[1].type != O_NONE) {
@@ -260,7 +261,7 @@ uint8_t fuku_virtualization_x86::get_ext_code(const _DInst& inst) {
         } 
     }
 
-    
+    */
 
     return ex_code.ex_code;
 }
@@ -272,12 +273,16 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
     association_table.clear();
     lines.clear();
 
-    _CodeInfo code_info = { 0, 0, 0, 0 ,
-        code.arch == fuku_arch::fuku_arch_x32 ? _DecodeType::Decode32Bits : _DecodeType::Decode64Bits,
-        0
-    };
 
-    _DInst current_inst;
+    csh handle;
+    cs_insn *insn;
+    size_t count;
+
+    if (cs_open(CS_ARCH_X86, code.arch == fuku_arch::fuku_arch_x32 ? CS_MODE_32 : CS_MODE_64, &handle) != CS_ERR_OK) {
+        return fuku_vm_result::fuku_vm_bad_arch;
+    }
+
+
     uint32_t used_inst;
     uint64_t current_va = destination_virtual_address;
     std::vector<fuku_vm_instruction> operands;
@@ -286,11 +291,8 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         auto& current_line = code.lines[line_idx];
         operands.clear();
 
-        code_info.code = current_line.get_op_code();
-        code_info.codeLen = current_line.get_op_length();
-        code_info.codeOffset = current_line.get_virtual_address();
 
-        distorm_decompose64(&code_info, &current_inst, 1, &used_inst);
+        count = cs_disasm(handle, current_line.get_op_code(), current_line.get_op_length(), current_line.get_virtual_address(), 1, &insn);
 
         std::vector<fuku_vm_instruction> vm_lines;
 
@@ -298,26 +300,26 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
         switch (current_line.get_type()) {
 
-        case  I_JO: case  I_JNO:
-        case  I_JB: case  I_JAE:
-        case  I_JZ: case  I_JNZ:
-        case  I_JBE:case  I_JA:
-        case  I_JS: case  I_JNS:
-        case  I_JP: case  I_JNP:
-        case  I_JL: case  I_JGE:
-        case  I_JLE:case  I_JG: 
-        case  I_JMP: {
+        case  X86_INS_JO: case  X86_INS_JNO:
+        case  X86_INS_JB: case  X86_INS_JAE:
+        case  X86_INS_JE: case  X86_INS_JNE:
+        case  X86_INS_JBE:case  X86_INS_JA:
+        case  X86_INS_JS: case  X86_INS_JNS:
+        case  X86_INS_JP: case  X86_INS_JNP:
+        case  X86_INS_JL: case  X86_INS_JGE:
+        case  X86_INS_JLE:case  X86_INS_JG: 
+        case  X86_INS_JMP: {
 
             printf("JMP ");
 
             vm_jump_code jump_code;
             
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
 
-            if (current_line.get_type() == I_JMP) {
+            if (current_line.get_type() == X86_INS_JMP) {
                 jump_code.code.condition = 8;
                 jump_code.code.invert_condition = 0;
             }
@@ -353,11 +355,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_CALL: {
+        case X86_INS_CALL: {
             printf("CALL ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
 
@@ -371,29 +373,29 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_external,
                     std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_external, ex_code }))));
 
-                if (current_inst.ops[0].type == O_DISP) {
-                    vm_lines[vm_lines.size() - 2].set_original(&current_line);
-                }
+             //   if (insn.ops[0].type == O_DISP) {
+             //       vm_lines[vm_lines.size() - 2].set_original(&current_line);
+             //   }
 
             }
 
             break;
         }
 
-        case I_RET: {
+        case X86_INS_RET: {
             printf("RET ");
 
-            std::vector<fuku_vm_instruction> ops = create_operand_disp(current_inst.imm.dword);
-            vm_lines.insert(vm_lines.end(), ops.begin(), ops.end());
-            vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_return, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_return)));
+           // std::vector<fuku_vm_instruction> ops = create_operand_disp(insn.imm.dword);
+          //  vm_lines.insert(vm_lines.end(), ops.begin(), ops.end());
+          //  vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_return, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_return)));
             break;
         }
             
-        case I_PUSH: {
+        case X86_INS_PUSH: {
             printf("PUSH ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_push, 
@@ -402,25 +404,25 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_PUSHA: {
+        case X86_INS_PUSHAL: {
             printf("PUSHAD \n");
 
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_pushad, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_pushad)));
             break;
         }
 
-        case I_PUSHF: {
+        case X86_INS_PUSHF: {
             printf("PUSHFD \n");
 
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_pushfd, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_pushfd)));
             break;
         }
 
-        case I_POP: {
+        case X86_INS_POP: {
             printf("POP ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_pop,
@@ -429,25 +431,25 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_POPA: {
+        case X86_INS_POPAL: {
             printf("POPAD \n");
 
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_popad, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_popad)));
             break;
         }
 
-        case I_POPF: {
+        case X86_INS_POPF: {
             printf("POPFD \n");
 
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_popfd, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_popfd)));
             break;
         }
 
-        case I_MOV: {
+        case X86_INS_MOV: {
             printf("MOV ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_mov,
@@ -456,14 +458,14 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
                     
-        case I_LEA: {
+        case X86_INS_LEA: {
             printf("LEA ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
+            uint8_t ex_code = get_ext_code(insn);
             (*(vm_ops_ex_code*)&ex_code).info.src_is_ptr = false;
             (*(vm_ops_ex_code*)&ex_code).info.op_2_size  = (*(vm_ops_ex_code*)&ex_code).info.op_1_size;
 
-            get_operands(current_inst, current_line, operands);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_mov,
@@ -473,11 +475,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         }
 
 
-        case I_XCHG: {
+        case X86_INS_XCHG: {
             printf("XCHG ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_xchg,
@@ -486,11 +488,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_TEST: {
+        case X86_INS_TEST: {
             printf("TEST ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_test,
@@ -499,11 +501,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_AND: {
+        case X86_INS_AND: {
             printf("AND ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_and,
@@ -512,11 +514,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_OR: {
+        case X86_INS_OR: {
             printf("OR ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_or,
@@ -524,11 +526,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-        case I_XOR: {
+        case X86_INS_XOR: {
             printf("XOR ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_xor,
@@ -536,11 +538,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-        case I_NOT: {
+        case X86_INS_NOT: {
             printf("NOT ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_not,
@@ -549,11 +551,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
                     
-        case I_SHL: {
+        case X86_INS_SHL: {
             printf("SHL ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_shl,
@@ -561,11 +563,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-        case I_SHR: {
+        case X86_INS_SHR: {
             printf("SHR ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_shr,
@@ -574,11 +576,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
                     
-        case I_SAR: {
+        case X86_INS_SAR: {
             printf("SAR ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_sar,
@@ -587,11 +589,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }   
 
-        case I_ROL: {
+        case X86_INS_ROL: {
             printf("ROL ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_rol,
@@ -599,11 +601,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-        case I_ROR: {
+        case X86_INS_ROR: {
             printf("ROR ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_ror,
@@ -611,11 +613,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-        case I_RCL: {
+        case X86_INS_RCL: {
             printf("RCL ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_rcl,
@@ -623,11 +625,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             );
             break;
         }
-        case I_RCR: {
+        case X86_INS_RCR: {
             printf("RCR ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_rcr,
@@ -637,11 +639,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         }
 
 
-        case I_NEG: {
+        case X86_INS_NEG: {
             printf("NEG ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_neg,
@@ -650,11 +652,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_CMP: {
+        case X86_INS_CMP: {
             printf("CMP ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_cmp,
@@ -663,11 +665,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
         
-        case I_ADD: {
+        case X86_INS_ADD: {
             printf("ADD ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_add,
@@ -676,11 +678,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_ADC: {
+        case X86_INS_ADC: {
             printf("ADC ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_adc,
@@ -689,15 +691,15 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_INC: {
+        case X86_INS_INC: {
             printf("INC ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
+            uint8_t ex_code = get_ext_code(insn);
             (*(vm_ops_ex_code*)&ex_code).info.dst_is_ptr = true;
             (*(vm_ops_ex_code*)&ex_code).info.src_is_ptr = false;
             (*(vm_ops_ex_code*)&ex_code).info.op_2_size = (*(vm_ops_ex_code*)&ex_code).info.op_1_size;
             
-            get_operands(current_inst, current_line, operands);
+            get_operands(insn, current_line, operands);
             std::vector<fuku_vm_instruction> imm_op = create_operand_disp(1);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
@@ -709,11 +711,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_SUB: {
+        case X86_INS_SUB: {
             printf("SUB ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_sub,
@@ -722,11 +724,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_SBB: {
+        case X86_INS_SBB: {
             printf("SBB ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_sbb,
@@ -735,15 +737,15 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_DEC: {
+        case X86_INS_DEC: {
             printf("DEC ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
+            uint8_t ex_code = get_ext_code(insn);
             (*(vm_ops_ex_code*)&ex_code).info.dst_is_ptr = true;
             (*(vm_ops_ex_code*)&ex_code).info.src_is_ptr = false;
             (*(vm_ops_ex_code*)&ex_code).info.op_2_size = (*(vm_ops_ex_code*)&ex_code).info.op_1_size;
 
-            get_operands(current_inst, current_line, operands);
+            get_operands(insn, current_line, operands);
             std::vector<fuku_vm_instruction> imm_op = create_operand_disp(1);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
@@ -756,21 +758,21 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         }
 
 /*
-        case I_MUL: {
+        case X86_INS_MUL: {
 
             break;
         }
 
-        case I_IMUL: {
+        case X86_INS_IMUL: {
 
             break;
         }
         */
-        case I_DIV: {
+        case X86_INS_DIV: {
             printf("DIV ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_div,
@@ -779,11 +781,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_IDIV: {
+        case X86_INS_IDIV: {
             printf("IDIV ");
 
-            uint8_t ex_code = get_ext_code(current_inst);
-            get_operands(current_inst, current_line, operands);
+            uint8_t ex_code = get_ext_code(insn);
+            get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_idiv,
@@ -792,31 +794,31 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
             break;
         }
 
-        case I_CLC: {
+        case X86_INS_CLC: {
             printf("CLC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_clc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_clc)));
             break;
         }
 
-        case I_CMC: {
+        case X86_INS_CMC: {
             printf("CMC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_cmc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_cmc)));
             break;
         }
 
-        case I_STC: {
+        case X86_INS_STC: {
             printf("STC \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_stc, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_stc)));
             break;
         }
 
-        case I_CLD: {
+        case X86_INS_CLD: {
             printf("CLD \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_cld, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_cld)));
             break;
         }
 
-        case I_STD: {
+        case X86_INS_STD: {
             printf("STD \n");
             vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_std, std::vector<uint8_t>(1, (uint8_t)vm_opcode_86_std)));
             break;

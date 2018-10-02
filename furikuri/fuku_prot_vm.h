@@ -14,7 +14,7 @@ void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& re
 
             std::vector<fuku_protected_region>(),
             std::vector<fuku_code_association>(),
-            std::vector<fuku_code_relocation>(),
+            std::vector<fuku_image_relocation>(),
 
             std::vector<fuku_protection_item>(1,{ fuku_code_analyzer() , settings.ob_settings, regions })
         };
@@ -41,7 +41,7 @@ bool    fuku_protector::initialize_profiles_vm() {
             struct _bind_part_code {
                 uint32_t rva_code_part;
                 std::vector<uint8_t> code_buffer;
-                std::vector<fuku_code_relocation> fuku_code_relocs;
+                std::vector<fuku_image_relocation> fuku_image_relocs;
             };
 
             std::vector<_bind_part_code> bind_part_code;
@@ -65,7 +65,7 @@ bool    fuku_protector::initialize_profiles_vm() {
 
                     if (reloc_item.relative_virtual_address > region.region_rva) {
                         if (reloc_item.relative_virtual_address < (region.region_rva + region.region_size)) {
-                            part_code.fuku_code_relocs.push_back({
+                            part_code.fuku_image_relocs.push_back({
                                 reloc_item.relative_virtual_address + base_address, reloc_item.relocation_id
                                 });
 
@@ -92,7 +92,7 @@ bool    fuku_protector::initialize_profiles_vm() {
                     part_code.code_buffer.data(),
                     part_code.code_buffer.size(),
                     base_address + part_code.rva_code_part,
-                    &part_code.fuku_code_relocs
+                    &part_code.fuku_image_relocs
                 );
             }
         }
@@ -127,7 +127,7 @@ bool fuku_protector::virtualize_profiles() {
 
                     obfuscator.obfuscate_code();
 
-                    if (!an_code.push_code(std::move(obfuscator.get_code().lines))) { return false; }
+                    if (!an_code.push_code(std::move(obfuscator.get_code()))) { return false; }
                 }
                 else {
                     if (!an_code.push_code(std::move(item.an_code))) { return false; }
@@ -139,7 +139,7 @@ bool fuku_protector::virtualize_profiles() {
 
     
             fuku_vm_result result = profile.first.virtualizer->build_bytecode(
-                fuku_analyzed_code(an_code), profile.second.relocation_table, profile.second.association_table,
+                fuku_code_holder(an_code), profile.second.relocation_table, profile.second.association_table,
                 target_module.get_image().get_image_base() + image_io.get_image_offset()
             );
             
@@ -167,7 +167,7 @@ bool    fuku_protector::finish_protected_vm_code() {
 
         for (auto& profile : vm_profiles) {
             std::sort(profile.second.association_table.begin(), profile.second.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
-                return lhs.prev_virtual_address < rhs.prev_virtual_address;
+                return lhs.original_virtual_address < rhs.original_virtual_address;
             });
         }
 

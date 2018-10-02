@@ -43,7 +43,9 @@ furikuri::~furikuri(){}
 bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
     bool main_has_relocations = main_module->get_image_relocations().size() != 0;
 
-    if (shibari_linker(extended_modules, main_module).link_modules() != shibari_linker_errors::shibari_linker_ok) {
+    shibari_linker_errors linker_result = shibari_linker(extended_modules, main_module).link_modules();
+
+    if (linker_result != shibari_linker_errors::shibari_linker_ok) {
         return false;
     }
 

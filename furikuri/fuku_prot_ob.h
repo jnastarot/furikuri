@@ -20,7 +20,7 @@ bool    fuku_protector::initialize_profiles_ob() {
         struct _bind_part_code {
             uint32_t rva_code_part;
             std::vector<uint8_t> code_buffer;
-            std::vector<fuku_code_relocation> fuku_code_relocs;
+            std::vector<fuku_image_relocation> relocs;
         };
 
         std::vector<_bind_part_code> bind_part_code;
@@ -46,7 +46,7 @@ bool    fuku_protector::initialize_profiles_ob() {
 
                 if (reloc_item.relative_virtual_address > region.region_rva) {
                     if (reloc_item.relative_virtual_address < (region.region_rva + region.region_size)) {
-                        part_code.fuku_code_relocs.push_back({
+                        part_code.relocs.push_back({
                             reloc_item.relative_virtual_address + base_address, reloc_item.relocation_id
                             });
 
@@ -73,7 +73,7 @@ bool    fuku_protector::initialize_profiles_ob() {
                 part_code.code_buffer.data(),
                 part_code.code_buffer.size(),
                 base_address + part_code.rva_code_part,
-                &part_code.fuku_code_relocs
+                &part_code.relocs
             );
         }
     }
@@ -100,7 +100,7 @@ bool fuku_protector::obfuscate_profile() {
 
             obfuscator.obfuscate_code();
 
-            if (!an_code.push_code(std::move(obfuscator.get_code().lines))) { return false; }
+            if (!an_code.push_code(std::move(obfuscator.get_code()))) { return false; }
 
 
             ob_profile.regions.insert(ob_profile.regions.end(), item.regions.begin(), item.regions.end());
@@ -147,7 +147,7 @@ bool    fuku_protector::finish_protected_ob_code() {
         bool     is32arch = target_module.get_image().is_x32_image();
 
         std::sort(ob_profile.association_table.begin(), ob_profile.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
-            return lhs.prev_virtual_address < rhs.prev_virtual_address;
+            return lhs.original_virtual_address < rhs.original_virtual_address;
         });
 
         for (auto& reloc : image_relocs.get_items()) {

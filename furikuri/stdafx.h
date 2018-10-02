@@ -22,7 +22,7 @@ using namespace std;
 
 #pragma comment(lib,"enma_pe.lib")
 #pragma comment(lib,"shibari.lib")
-#pragma comment(lib,"distorm_lib.lib")
+#pragma comment(lib,"capstone.lib")
 
 #include "enma_pe\enma_pe\enma_pe.h"
 #include "shibari\shibari\shibari.h"

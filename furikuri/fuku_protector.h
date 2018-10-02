@@ -29,7 +29,7 @@ struct fuku_protection_item {
 struct fuku_protection_profile {
     std::vector<fuku_protected_region> regions;
     std::vector<fuku_code_association> association_table;
-    std::vector<fuku_code_relocation>  relocation_table;
+    std::vector<fuku_image_relocation>  relocation_table;
 
     std::vector<fuku_protection_item> items;
 };

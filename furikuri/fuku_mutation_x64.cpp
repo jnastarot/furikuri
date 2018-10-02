@@ -3,8 +3,8 @@
 
 #define ISNT_LAST (lines.size() > current_line_idx+1)
 
-fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings, unsigned int * label_seed)
-: settings(settings), label_seed(label_seed){}
+fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings)
+: settings(settings){}
 
 fuku_mutation_x64::~fuku_mutation_x64() {
 
@@ -44,7 +44,7 @@ void fuku_mutation_x64::obfuscate_lines(linestorage& lines, unsigned int recurse
     lines = obf_lines;
 }
 
-void fuku_mutation_x64::obfuscate(fuku_analyzed_code& code) {
+void fuku_mutation_x64::obfuscate(fuku_code_holder& code_holder) {
     obfuscate_lines(code.lines, -1);
 }
 
@@ -131,14 +131,14 @@ void fuku_mutation_x64::fukutation(linestorage& lines, unsigned int current_line
 
             //todo
 
-        case I_PUSH: {
+        case X86_INS_PUSH: {
             if (!fukutate_push(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_POP: {
+        case X86_INS_POP: {
             if (!fukutate_pop(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
@@ -146,21 +146,21 @@ void fuku_mutation_x64::fukutation(linestorage& lines, unsigned int current_line
         }
 
 
-        case I_ADD: {
+        case X86_INS_ADD: {
             if (!fukutate_add(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_SUB: {
+        case X86_INS_SUB: {
             if (!fukutate_sub(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_AND: {
+        case X86_INS_AND: {
             if (!fukutate_and(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
@@ -168,55 +168,55 @@ void fuku_mutation_x64::fukutation(linestorage& lines, unsigned int current_line
         }
 
 
-        case I_INC: {
+        case X86_INS_INC: {
             if (!fukutate_inc(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_DEC: {
+        case X86_INS_DEC: {
             if (!fukutate_dec(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_TEST: {
+        case X86_INS_TEST: {
             if (!fukutate_test(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
-        case I_CMP: {
+        case X86_INS_CMP: {
             if (!fukutate_cmp(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case  I_JO: case  I_JNO:
-        case  I_JB: case  I_JAE:
-        case  I_JZ: case  I_JNZ:
-        case  I_JBE:case  I_JA:
-        case  I_JS: case  I_JNS:
-        case  I_JP: case  I_JNP:
-        case  I_JL: case  I_JGE:
-        case  I_JLE:case  I_JG: {
+        case  X86_INS_JO: case  X86_INS_JNO:
+        case  X86_INS_JB: case  X86_INS_JAE:
+        case  X86_INS_JE: case  X86_INS_JNE:
+        case  X86_INS_JBE:case  X86_INS_JA:
+        case  X86_INS_JS: case  X86_INS_JNS:
+        case  X86_INS_JP: case  X86_INS_JNP:
+        case  X86_INS_JL: case  X86_INS_JGE:
+        case  X86_INS_JLE:case  X86_INS_JG: {
             if (!fukutate_jcc(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_JMP: {
+        case X86_INS_JMP: {
             if (!fukutate_jmp(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }
             break;
         }
 
-        case I_RET: {
+        case X86_INS_RET: {
             if (!fukutate_ret(lines, current_line_idx, out_lines)) {
                 out_lines.push_back(lines[current_line_idx]);
             }

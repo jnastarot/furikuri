@@ -10,15 +10,16 @@ class fuku_virtualization_x86 :
     std::vector<fuku_vm_instruction> create_operand_sib(uint8_t base, uint8_t index, uint8_t scale, uint32_t disp);// [base + index*scale + disp/r]
     std::vector<fuku_vm_instruction> create_operand_sib(uint8_t index, uint8_t scale, uint32_t disp);// [index*scale + disp/r]
     
-    void get_operands(const _DInst& inst,const fuku_instruction& line, std::vector<fuku_vm_instruction>& operands);
-    uint8_t get_ext_code(const _DInst& inst);
+
+    void get_operands(const cs_insn *insn, const fuku_instruction& line, std::vector<fuku_vm_instruction>& operands);
+    uint8_t get_ext_code(const cs_insn *insn);
 
     void post_process_lines(uint64_t destination_virtual_address);
 public:
     fuku_virtualization_x86();
     ~fuku_virtualization_x86();
 
-    fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code, 
+    fuku_vm_result fuku_virtualization_x86::build_bytecode(const fuku_code_holder& code_holder,
         std::vector<fuku_code_relocation>& relocation_table, std::vector<fuku_code_association>& association_table, 
         uint64_t destination_virtual_address);
 

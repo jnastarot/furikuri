@@ -1,32 +1,15 @@
 #include "stdafx.h"
 #include "fuku_instruction.h"
 
-fuku_instruction::fuku_instruction(){
+typedef cs_struct cs_struct;
+extern uint8_t *X86_get_op_access(cs_struct *h, unsigned int id, uint64_t *eflags);
 
-    memset(op_code, 0, 16);
-
-    this->op_length     = 0;
-    this->op_pref_size  = 0;
-    this->source_virtual_address = -1;
-    this->virtual_address = 0;                               
-    this->ip_relocation_destination = 0;
-    this->ip_relocation_disp_offset = 0;
-    this->relocation_f_id         = 0;
-    this->relocation_f_imm_offset = 0;   
-    this->relocation_f_destination = 0;
-    this->relocation_s_id         = 0;
-    this->relocation_s_imm_offset = 0;
-    this->relocation_s_destination = 0;
-    this->label_id            = 0;
-    this->link_label_id       = 0;
-    this->relocation_f_label_id = 0;
-    this->relocation_s_label_id = 0;
-    this->flags               = 0;
-    this->type               = 0;
-    this->modified_flags     = 0;
-    this->tested_flags       = 0;
-    this->useless_flags      = 0;
-}
+fuku_instruction::fuku_instruction()
+    :id(-1), op_length(0), op_pref_size(0), op_code({ 0 }),
+    source_virtual_address(-1), virtual_address(-1),
+    label_idx(-1), link_label_idx(-1), 
+    code_relocation_1_idx(-1), code_relocation_2_idx(-1), code_rip_relocation_idx(-1),
+    instruction_flags(0), eflags(0) {}
 
 fuku_instruction::fuku_instruction(const fuku_instruction& line) {
     this->operator=(line);
@@ -40,27 +23,19 @@ fuku_instruction::~fuku_instruction(){
 fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
 
     memcpy(this->op_code, line.op_code, line.op_length);
-    this->op_length         = line.op_length;
-    this->op_pref_size      = line.op_pref_size;
+    this->id = line.id; 
+
+    this->op_length = line.op_length;
+    this->op_pref_size = line.op_pref_size;
     this->source_virtual_address = line.source_virtual_address;
-    this->virtual_address   = line.virtual_address;
-    this->ip_relocation_destination = line.ip_relocation_destination;
-    this->ip_relocation_disp_offset = line.ip_relocation_disp_offset;
-    this->relocation_f_id           = line.relocation_f_id;
-    this->relocation_f_imm_offset = line.relocation_f_imm_offset;
-    this->relocation_f_destination = line.relocation_f_destination;
-    this->relocation_s_id         = line.relocation_s_id;
-    this->relocation_s_imm_offset = line.relocation_s_imm_offset;
-    this->relocation_s_destination = line.relocation_s_destination;
-    this->label_id          = line.label_id;
-    this->link_label_id     = line.link_label_id;
-    this->relocation_f_label_id = line.relocation_f_label_id;
-    this->relocation_s_label_id = line.relocation_s_label_id;
-    this->flags             = line.flags;
-    this->type              = line.type;
-    this->modified_flags    = line.modified_flags;
-    this->tested_flags      = line.tested_flags;
-    this->useless_flags     = line.useless_flags;
+    this->virtual_address = line.virtual_address;
+    this->label_idx = line.label_idx;
+    this->link_label_idx = line.link_label_idx;
+    this->code_relocation_1_idx = line.code_relocation_1_idx;
+    this->code_relocation_2_idx = line.code_relocation_2_idx;
+    this->code_rip_relocation_idx = line.code_rip_relocation_idx;
+    this->instruction_flags = line.instruction_flags;
+    this->eflags = line.eflags;
 
     return *this;
 }
@@ -84,71 +59,14 @@ uint8_t fuku_instruction::get_prefixes_number() {
     return i;
 }
 
-bool fuku_instruction::is_jump() const {
-    if (this->op_length >= 2) {
 
-        if (
-            op_code[op_pref_size] == 0xe9 ||//far jmp
-            op_code[op_pref_size] == 0xeb ||//near jmp
-            (op_code[op_pref_size] & 0xf0) == 0x70 ||//near jcc
-            (op_code[op_pref_size] == 0x0f && (op_code[op_pref_size + 1] & 0xf0) == 0x80) ||//far jcc
-            op_code[op_pref_size] == 0xe8 ||//call
-            (op_code[op_pref_size] >= 0xe0 && op_code[op_pref_size] <= 0xe3)//loopx jecxz
-            ) {
 
-            return true;
-        }
-    }
-    return false;
-}
+fuku_instruction & fuku_instruction::set_id(uint16_t id) {
+    this->id = id;
 
-int32_t fuku_instruction::get_jump_imm() const {
+    X86_get_op_access()
 
-    if (
-        (op_code[op_pref_size] >= 0xe0 && op_code[op_pref_size] <= 0xe3) ||
-        op_code[op_pref_size] == 0xeb ||
-        (op_code[op_pref_size] & 0xf0) == 0x70
-        ) {
-        return (int32_t)*(char*)&op_code[op_pref_size + 1];
-    }
-    else if (
-        op_code[op_pref_size] == 0xe8 ||
-        op_code[op_pref_size] == 0xe9
-        ) {
-        return *(int32_t*)&op_code[op_pref_size + 1];
-    }
-    else if (
-        (op_code[op_pref_size] == 0x0f && (op_code[op_pref_size + 1] & 0xf0) == 0x80)
-        ) { //far jcc
-        return *(int32_t*)&op_code[op_pref_size + 2];
-    }
-
-    return 0;
-}
-
-void fuku_instruction::set_jump_imm(uint64_t destination_virtual_address) {
-
-    switch (op_code[op_pref_size]) {
-
-        case 0xE9:case 0xE8: { //far jmp //call far\near
-            *(uint32_t*)&op_code[op_pref_size + 1] = uint32_t(destination_virtual_address - virtual_address - op_length);
-            break;
-        }
-
-        case 0x0F: { //jcc far
-            switch (op_code[op_pref_size + 1])
-            {
-            case 0x80:case 0x81:case 0x82:case 0x83:case 0x84:case 0x85:case 0x86:case 0x87: //jcc far
-            case 0x88:case 0x89:case 0x8A:case 0x8B:case 0x8C:case 0x8D:case 0x8E:case 0x8F: {
-                *(uint32_t*)&op_code[op_pref_size + 2] = uint32_t(destination_virtual_address - virtual_address - op_length );
-                break;
-            }
-
-            default: { break; }
-            }
-            break;
-        }
-    }
+    return *this;
 }
 
 fuku_instruction&  fuku_instruction::set_op_code(const uint8_t* _op_code, uint8_t _lenght) {
@@ -161,120 +79,71 @@ fuku_instruction&  fuku_instruction::set_op_code(const uint8_t* _op_code, uint8_
 }
 
 fuku_instruction&  fuku_instruction::set_source_virtual_address(uint64_t va) {
+
     this->source_virtual_address = va;
 
     return *this;
 }
+
 fuku_instruction&  fuku_instruction::set_virtual_address(uint64_t va) {
+
     this->virtual_address = va;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_ip_relocation_destination(uint64_t dst_va) {
-    this->ip_relocation_destination = dst_va;
+fuku_instruction&  fuku_instruction::set_label_idx(size_t idx) {
+
+    this->label_idx = idx;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_ip_relocation_disp_offset(uint8_t offset) {
+fuku_instruction&  fuku_instruction::set_link_label_idx(size_t idx) {
 
-    if (offset > 8) {
-        __debugbreak();
-    }
-
-    this->ip_relocation_disp_offset = offset;
+    this->link_label_idx = idx;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_f_id(uint32_t id) {
-    this->relocation_f_id = id;
+fuku_instruction&  fuku_instruction::set_relocation_first_idx(size_t idx) {
+
+    this->code_relocation_1_idx = idx;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_f_imm_offset(uint8_t offset) {
-    this->relocation_f_imm_offset = offset;
+fuku_instruction&  fuku_instruction::set_relocation_second_idx(size_t idx) {
+
+    this->code_relocation_2_idx = idx;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_f_destination(uint64_t dst) {
-    this->relocation_f_destination = dst;
+fuku_instruction&  fuku_instruction::set_rip_relocation_idx(size_t idx) {
+
+    this->code_rip_relocation_idx = idx;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_s_id(uint32_t id) {
-    this->relocation_s_id = id;
+fuku_instruction&  fuku_instruction::set_instruction_flags(uint32_t flags) {
+
+    this->instruction_flags = flags;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_s_imm_offset(uint8_t offset) {
-    this->relocation_s_imm_offset = offset;
+fuku_instruction&  fuku_instruction::set_eflags(uint64_t eflags) {
+
+    this->eflags = eflags;
 
     return *this;
 }
 
-fuku_instruction&  fuku_instruction::set_relocation_s_destination(uint64_t dst) {
-    this->relocation_s_destination = dst;
 
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_label_id(uint32_t id) {
-    this->label_id = id;
-
-    return *this;
-}
-fuku_instruction&  fuku_instruction::set_link_label_id(uint32_t id) {
-    this->link_label_id = id;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_relocation_f_label_id(uint32_t id) {
-    this->relocation_f_label_id = id;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_relocation_s_label_id(uint32_t id) {
-    this->relocation_s_label_id = id;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_flags(uint32_t flags) {
-    this->flags = flags;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_type(uint16_t type) {
-    this->type = type;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_modified_flags(uint16_t modified_flags) {
-    this->modified_flags = modified_flags;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_tested_flags(uint16_t tested_flags) {
-    this->tested_flags = tested_flags;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_useless_flags(uint16_t useless_flags) {
-    this->useless_flags = useless_flags;
-
-    return *this;
+uint16_t fuku_instruction::get_id() const {
+    return this->id;
 }
 
 const uint8_t* fuku_instruction::get_op_code() const {
@@ -297,106 +166,31 @@ uint64_t fuku_instruction::get_virtual_address() const {
     return this->virtual_address;
 }
 
-uint64_t fuku_instruction::get_ip_relocation_destination() const {
-    return this->ip_relocation_destination;
+size_t fuku_instruction::get_label_idx() const {
+    return this->label_idx;
 }
 
-uint8_t	 fuku_instruction::get_ip_relocation_disp_offset() const {
-    return this->ip_relocation_disp_offset;
+size_t fuku_instruction::get_link_label_idx() const {
+    return this->link_label_idx;
 }
 
-uint32_t fuku_instruction::get_relocation_f_id() const {
-    return this->relocation_f_id;
-}
-uint8_t	 fuku_instruction::get_relocation_f_imm_offset() const {
-    return this->relocation_f_imm_offset;
-}
-uint64_t fuku_instruction::get_relocation_f_destination() const {
-    return this->relocation_f_destination;
-}
-uint32_t fuku_instruction::get_relocation_s_id() const {
-    return this->relocation_s_id;
-}
-uint8_t	 fuku_instruction::get_relocation_s_imm_offset() const {
-    return this->relocation_s_imm_offset;
-}
-uint64_t fuku_instruction::get_relocation_s_destination() const {
-    return this->relocation_s_destination;
-}
-uint32_t fuku_instruction::get_label_id() const {
-    return this->label_id;
-}
-uint32_t fuku_instruction::get_link_label_id() const {
-    return this->link_label_id;
+size_t fuku_instruction::get_relocation_first_idx() const {
+    return this->code_relocation_1_idx;
 }
 
-uint32_t fuku_instruction::get_relocation_f_label_id() const {
-    return this->relocation_f_label_id;
+size_t fuku_instruction::get_relocation_second_idx() const {
+    return this->code_relocation_2_idx;
 }
 
-uint32_t fuku_instruction::get_relocation_s_label_id() const {
-    return this->relocation_s_label_id;
+size_t fuku_instruction::get_rip_relocation_idx() const {
+    return this->code_rip_relocation_idx;
 }
 
-
-uint32_t fuku_instruction::get_flags() const {
-    return this->flags;
+uint32_t fuku_instruction::get_instruction_flags() const {
+    return this->instruction_flags;
 }
 
-uint16_t fuku_instruction::get_type() const {
-    return this->type;
+uint64_t fuku_instruction::get_eflags() const {
+    return this->eflags;
 }
 
-uint16_t fuku_instruction::get_modified_flags() const {
-    return this->modified_flags;
-}
-
-uint16_t fuku_instruction::get_tested_flags() const {
-    return this->tested_flags;
-}
-
-uint16_t fuku_instruction::get_useless_flags() const {
-    return this->useless_flags;
-}
-
-fuku_instruction * get_line_by_va(const linestorage& lines, uint64_t virtual_address) {
-
-    size_t left = 0;
-    size_t right = lines.size();
-    size_t mid = 0;
-
-    while (left < right) {
-        mid = left + (right - left) / 2;
-
-        if (lines[mid].get_virtual_address() <= virtual_address &&
-            lines[mid].get_source_virtual_address() + lines[mid].get_op_length() > virtual_address) {
-
-            return (fuku_instruction *)&lines[mid];
-        }
-        else if (lines[mid].get_virtual_address() > virtual_address) {
-            right = mid;
-        }
-        else {
-            left = mid + 1;
-        }
-    }
-
-    return 0;
-}
-
-std::vector<uint8_t> lines_to_bin(linestorage&  lines) {
-
-    std::vector<uint8_t> lines_dump;
-    size_t dump_size = 0;
-
-    for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) { dump_size += lines[line_idx].get_op_length(); }
-    lines_dump.resize(dump_size);
-
-    size_t opcode_caret = 0;
-    for (auto &line : lines) {
-        memcpy(&lines_dump.data()[opcode_caret], line.get_op_code(), line.get_op_length());
-        opcode_caret += line.get_op_length();
-    }
-
-    return lines_dump;
-}

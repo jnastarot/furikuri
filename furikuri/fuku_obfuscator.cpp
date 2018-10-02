@@ -5,18 +5,18 @@
 fuku_obfuscator::fuku_obfuscator()
     : destination_virtual_address(0),
     settings({ 1 , 2 , 10.f, 10.f, 10.f }),
-    association_table(0), relocation_table(0), ip_relocation_table(0) {}
+    association_table(0), relocation_table(0){}
 
 
 fuku_obfuscator::~fuku_obfuscator(){
 }
 
-void fuku_obfuscator::set_code(const fuku_code_analyzer& code) {
-    this->code = code;
+void fuku_obfuscator::set_code(const fuku_code_analyzer& code_analyzer) {
+    this->code = code_analyzer;
 }
 
-void fuku_obfuscator::set_code(const fuku_analyzed_code& code) {
-    this->code = code;
+void fuku_obfuscator::set_code(const fuku_code_holder& code_holder) {
+    this->code = code_holder;
 }
 
 void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address) {
@@ -31,20 +31,12 @@ void fuku_obfuscator::set_association_table(std::vector<fuku_code_association>*	
     this->association_table = associations;
 }
 
-void fuku_obfuscator::set_relocation_table(std::vector<fuku_code_relocation>* relocations) {
+void fuku_obfuscator::set_relocation_table(std::vector<fuku_image_relocation>* relocations) {
     this->relocation_table = relocations;
 }
 
-void fuku_obfuscator::set_ip_relocation_table(std::vector<fuku_code_ip_relocation>* relocations) {
-    this->ip_relocation_table = relocations;
-}
-
 fuku_arch   fuku_obfuscator::get_arch() const {
-    return this->code.arch;
-}
-
-const linestorage& fuku_obfuscator::get_lines() const {
-    return this->code.lines;
+    return this->code.get_arch();
 }
 
 uint64_t     fuku_obfuscator::get_destination_virtual_address() const {
@@ -59,39 +51,41 @@ const std::vector<fuku_code_association> fuku_obfuscator::get_association_table(
     return *this->association_table;
 }
 
-const std::vector<fuku_code_relocation> fuku_obfuscator::get_relocation_table() const {
+const std::vector<fuku_image_relocation> fuku_obfuscator::get_relocation_table() const {
     return *this->relocation_table;
 }
 
-const std::vector<fuku_code_ip_relocation> fuku_obfuscator::get_ip_relocation_table() const {
-    return *this->ip_relocation_table;
-}
 
-const fuku_analyzed_code& fuku_obfuscator::get_code() const {
+const fuku_code_holder& fuku_obfuscator::get_code() const {
     return this->code;
 }
 
 void fuku_obfuscator::obfuscate_code() {
 
-    fuku_mutation * mutator = (code.arch == fuku_arch::fuku_arch_x32) ?
-        (fuku_mutation*)(new fuku_mutation_x86(settings, &this->code.label_seed)) : (fuku_mutation*)(new fuku_mutation_x64(settings, &this->code.label_seed));
+    if (code.get_arch() == fuku_arch::fuku_arch_unknown) {
+        return;
+    }
 
 
-    handle_jmps(code.lines);
+    fuku_mutation * mutator = (code.get_arch() == fuku_arch::fuku_arch_x32) ?
+        (fuku_mutation*)(new fuku_mutation_x86(settings)) : (fuku_mutation*)(new fuku_mutation_x64(settings));
+
+
+    handle_jmps(code);
 
     useless_flags_profiler();
 
     for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
-        lines_correction(code.lines, destination_virtual_address);
+        lines_correction(code, destination_virtual_address);
         mutator->obfuscate(code);
         
         if (settings.block_chance > 0.f) {
-            spagetti_code(code.lines, destination_virtual_address); //mix lines
+            spagetti_code(code, destination_virtual_address); //mix lines
         }
     }
 
-    if (code.arch == fuku_arch::fuku_arch_x32) {
+    if (code.get_arch() == fuku_arch::fuku_arch_x32) {
         delete (fuku_mutation_x86*)mutator;
     }
     else {
@@ -99,10 +93,6 @@ void fuku_obfuscator::obfuscate_code() {
     }
 
     finalize_code();
-}
-
-std::vector<uint8_t> fuku_obfuscator::get_raw_code() {
-    return lines_to_bin(code.lines);
 }
 
 void fuku_obfuscator::spagetti_code(linestorage& lines, uint64_t virtual_address) {
@@ -368,7 +358,8 @@ void fuku_obfuscator::useless_flags_profiler() {
 
                     switch (type)
                     {
-                    case I_IRET:case I_JMP:case I_JMP_FAR: case I_RET: case I_CALL: {
+                        
+                    case X86_INS_JMP: case X86_INS_RET: case X86_INS_CALL: {
                         goto routine_exit;
                     }
 
@@ -519,16 +510,4 @@ void fuku_obfuscator::finalize_code() {
 
         line.set_op_code(op_code, line.get_op_length());
     }
-}
-
-uint32_t fuku_obfuscator::set_label(fuku_instruction& line) {
-    if (!line.get_label_id()) {
-        line.set_label_id(this->code.label_seed);
-        this->code.label_seed++;
-    }
-    return line.get_label_id();
-}
-
-uint32_t fuku_obfuscator::get_maxlabel() const {
-    return this->code.label_seed;
 }
