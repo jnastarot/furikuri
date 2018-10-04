@@ -1,15 +1,12 @@
 #include "stdafx.h"
 #include "fuku_instruction.h"
 
-typedef cs_struct cs_struct;
-extern uint8_t *X86_get_op_access(cs_struct *h, unsigned int id, uint64_t *eflags);
-
 fuku_instruction::fuku_instruction()
     :id(-1), op_length(0), op_pref_size(0), op_code({ 0 }),
     source_virtual_address(-1), virtual_address(-1),
-    label_idx(-1), link_label_idx(-1), 
+    label_idx(-1),
     code_relocation_1_idx(-1), code_relocation_2_idx(-1), code_rip_relocation_idx(-1),
-    instruction_flags(0), eflags(0) {}
+    instruction_flags(0), eflags(0), custom_flags(0) {}
 
 fuku_instruction::fuku_instruction(const fuku_instruction& line) {
     this->operator=(line);
@@ -30,12 +27,12 @@ fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
     this->source_virtual_address = line.source_virtual_address;
     this->virtual_address = line.virtual_address;
     this->label_idx = line.label_idx;
-    this->link_label_idx = line.link_label_idx;
     this->code_relocation_1_idx = line.code_relocation_1_idx;
     this->code_relocation_2_idx = line.code_relocation_2_idx;
     this->code_rip_relocation_idx = line.code_rip_relocation_idx;
     this->instruction_flags = line.instruction_flags;
     this->eflags = line.eflags;
+    this->custom_flags = line.custom_flags;
 
     return *this;
 }
@@ -62,9 +59,8 @@ uint8_t fuku_instruction::get_prefixes_number() {
 
 
 fuku_instruction & fuku_instruction::set_id(uint16_t id) {
-    this->id = id;
 
-    X86_get_op_access()
+    this->id = id;
 
     return *this;
 }
@@ -95,13 +91,6 @@ fuku_instruction&  fuku_instruction::set_virtual_address(uint64_t va) {
 fuku_instruction&  fuku_instruction::set_label_idx(size_t idx) {
 
     this->label_idx = idx;
-
-    return *this;
-}
-
-fuku_instruction&  fuku_instruction::set_link_label_idx(size_t idx) {
-
-    this->link_label_idx = idx;
 
     return *this;
 }
@@ -141,12 +130,22 @@ fuku_instruction&  fuku_instruction::set_eflags(uint64_t eflags) {
     return *this;
 }
 
+fuku_instruction&  fuku_instruction::set_custom_flags(uint64_t custom_flags) {
+
+    this->custom_flags = custom_flags;
+
+    return *this;
+}
 
 uint16_t fuku_instruction::get_id() const {
     return this->id;
 }
 
 const uint8_t* fuku_instruction::get_op_code() const {
+    return this->op_code;
+}
+
+uint8_t* fuku_instruction::get_op_code() {
     return this->op_code;
 }
 
@@ -170,10 +169,6 @@ size_t fuku_instruction::get_label_idx() const {
     return this->label_idx;
 }
 
-size_t fuku_instruction::get_link_label_idx() const {
-    return this->link_label_idx;
-}
-
 size_t fuku_instruction::get_relocation_first_idx() const {
     return this->code_relocation_1_idx;
 }
@@ -194,3 +189,6 @@ uint64_t fuku_instruction::get_eflags() const {
     return this->eflags;
 }
 
+uint64_t fuku_instruction::get_custom_flags() const {
+    return this->custom_flags;
+}

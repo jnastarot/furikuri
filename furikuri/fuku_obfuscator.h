@@ -12,9 +12,9 @@ class fuku_obfuscator {
     std::vector<fuku_code_association>*     association_table;
     std::vector<fuku_image_relocation>*      relocation_table;
 
-    void    fuku_obfuscator::spagetti_code(linestorage& lines, uint64_t virtual_address);
-    void    fuku_obfuscator::handle_jmps(linestorage& lines);
-    void    fuku_obfuscator::lines_correction(linestorage& lines, uint64_t virtual_address);
+    void    fuku_obfuscator::spagetti_code(uint64_t virtual_address);
+    void    fuku_obfuscator::handle_jmps();
+    void    fuku_obfuscator::lines_correction(uint64_t virtual_address);
     void    fuku_obfuscator::finalize_code();
     void    fuku_obfuscator::useless_flags_profiler(); 
 public:

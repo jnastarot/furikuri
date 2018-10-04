@@ -25,7 +25,7 @@ class fuku_instruction {
 
     //relative idxs    if has index then value => 0 else -1
     size_t label_idx;
-    size_t link_label_idx;
+//    size_t link_label_idx;
 
     size_t code_relocation_1_idx;
     size_t code_relocation_2_idx;
@@ -34,6 +34,7 @@ class fuku_instruction {
     uint32_t instruction_flags; //combination of or fuku_instuction_flags
 
     uint64_t eflags;
+    uint64_t custom_flags;
 
     uint8_t fuku_instruction::get_prefixes_number();
 public:
@@ -51,7 +52,6 @@ public:
     fuku_instruction&  fuku_instruction::set_virtual_address(uint64_t va);
 
     fuku_instruction&  fuku_instruction::set_label_idx(size_t idx);
-    fuku_instruction&  fuku_instruction::set_link_label_idx(size_t idx);
 
     fuku_instruction&  fuku_instruction::set_relocation_first_idx(size_t idx);
     fuku_instruction&  fuku_instruction::set_relocation_second_idx(size_t idx);
@@ -61,10 +61,12 @@ public:
     fuku_instruction&  fuku_instruction::set_instruction_flags(uint32_t instruction_flags);
     
     fuku_instruction&  fuku_instruction::set_eflags(uint64_t eflags);
+    fuku_instruction&  fuku_instruction::set_custom_flags(uint64_t custom_flags);
 public:
     uint16_t fuku_instruction::get_id() const;
 
     const uint8_t* fuku_instruction::get_op_code() const;
+    uint8_t* fuku_instruction::get_op_code();
     uint8_t  fuku_instruction::get_op_length() const;
     uint8_t  fuku_instruction::get_op_pref_size() const;
 
@@ -72,7 +74,6 @@ public:
     uint64_t fuku_instruction::get_virtual_address() const;
     
     size_t fuku_instruction::get_label_idx() const;
-    size_t fuku_instruction::get_link_label_idx() const;
 
     size_t fuku_instruction::get_relocation_first_idx() const;
     size_t fuku_instruction::get_relocation_second_idx() const;
@@ -81,6 +82,7 @@ public:
 
     uint32_t fuku_instruction::get_instruction_flags() const;
     uint64_t fuku_instruction::get_eflags() const;
+    uint64_t fuku_instruction::get_custom_flags() const;
 };
 
 typedef std::list<fuku_instruction> linestorage;

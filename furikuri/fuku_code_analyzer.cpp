@@ -207,55 +207,44 @@ bool fuku_code_analyzer::merge_labels() {
         labels.reserve(new_labels_chain.size());
         label_new_map.resize(new_labels_chain.size());
 
-        for (size_t label_idx = 0, idx_delta = 0; label_idx < new_labels_chain.size(); label_idx++) {
+        for (size_t label_idx = 0; label_idx < new_labels_chain.size(); label_idx++) {
 
-            auto& label = new_labels_chain[label_idx];
+            auto& label_chain = new_labels_chain[label_idx];
             
-            if (label.new_label_idx == label_idx) {
+            if (label_chain.new_label_idx == label_idx) {
 
+                label_new_map[label_idx] = labels.size();
+                labels.push_back( label_chain.label );
             }
-            else {
-
-            }
-
-            labels.push_back();
         }
 
+        for (size_t label_idx = 0; label_idx < new_labels_chain.size(); label_idx++) {
+
+            auto& label_chain = new_labels_chain[label_idx];
+
+            if (label_chain.new_label_idx != label_idx) {
+
+                label_new_map[label_idx] = label_new_map[label_chain.new_label_idx];
+            }
+        }
+
+
+        for (auto& line : code.get_lines()) {
+
+            if (line.get_label_idx() != -1) {
+                line.set_label_idx(label_new_map[line.get_label_idx()]);
+            }
+        }
+
+        for (auto& reloc : code.get_relocations()) {
+            reloc.label_idx = label_new_map[reloc.label_idx];
+        }
+        for (auto& rip_reloc : code.get_rip_relocations()) {
+            rip_reloc.label_idx = label_new_map[rip_reloc.label_idx];
+        }
 
         this->code.set_labels(labels);
     }
-
-
-
-    /*
-        auto& dst_labels = code.get_labels();
-
-        std::vector<size_t> label_idxs_deleted;
-
-        for (size_t label_idx = 0; label_idx < dst_labels.size(); label_idx++) {
-
-            auto& label = dst_labels[label_idx];
-
-            if (!label.has_linked_instruction) {
-
-                fuku_instruction * line = this->code.get_direct_line_by_source_va(label.dst_address);
-
-                if (line) {
-
-                    if (line->get_label_idx() != -1) {
-                        //delete labels and create new
-                        label_idxs_deleted.push_back(label_idx);
-
-                    }
-                    else {
-                        label.has_linked_instruction = 1;
-                        label.instruction = line;
-                    }
-                }
-            }
-        }
-
-    */
 
     return true;
 }
@@ -298,10 +287,6 @@ bool fuku_code_analyzer::merge_code(const fuku_code_holder& code_holder) {
                 }
 
                 if (label_count) {
-
-                    if (src_iter->get_link_label_idx() != -1) {
-                        src_iter->set_link_label_idx(label_count + src_iter->get_link_label_idx());
-                    }
 
                     if (src_iter->get_relocation_first_idx() != -1) {
                         src_iter->set_relocation_first_idx(reloc_count + src_iter->get_relocation_first_idx());
@@ -367,139 +352,6 @@ bool fuku_code_analyzer::merge_code(const fuku_code_holder& code_holder) {
     else {
         this->code = code_holder;
     }
-
-
-
-
-    /*
-    std::vector<size_t> new_lines_idxs;
-
-    if (cached_new_lines_idxs) {
-        new_lines_idxs = *cached_new_lines_idxs;
-    }
-    else {
-        for (size_t line_idx = 0; line_idx < new_lines.size(); line_idx++) {
-            if (new_lines[line_idx].get_source_virtual_address() != -1) {
-                new_lines_idxs.push_back(line_idx);
-            }
-        }
-    }
-
-
-    for (auto&jump_idx : code.jumps_idx_cache) {
-        auto& jump_line = code.lines[jump_idx];
-
-        if (!jump_line.get_link_label_id()) {
-            uint64_t jmp_dst_va = jump_line.get_source_virtual_address() +
-                jump_line.get_op_length() +
-                jump_line.get_jump_imm();
-
-            fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(new_lines, new_lines_idxs, jmp_dst_va);
-
-            if (dst_line) {
-                jump_line.set_link_label_id(set_label(*dst_line));
-            }
-        }
-    }
-
-    for (auto&rel_idx : code.rel_idx_cache) {
-        auto& rel_line = code.lines[rel_idx];
-
-        if (rel_line.get_relocation_f_imm_offset() && !rel_line.get_relocation_f_label_id()) {
-            fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(new_lines, new_lines_idxs, rel_line.get_relocation_f_destination());
-
-            if (dst_line) {
-                rel_line.set_relocation_f_label_id(set_label(*dst_line));
-            }
-        }
-        if (rel_line.get_relocation_s_imm_offset() && !rel_line.get_relocation_s_label_id()) {
-            fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(new_lines, new_lines_idxs, rel_line.get_relocation_s_destination());
-
-            if (dst_line) {
-                rel_line.set_relocation_s_label_id(set_label(*dst_line));
-            }
-        }
-    }
-
-    for (auto&ip_rel_idx : code.ip_rel_idx_cache) {
-        auto& ip_rel_line = code.lines[ip_rel_idx];
-
-        if (!ip_rel_line.get_link_label_id()) {
-            fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(new_lines, new_lines_idxs, ip_rel_line.get_ip_relocation_destination());
-
-            if (dst_line) {
-                ip_rel_line.set_link_label_id(set_label(*dst_line));
-            }
-        }
-    }
-
-    for (uint32_t new_line_idx = 0; new_line_idx < new_lines.size(); new_line_idx++) {//link new lines with stored lines
-        auto& new_line = new_lines[new_line_idx];
-
-        if (new_line.get_label_id()) {
-            code.labels_cache.push_back(code.lines.size() + new_line_idx);
-        }
-
-        if (new_line.get_flags() & fuku_instruction_has_relocation) {
-            code.rel_idx_cache.push_back(code.lines.size() + new_line_idx);
-
-            if (new_line.get_relocation_f_imm_offset()) {
-                fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(code.lines, original_lines_idx, new_line.get_relocation_f_destination());
-
-                if (dst_line) {
-                    new_line.set_relocation_f_label_id(set_label(*dst_line));
-                }
-            }
-            if (new_line.get_relocation_s_imm_offset()) {
-                fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(code.lines, original_lines_idx, new_line.get_relocation_s_destination());
-
-                if (dst_line) {
-                    new_line.set_relocation_s_label_id(set_label(*dst_line));
-                }
-            }
-
-        }
-        else if (!new_line.get_link_label_id()) {
-
-            if (new_line.get_flags() & fuku_instruction_has_ip_relocation) {
-                code.ip_rel_idx_cache.push_back(code.lines.size() + new_line_idx);
-
-                fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(code.lines, original_lines_idx, new_line.get_ip_relocation_destination());
-
-                if (dst_line) {
-                    new_line.set_link_label_id(set_label(*dst_line));
-                }
-            }
-            else if (new_line.is_jump()) {
-                code.jumps_idx_cache.push_back(code.lines.size() + new_line_idx);
-
-                uint64_t jmp_dst_va = new_line.get_source_virtual_address() +
-                    new_line.get_op_length() +
-                    new_line.get_jump_imm();
-
-                fuku_instruction * dst_line = get_direct_line_by_source_va_in_idx(code.lines, original_lines_idx, jmp_dst_va);
-
-                if (dst_line) {
-                    new_line.set_link_label_id(set_label(*dst_line));
-                }
-            }
-        }
-    }
-
-    size_t top_idx = code.lines.size();
-
-    for (size_t line_idx = 0; line_idx < new_lines_idxs.size(); line_idx++) {
-        new_lines_idxs[line_idx] += top_idx;
-    }
-
-    code.lines.insert(code.lines.end(), new_lines.begin(), new_lines.end());
-    original_lines_idx.insert(original_lines_idx.end(), new_lines_idxs.begin(), new_lines_idxs.end());
-
-    std::sort(original_lines_idx.begin(), original_lines_idx.end(), [&, this](const uint32_t l_idx, const uint32_t r_idx) {
-        return this->code.lines[l_idx].get_source_virtual_address() < this->code.lines[r_idx].get_source_virtual_address();
-    });
-    */
-
 
     return true;
 }

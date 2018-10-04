@@ -266,7 +266,7 @@ uint8_t fuku_virtualization_x86::get_ext_code(const cs_insn *insn) {
     return ex_code.ex_code;
 }
 
-fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code, 
+fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_holder,
     std::vector<fuku_code_relocation>& relocation_table, std::vector<fuku_code_association>& association_table, 
     uint64_t destination_virtual_address) {
 
@@ -278,7 +278,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
     cs_insn *insn;
     size_t count;
 
-    if (cs_open(CS_ARCH_X86, code.arch == fuku_arch::fuku_arch_x32 ? CS_MODE_32 : CS_MODE_64, &handle) != CS_ERR_OK) {
+    if (cs_open(CS_ARCH_X86, code_holder.get_arch() == fuku_arch::fuku_arch_x32 ? CS_MODE_32 : CS_MODE_64, &handle) != CS_ERR_OK) {
         return fuku_vm_result::fuku_vm_bad_arch;
     }
 
@@ -287,8 +287,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
     uint64_t current_va = destination_virtual_address;
     std::vector<fuku_vm_instruction> operands;
 
-    for (size_t line_idx = 0; line_idx < code.lines.size(); line_idx++) {
-        auto& current_line = code.lines[line_idx];
+    for (auto& current_line : code_holder.get_lines()) {
         operands.clear();
 
 
@@ -298,7 +297,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
         printf("[ %I64x ] ", current_line.get_source_virtual_address());
 
-        switch (current_line.get_type()) {
+        switch (current_line.get_id()) {
 
         case  X86_INS_JO: case  X86_INS_JNO:
         case  X86_INS_JB: case  X86_INS_JAE:
@@ -319,7 +318,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
 
-            if (current_line.get_type() == X86_INS_JMP) {
+            if (current_line.get_id() == X86_INS_JMP) {
                 jump_code.code.condition = 8;
                 jump_code.code.invert_condition = 0;
             }
@@ -337,12 +336,12 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
                 jump_code.code.invert_condition = jmp_cc & 1;
             }
 
-            if (current_line.get_link_label_id()) {
+            if (current_line.get_link_label_idx() != -1) {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_jump_local,
                     std::vector<uint8_t>(std::initializer_list<uint8_t>({  (uint8_t)vm_opcode_86_jump_local, jump_code.j_code, ex_code })))
                 );
 
-                vm_lines[vm_lines.size() - 2].set_link_label_id(current_line.get_link_label_id());
+                vm_lines[vm_lines.size() - 2].set_link_label_id(current_line.get_link_label_idx());
             }
             else {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_jump_external,
@@ -363,11 +362,11 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
 
-            if (current_line.get_link_label_id()) {
+            if (current_line.get_link_label_idx() != -1) {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_local,
                     std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_local, ex_code }))));
 
-                vm_lines[vm_lines.size() - 2].set_link_label_id(current_line.get_link_label_id());
+                vm_lines[vm_lines.size() - 2].set_link_label_id(current_line.get_link_label_idx());
             }
             else {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_external,
@@ -829,8 +828,8 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
 
             vm_pure_code pure_code;
             pure_code.info.code_len = current_line.get_op_length();
-            pure_code.info.reloc_offset_1 = current_line.get_relocation_f_imm_offset();
-            pure_code.info.reloc_offset_2 = current_line.get_relocation_s_imm_offset();
+            //pure_code.info.reloc_offset_1 = current_line.get_relocation_f_imm_offset();
+           // pure_code.info.reloc_offset_2 = current_line.get_relocation_s_imm_offset();
             
             fuku_vm_instruction vm_pure(vm_opcode_86_pure);
             vm_pure.add_pcode((uint8_t)vm_opcode_86_pure);
@@ -849,7 +848,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_analyzed_code& code,
         if (vm_lines.size() == 0) { __debugbreak(); }
 
         vm_lines[0].set_source_virtual_address(current_line.get_source_virtual_address());
-        vm_lines[0].set_label_id(current_line.get_label_id());
+        vm_lines[0].set_label_id(current_line.get_label_idx());
 
         lines.insert(lines.end(), vm_lines.begin(), vm_lines.end());
     }

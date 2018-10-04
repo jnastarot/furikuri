@@ -19,7 +19,7 @@ public:
     fuku_virtualization_x86();
     ~fuku_virtualization_x86();
 
-    fuku_vm_result fuku_virtualization_x86::build_bytecode(const fuku_code_holder& code_holder,
+    fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_holder,
         std::vector<fuku_code_relocation>& relocation_table, std::vector<fuku_code_association>& association_table, 
         uint64_t destination_virtual_address);
 
