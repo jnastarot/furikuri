@@ -100,7 +100,7 @@ int main() {
 
      //   fuku_ob_settings settings = { 2,2,50.f,50.f,50.f };
      //   fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, settings);
-        fuku_virtualization_x86 vm;
+        //fuku_virtualization_x86 vm;
         //0x1000 , 0x6F0
 
       /*
@@ -112,9 +112,10 @@ int main() {
             }));
             */
 
-        //fuku_ob_settings ob_set = { 1,1,50.f,50.f,50.f };
-        //fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
+        fuku_ob_settings ob_set = { 1,1,50.f,50.f,50.f };
+        fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
         
+        /*
         fuku.add_vm_code_list({ 0x1000 , 0x6F0 }, &_module, fuku_vm_settings({
             { 0,0,00.f,00.f,00.f },// { 2,2,50.f,50.f,50.f },
             &_vm_module,

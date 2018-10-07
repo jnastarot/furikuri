@@ -55,6 +55,7 @@ public:
     fuku_code_holder& operator=(const fuku_code_analyzer& code_analyzer);
 
 public:
+    void   update_virtual_address(uint64_t destination_virtual_address);
     void   update_origin_idxs();
 
     size_t create_label(fuku_instruction* line);
@@ -103,4 +104,6 @@ public:
     const linestorage&  get_lines() const;
 };
 
-std::vector<uint8_t> dump_lines(fuku_code_holder&  code_holder);
+std::vector<uint8_t> finalize_code(fuku_code_holder&  code_holder, 
+    std::vector<fuku_code_association>* associations,
+    std::vector<fuku_image_relocation>* relocations);

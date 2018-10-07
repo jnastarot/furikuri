@@ -2,11 +2,14 @@
 #include "fuku_instruction.h"
 
 fuku_instruction::fuku_instruction()
-    :id(-1), op_length(0), op_pref_size(0), op_code({ 0 }),
+    :id(-1), op_length(0), op_pref_size(0),
     source_virtual_address(-1), virtual_address(-1),
     label_idx(-1),
     code_relocation_1_idx(-1), code_relocation_2_idx(-1), code_rip_relocation_idx(-1),
-    instruction_flags(0), eflags(0), custom_flags(0) {}
+    instruction_flags(0), eflags(0), custom_flags(0) {
+
+    memset(op_code, 0, sizeof(op_code));
+}
 
 fuku_instruction::fuku_instruction(const fuku_instruction& line) {
     this->operator=(line);

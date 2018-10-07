@@ -46,8 +46,9 @@ bool    fuku_protector::initialize_profiles_ob() {
 
                 if (reloc_item.relative_virtual_address > region.region_rva) {
                     if (reloc_item.relative_virtual_address < (region.region_rva + region.region_size)) {
+
                         part_code.relocs.push_back({
-                            reloc_item.relative_virtual_address + base_address, reloc_item.relocation_id
+                             reloc_item.relocation_id, reloc_item.relative_virtual_address + base_address
                             });
 
 
@@ -114,8 +115,6 @@ bool fuku_protector::obfuscate_profile() {
 
         
         fuku_obfuscator obfuscator;
-        obfuscator.set_association_table(&ob_profile.association_table);
-        obfuscator.set_relocation_table(&ob_profile.relocation_table);
         obfuscator.set_settings({ 1, 1, 0, 5.f, 0 });
 
         obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base() + dest_address_rva);
@@ -125,8 +124,8 @@ bool fuku_protector::obfuscate_profile() {
 
         obfuscator.obfuscate_code();
 
-        std::vector<uint8_t> ob_code = obfuscator.get_raw_code();
-
+        std::vector<uint8_t> ob_code = finalize_code(obfuscator.get_code(), &ob_profile.association_table, &ob_profile.relocation_table);
+        
         if (image_io.set_image_offset(dest_address_rva).write(ob_code) != enma_io_success) { //todo //rewrite for dynamic code place
             return false;
         }

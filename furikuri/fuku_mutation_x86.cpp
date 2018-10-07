@@ -36,6 +36,7 @@ void fuku_mutation_x86::obfuscate(fuku_code_holder& code_holder) {
 
 void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    /*
     size_t current_size = 0;
     linestorage lines;
 
@@ -79,6 +80,8 @@ void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, b
         memcpy(&junk[caret_pos], line.get_op_code(), line.get_op_length());
         caret_pos += line.get_op_length();
     }
+    */
+
 }
 
 
@@ -171,7 +174,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
     }
 
 
-   
+   /*
     for (auto& line : out_lines) {
         if (unstable_stack) {
             line.set_flags(line.get_flags() | fuku_instruction_bad_stack);
@@ -186,6 +189,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
     out_lines[0].set_source_virtual_address(lines[current_line_idx].get_source_virtual_address());
 
     out_lines[0].set_label_id(lines[current_line_idx].get_label_id());
+    */
 }
 
 
@@ -924,7 +928,7 @@ void fuku_mutation_x86::generate_junk(linestorage& junk,
     fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
     size_t current_size = 0;
-
+    /*
     while (junk_size != current_size) {
 
         switch (FUKU_GET_RAND(1, min(min(junk_size - current_size, max_size),7))) {
@@ -958,6 +962,8 @@ void fuku_mutation_x86::generate_junk(linestorage& junk,
         }
         }
     }
+    */
+
 }
 
 void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
@@ -996,12 +1002,12 @@ void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::it
 
 
 void fuku_mutation_x86::fuku_junk_1b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
-    out_lines.push_back(f_asm.nop());
+ //   out_lines.push_back(f_asm.nop());
 }
 
 void fuku_mutation_x86::fuku_junk_2b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
-
+    /*
     switch (FUKU_GET_RAND(0, 4)) {
     
     case 0: {
@@ -1080,11 +1086,11 @@ void fuku_mutation_x86::fuku_junk_2b(fuku_code_holder& code_holder, linestorage:
         break;
     }
 
-    }
+    }*/
 }
 
 void fuku_mutation_x86::fuku_junk_3b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
-
+    /*
     switch (FUKU_GET_RAND(0, 3)) {
     case 0: {
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF);
@@ -1133,10 +1139,12 @@ void fuku_mutation_x86::fuku_junk_3b(fuku_code_holder& code_holder, linestorage:
         }
         break;
     }
-    }
+    }*/
 }
 
 void fuku_mutation_x86::fuku_junk_4b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    /*
 
     switch (FUKU_GET_RAND(0, 1)) {
     case 0: {
@@ -1176,12 +1184,12 @@ void fuku_mutation_x86::fuku_junk_4b(fuku_code_holder& code_holder, linestorage:
     }
 
     }
-
+    */
 }
 
 void fuku_mutation_x86::fuku_junk_5b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
-    
+    /*
     switch (FUKU_GET_RAND(0, 1)) {
     case 0: {
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
@@ -1205,11 +1213,12 @@ void fuku_mutation_x86::fuku_junk_5b(fuku_code_holder& code_holder, linestorage:
         }
         break;
     }
-    }
+    }*/
 }
 
 void fuku_mutation_x86::fuku_junk_6b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
+    /*
     switch (FUKU_GET_RAND(0, 1)) {
     case 0: {
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
@@ -1235,13 +1244,13 @@ void fuku_mutation_x86::fuku_junk_6b(fuku_code_holder& code_holder, linestorage:
         }
         break;
     }
-    }
+    }*/
 }
 
 
 void fuku_mutation_x86::fuku_junk_7b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
-
+    /*
     if (!unstable_stack) {
         fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
         fuku_immediate86 imm = fuku_immediate86(FUKU_GET_RAND(0x10000000, 0xFFFFFFFF));
@@ -1265,6 +1274,6 @@ void fuku_mutation_x86::fuku_junk_7b(fuku_code_holder& code_holder, linestorage:
     }
     else {
         generate_junk(out_lines, next_line, 6, 7, unstable_stack, allow_flags_changes);
-    }
+    }*/
 
 }

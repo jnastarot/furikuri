@@ -4,8 +4,7 @@
 
 fuku_obfuscator::fuku_obfuscator()
     : destination_virtual_address(0),
-    settings({ 1 , 2 , 10.f, 10.f, 10.f }),
-    association_table(0), relocation_table(0){}
+    settings({ 1 , 2 , 10.f, 10.f, 10.f }){}
 
 
 fuku_obfuscator::~fuku_obfuscator(){
@@ -27,14 +26,6 @@ void fuku_obfuscator::set_settings(const fuku_ob_settings& settings) {
     memcpy(&this->settings,&settings,sizeof(fuku_ob_settings));
 }
 
-void fuku_obfuscator::set_association_table(std::vector<fuku_code_association>*	associations) {
-    this->association_table = associations;
-}
-
-void fuku_obfuscator::set_relocation_table(std::vector<fuku_image_relocation>* relocations) {
-    this->relocation_table = relocations;
-}
-
 fuku_arch   fuku_obfuscator::get_arch() const {
     return this->code.get_arch();
 }
@@ -47,14 +38,9 @@ fuku_ob_settings fuku_obfuscator::get_settings() const {
     return this->settings;
 }
 
-const std::vector<fuku_code_association> fuku_obfuscator::get_association_table() const {
-    return *this->association_table;
+fuku_code_holder& fuku_obfuscator::get_code() {
+    return this->code;
 }
-
-const std::vector<fuku_image_relocation> fuku_obfuscator::get_relocation_table() const {
-    return *this->relocation_table;
-}
-
 
 const fuku_code_holder& fuku_obfuscator::get_code() const {
     return this->code;
@@ -77,11 +63,10 @@ void fuku_obfuscator::obfuscate_code() {
 
     for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
-        lines_correction(destination_virtual_address);
-        mutator->obfuscate(code);
+      //  mutator->obfuscate(code);
         
         if (settings.block_chance > 0.f) {
-            spagetti_code(destination_virtual_address); //mix lines
+          //  spagetti_code(); //mix lines
         }
     }
 
@@ -92,13 +77,10 @@ void fuku_obfuscator::obfuscate_code() {
         delete (fuku_mutation_x64*)mutator;
     }
 
-    finalize_code();
+    code.update_virtual_address(destination_virtual_address);
 }
 
-void fuku_obfuscator::spagetti_code(uint64_t virtual_address) {
-
-    lines_correction(virtual_address);
-
+void fuku_obfuscator::spagetti_code() {
 
     std::vector<linestorage> line_blocks;
 
@@ -175,16 +157,6 @@ void fuku_obfuscator::spagetti_code(uint64_t virtual_address) {
     }
 }
 
-void fuku_obfuscator::lines_correction(uint64_t virtual_address) {
-    uint64_t _virtual_address = virtual_address;
-    
-    for (auto& line : code.get_lines()) {
-
-        line.set_virtual_address(_virtual_address);
-        _virtual_address += line.get_op_length();
-    }
-}
-
 void fuku_obfuscator::handle_jmps() {
 
     for (auto& line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
@@ -217,7 +189,7 @@ void fuku_obfuscator::handle_jmps() {
         case  X86_INS_JL: case  X86_INS_JGE:
         case  X86_INS_JLE:case  X86_INS_JG: {
 
-            if (line.get_op_code()[line.get_op_pref_size()] & 0xF0 == 0x70) { //near jump
+            if ( (line.get_op_code()[line.get_op_pref_size()] & 0xF0) == 0x70) { //near jump
 
                 uint8_t op_code[16];
                 memcpy(op_code, line.get_op_code(), line.get_op_length());
@@ -225,6 +197,8 @@ void fuku_obfuscator::handle_jmps() {
                 op_code[line.get_op_pref_size()] = 0x0F;
                 op_code[line.get_op_pref_size() + 1] = 0x80 | (line.get_op_code()[line.get_op_pref_size()] & 0x0F);
                 line.set_op_code(op_code, line.get_op_length() + 4);
+
+                code.get_rip_relocations()[line.get_rip_relocation_idx()].offset += 1;
             }
 
             break;
@@ -248,7 +222,7 @@ void fuku_obfuscator::handle_jmps() {
             fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, 0);//jz
             jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
-            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 1;
+            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
 
             line.set_rip_relocation_idx(-1);
 
@@ -260,50 +234,52 @@ void fuku_obfuscator::handle_jmps() {
         case X86_INS_LOOP: {
 
             fuku_instruction cc_line = fuku_asm_x86().dec(fuku_reg86::r_ECX);//dec ecx
-            cc_line.set_source_virtual_address(line.get_source_virtual_address());
-            cc_line.set_virtual_address(line.get_virtual_address());
+            line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, line.get_jump_imm());//jnz
-            jcc_line.set_source_virtual_address(line.get_source_virtual_address() + 1);
-            jcc_line.set_virtual_address(line.get_virtual_address() + 1);
-            jcc_line.set_ip_relocation_disp_offset(2);
 
-            lines[line_idx] = cc_line;
-            lines.insert(lines.begin() + line_idx, line);
+            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, 0);//jnz
+            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
+            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+
+            line.set_rip_relocation_idx(-1);
+
+            code.get_lines().insert(++line_iter, jcc_line);
             break;
         }
 
         case X86_INS_LOOPE: {
 
+
             fuku_instruction cc_line = fuku_asm_x86().dec(fuku_reg86::r_ECX);//dec ecx
-            cc_line.set_source_virtual_address(line.get_source_virtual_address());
-            cc_line.set_virtual_address(line.get_virtual_address());
+            line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, line.get_jump_imm());//je
-            jcc_line.set_source_virtual_address(line.get_source_virtual_address() + 1);
-            jcc_line.set_virtual_address(line.get_virtual_address() + 1);
-            jcc_line.set_ip_relocation_disp_offset(2);
 
-            lines[line_idx] = cc_line;
-            lines.insert(lines.begin() + line_idx, line);
+            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, 0);//je
+            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
+            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+
+            line.set_rip_relocation_idx(-1);
+
+            code.get_lines().insert(++line_iter, jcc_line);
             break;
         }
 
         case X86_INS_LOOPNE: {
 
             fuku_instruction cc_line = fuku_asm_x86().dec(fuku_reg86::r_ECX);//dec ecx
-            cc_line.set_source_virtual_address(line.get_source_virtual_address());
-            cc_line.set_virtual_address(line.get_virtual_address());
+            line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, line.get_jump_imm());//jne
-            jcc_line.set_source_virtual_address(line.get_source_virtual_address() + 1);
-            jcc_line.set_virtual_address(line.get_virtual_address() + 1);
-            jcc_line.set_ip_relocation_disp_offset(2);
 
-            lines[line_idx] = cc_line;
-            lines.insert(lines.begin() + line_idx, line);
+            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, 0);//jne
+            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
+
+            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+
+            line.set_rip_relocation_idx(-1);
+
+            code.get_lines().insert(++line_iter, jcc_line);
 
             break;
         }
@@ -315,7 +291,8 @@ void fuku_obfuscator::handle_jmps() {
 
 void fuku_obfuscator::useless_flags_profiler() {
 
-    for (auto& line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_idx++) {
+    /*
+    for (auto& line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
 
         uint64_t useless_flags = 0;
 
@@ -351,104 +328,5 @@ void fuku_obfuscator::useless_flags_profiler() {
             
         line_iter->set_custom_flags(useless_flags);
     }
-}
-
-void fuku_obfuscator::finalize_code() {
-    lines_correction(destination_virtual_address);
-
-    if (association_table)   { association_table->clear(); }
-    if (relocation_table)    { relocation_table->clear(); }
-
-
-    fuku_arch arch = code.get_arch();
-
-    auto& labels = code.get_labels();
-    auto& relocs = code.get_relocations();
-    auto& rip_relocs = code.get_rip_relocations();
-
-    for (auto &line : code.get_lines()) {
-        
-        if (association_table) {
-            if (line.get_source_virtual_address() != -1) {
-                association_table->push_back({ line.get_source_virtual_address(), line.get_virtual_address() });
-            }
-        }
-    
-        if (line.get_relocation_first_idx() != -1) {
-
-            auto& reloc = relocs[line.get_relocation_first_idx()];
-            auto& reloc_label = labels[reloc.label_idx];
-
-            if (arch == fuku_arch::fuku_arch_x32) {
-
-                if (reloc_label.has_linked_instruction) {
-                    *(uint32_t*)(&line.get_op_code()[reloc.offset]) = (uint32_t)reloc_label.instruction->get_virtual_address();
-                }
-                else {
-                    *(uint32_t*)(&line.get_op_code()[reloc.offset]) = (uint32_t)reloc_label.dst_address;
-                }
-            }
-            else {
-
-                if (reloc_label.has_linked_instruction) {
-                    *(uint64_t*)(&line.get_op_code()[reloc.offset]) = reloc_label.instruction->get_virtual_address();
-                }
-                else {
-                    *(uint64_t*)(&line.get_op_code()[reloc.offset]) = reloc_label.dst_address;
-                }
-            }
-
-
-            if (relocation_table) {
-                relocation_table->push_back({ (line.get_virtual_address() + reloc.offset), reloc.relocation_id });
-            }
-        }
-    
-        if (line.get_relocation_second_idx() != -1) {
-
-            auto& reloc = relocs[line.get_relocation_second_idx()];
-            auto& reloc_label = labels[reloc.label_idx];
-
-            if (arch == fuku_arch::fuku_arch_x32) {
-
-                if (reloc_label.has_linked_instruction) {
-                    *(uint32_t*)(&line.get_op_code()[reloc.offset]) = (uint32_t)reloc_label.instruction->get_virtual_address();
-                }
-                else {
-                    *(uint32_t*)(&line.get_op_code()[reloc.offset]) = (uint32_t)reloc_label.dst_address;
-                }
-            }
-            else {
-
-                if (reloc_label.has_linked_instruction) {
-                    *(uint64_t*)(&line.get_op_code()[reloc.offset]) = reloc_label.instruction->get_virtual_address();
-                }
-                else {
-                    *(uint64_t*)(&line.get_op_code()[reloc.offset]) = reloc_label.dst_address;
-                }
-            }
-
-
-            if (relocation_table) {
-                relocation_table->push_back({ (line.get_virtual_address() + reloc.offset), reloc.relocation_id });
-            }
-        }
-
-        if (line.get_rip_relocation_idx() != -1) {
-
-            auto& reloc = relocs[line.get_relocation_second_idx()];
-            auto& reloc_label = labels[reloc.label_idx];
-
-
-            if (reloc_label.has_linked_instruction) {
-                *(uint32_t*)(&line.get_op_code()[reloc.offset]) =          
-                    uint32_t(reloc_label.instruction->get_virtual_address() - line.get_virtual_address() - line.get_op_length());
-            }
-            else {
-                *(uint32_t*)(&line.get_op_code()[reloc.offset]) = 
-                    uint32_t(reloc_label.dst_address - line.get_virtual_address() - line.get_op_length());
-            }
-        }
-
-    }
+    */
 }

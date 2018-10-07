@@ -336,6 +336,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
                 jump_code.code.invert_condition = jmp_cc & 1;
             }
 
+            /*
             if (current_line.get_link_label_idx() != -1) {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_jump_local,
                     std::vector<uint8_t>(std::initializer_list<uint8_t>({  (uint8_t)vm_opcode_86_jump_local, jump_code.j_code, ex_code })))
@@ -350,7 +351,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
 
                 vm_lines[vm_lines.size() - 2].set_original(&current_line);
             }
-
+            */
             break;
         }
 
@@ -361,7 +362,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
             get_operands(insn, current_line, operands);
 
             vm_lines.insert(vm_lines.end(), operands.begin(), operands.end());
-
+/*
             if (current_line.get_link_label_idx() != -1) {
                 vm_lines.push_back(fuku_vm_instruction(vm_opcode_86_call_local,
                     std::vector<uint8_t>(std::initializer_list<uint8_t>({ (uint8_t)vm_opcode_86_call_local, ex_code }))));
@@ -377,7 +378,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
              //   }
 
             }
-
+            */
             break;
         }
 
@@ -920,7 +921,7 @@ std::vector<uint8_t> fuku_virtualization_x86::create_vm_jumpout(uint64_t src_add
     *(uint32_t*)&j_out[1] = (uint32_t)dst_address;
     *(uint32_t*)&j_out[6] = uint32_t(vm_entry_address - (src_address + 5)) - 5;
 
-    relocation_table.push_back({ src_address + 1 , 0});
+  //  relocation_table.push_back({ src_address + 1 , 0});
 
     return j_out;
 }

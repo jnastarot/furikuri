@@ -36,6 +36,7 @@ void fuku_mutation_x64::obfuscate(fuku_code_holder& code_holder) {
 
 void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
+    /*
     size_t current_size = 0;
     linestorage lines;
 
@@ -78,7 +79,7 @@ void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, b
         auto& line = lines[line_idx];
         memcpy(&junk[caret_pos], line.get_op_code(), line.get_op_length());
         caret_pos += line.get_op_length();
-    }
+    }*/
 }
 
 
@@ -166,7 +167,7 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
         }
     }
 
-
+    /*
     for (auto& line : out_lines) {
         if (unstable_stack) {
             line.set_flags(line.get_flags() | fuku_instruction_bad_stack);
@@ -179,6 +180,7 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
 
     out_lines[0].set_source_virtual_address(lines[current_line_idx].get_source_virtual_address());
     out_lines[0].set_label_id(lines[current_line_idx].get_label_id());
+    */
 }
 
 
@@ -292,7 +294,7 @@ bool fuku_mutation_x64::fukutate_ret(fuku_code_holder& code_holder, linestorage:
 void fuku_mutation_x64::generate_junk(linestorage& junk,
     fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
 
-
+    /*
     size_t current_size = 0;
 
     while (junk_size != current_size) {
@@ -327,11 +329,11 @@ void fuku_mutation_x64::generate_junk(linestorage& junk,
             break;
         }
         }
-    }
+    }*/
 }
 
 void fuku_mutation_x64::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
-
+    /*
 
     bool unstable_stack = (lines_iter->get_instruction_flags() & fuku_instruction_bad_stack);
 
@@ -364,7 +366,7 @@ void fuku_mutation_x64::fuku_junk(fuku_code_holder& code_holder, linestorage::it
         fuku_junk_7b(code_holder, lines_iter);
         break;
     }
-    }
+    }*/
 }
 
 void fuku_mutation_x64::fuku_junk_1b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {

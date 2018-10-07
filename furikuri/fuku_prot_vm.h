@@ -66,7 +66,8 @@ bool    fuku_protector::initialize_profiles_vm() {
                     if (reloc_item.relative_virtual_address > region.region_rva) {
                         if (reloc_item.relative_virtual_address < (region.region_rva + region.region_size)) {
                             part_code.fuku_image_relocs.push_back({
-                                reloc_item.relative_virtual_address + base_address, reloc_item.relocation_id
+                                reloc_item.relocation_id,
+                                reloc_item.relative_virtual_address + base_address
                                 });
 
 
