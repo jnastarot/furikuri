@@ -3,10 +3,10 @@
 
 
 fuku_code_holder::fuku_code_holder()
-    :arch(fuku_arch::fuku_arch_unknown), labels_count(0){}
+    :arch(fuku_arch::fuku_arch_unknown){}
 
 fuku_code_holder::fuku_code_holder(fuku_arch arch)
-    :arch(arch), labels_count(0) {}
+    :arch(arch) {}
 
 fuku_code_holder::fuku_code_holder(const fuku_code_holder& code_holder) {
     this->operator=(code_holder);
@@ -23,16 +23,15 @@ fuku_code_holder::~fuku_code_holder() {
 
 fuku_code_holder& fuku_code_holder::operator=(const fuku_code_holder& code_holder) {
     this->arch = code_holder.arch;
-    this->labels_count = code_holder.labels_count;
     this->labels = code_holder.labels;
     this->relocations = code_holder.relocations;
     this->rip_relocations = code_holder.rip_relocations;
     this->lines = code_holder.lines;
 
-    if (labels_count) {
+    if (labels.size()) {
      
         std::vector<fuku_instruction* > labels_cache;
-        labels_cache.resize(labels_count);
+        labels_cache.resize(labels.size());
 
         for (auto& line : lines) {
 
@@ -93,14 +92,13 @@ size_t fuku_code_holder::create_label(fuku_instruction* line) {
 
     if (line->get_label_idx() == -1) {
 
-        line->set_label_idx(labels_count);
+        line->set_label_idx(labels.size());
         
         fuku_code_label label;
         label.has_linked_instruction = 1;
         label.instruction = line;
 
         labels.push_back(label);
-        labels_count++;
     }
 
     return line->get_label_idx();
@@ -113,9 +111,8 @@ size_t fuku_code_holder::create_label(uint64_t dst_address) {
     label.dst_address = dst_address;
 
     labels.push_back(label);
-    labels_count++;
 
-    return labels_count - 1;
+    return labels.size() - 1;
 }
 
 size_t fuku_code_holder::create_relocation(uint8_t offset, uint64_t dst_address, uint32_t relocation_id) {
@@ -155,7 +152,6 @@ fuku_instruction& fuku_code_holder::add_line() {
 
 
 void fuku_code_holder::clear() {
-    this->labels_count = 0;
     this->labels.clear();
     this->relocations.clear();
     this->rip_relocations.clear();
@@ -235,9 +231,6 @@ void fuku_code_holder::set_arch(fuku_arch arch) {
     this->arch = arch;
 }
 
-void fuku_code_holder::set_labels_count(size_t labels_count) {
-    this->labels_count = labels_count;
-}
 
 void fuku_code_holder::set_labels(const std::vector<fuku_code_label>& labels) {
     this->labels = labels;
@@ -285,7 +278,7 @@ fuku_arch fuku_code_holder::get_arch() const {
 }
 
 size_t fuku_code_holder::get_labels_count() const {
-    return this->labels_count;
+    return labels.size();
 }
 
 const std::vector<fuku_code_label>& fuku_code_holder::get_labels() const {

@@ -87,8 +87,8 @@ bool fuku_protector::obfuscate_profile() {
     if (ob_profile.items.size()) {
 
         pe_image_io image_io(target_module.get_image(), enma_io_mode::enma_io_mode_allow_expand);
-        fuku_code_analyzer an_code;
-        an_code.set_arch(target_module.get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+        fuku_code_analyzer anal_code;
+        anal_code.set_arch(target_module.get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
 
         for (int item_idx = ob_profile.items.size() - 1; item_idx >= 0; item_idx--) {
             auto& item = ob_profile.items[item_idx];
@@ -97,11 +97,11 @@ bool fuku_protector::obfuscate_profile() {
 
             obfuscator.set_settings(item.settings);
             obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
-            obfuscator.set_code(item.an_code);
+            obfuscator.set_code(&item.an_code.get_code());
 
             obfuscator.obfuscate_code();
 
-            if (!an_code.push_code(std::move(obfuscator.get_code()))) { return false; }
+            if (!anal_code.push_code(std::move(item.an_code.get_code()))) { return false; }
 
 
             ob_profile.regions.insert(ob_profile.regions.end(), item.regions.begin(), item.regions.end());
@@ -119,12 +119,11 @@ bool fuku_protector::obfuscate_profile() {
 
         obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base() + dest_address_rva);
 
-        obfuscator.set_code(an_code);
-        an_code.clear();
+        obfuscator.set_code(&anal_code.get_code());
 
         obfuscator.obfuscate_code();
 
-        std::vector<uint8_t> ob_code = finalize_code(obfuscator.get_code(), &ob_profile.association_table, &ob_profile.relocation_table);
+        std::vector<uint8_t> ob_code = finalize_code(anal_code.get_code(), &ob_profile.association_table, &ob_profile.relocation_table);
         
         if (image_io.set_image_offset(dest_address_rva).write(ob_code) != enma_io_success) { //todo //rewrite for dynamic code place
             return false;

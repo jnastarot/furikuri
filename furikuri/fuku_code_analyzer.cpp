@@ -209,6 +209,8 @@ bool fuku_code_analyzer::merge_labels() {
         labels.reserve(new_labels_chain.size());
         label_new_map.resize(code.get_labels_count());
 
+        bool has_incorrect = false;
+
         for (size_t label_idx = 0; label_idx < new_labels_chain.size(); label_idx++) {
 
             auto& label_chain = new_labels_chain[label_idx];
@@ -218,35 +220,41 @@ bool fuku_code_analyzer::merge_labels() {
                 label_new_map[label_idx] = labels.size();
                 labels.push_back( label_chain.label );
             }
-        }
-
-
-        for (size_t label_idx = 0; label_idx < new_labels_chain.size(); label_idx++) {
-
-            auto& label_chain = new_labels_chain[label_idx];
-
-            if (label_chain.new_label_idx != label_idx) {
-
-                label_new_map[label_idx] = label_new_map[label_chain.new_label_idx];
+            else {
+                has_incorrect = true;
             }
         }
 
+      //  if (has_incorrect) {
 
-        for (auto& line : code.get_lines()) {
+            for (size_t label_idx = 0; label_idx < new_labels_chain.size(); label_idx++) {
 
-            if (line.get_label_idx() != -1) {
-                line.set_label_idx(label_new_map[line.get_label_idx()]);
+                auto& label_chain = new_labels_chain[label_idx];
+
+                if (label_chain.new_label_idx != label_idx) {
+
+                    label_new_map[label_idx] = label_new_map[label_chain.new_label_idx];
+                }
             }
-        }
 
-        for (auto& reloc : code.get_relocations()) {
-            reloc.label_idx = label_new_map[reloc.label_idx];
-        }
-        for (auto& rip_reloc : code.get_rip_relocations()) {
-            rip_reloc.label_idx = label_new_map[rip_reloc.label_idx];
-        }
 
-        this->code.set_labels(labels);
+            for (auto& line : code.get_lines()) {
+
+                if (line.get_label_idx() != -1) {
+                    line.set_label_idx(label_new_map[line.get_label_idx()]);
+                }
+            }
+
+            for (auto& reloc : code.get_relocations()) {
+                reloc.label_idx = label_new_map[reloc.label_idx];
+            }
+            for (auto& rip_reloc : code.get_rip_relocations()) {
+                rip_reloc.label_idx = label_new_map[rip_reloc.label_idx];
+            }
+
+            code.set_labels(labels);
+
+      //  }
     }
 
     return true;

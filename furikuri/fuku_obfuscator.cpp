@@ -10,11 +10,7 @@ fuku_obfuscator::fuku_obfuscator()
 fuku_obfuscator::~fuku_obfuscator(){
 }
 
-void fuku_obfuscator::set_code(const fuku_code_analyzer& code_analyzer) {
-    this->code = code_analyzer;
-}
-
-void fuku_obfuscator::set_code(const fuku_code_holder& code_holder) {
+void fuku_obfuscator::set_code(fuku_code_holder* code_holder) {
     this->code = code_holder;
 }
 
@@ -27,7 +23,7 @@ void fuku_obfuscator::set_settings(const fuku_ob_settings& settings) {
 }
 
 fuku_arch   fuku_obfuscator::get_arch() const {
-    return this->code.get_arch();
+    return this->code->get_arch();
 }
 
 uint64_t     fuku_obfuscator::get_destination_virtual_address() const {
@@ -38,22 +34,22 @@ fuku_ob_settings fuku_obfuscator::get_settings() const {
     return this->settings;
 }
 
-fuku_code_holder& fuku_obfuscator::get_code() {
+fuku_code_holder* fuku_obfuscator::get_code() {
     return this->code;
 }
 
-const fuku_code_holder& fuku_obfuscator::get_code() const {
+const fuku_code_holder* fuku_obfuscator::get_code() const {
     return this->code;
 }
 
 void fuku_obfuscator::obfuscate_code() {
 
-    if (code.get_arch() == fuku_arch::fuku_arch_unknown) {
+    if (code->get_arch() == fuku_arch::fuku_arch_unknown) {
         return;
     }
 
 
-    fuku_mutation * mutator = (code.get_arch() == fuku_arch::fuku_arch_x32) ?
+    fuku_mutation * mutator = (code->get_arch() == fuku_arch::fuku_arch_x32) ?
         (fuku_mutation*)(new fuku_mutation_x86(settings)) : (fuku_mutation*)(new fuku_mutation_x64(settings));
 
 
@@ -66,18 +62,18 @@ void fuku_obfuscator::obfuscate_code() {
       //  mutator->obfuscate(code);
         
         if (settings.block_chance > 0.f) {
-          //  spagetti_code(); //mix lines
+            spagetti_code(); //mix lines
         }
     }
 
-    if (code.get_arch() == fuku_arch::fuku_arch_x32) {
+    if (code->get_arch() == fuku_arch::fuku_arch_x32) {
         delete (fuku_mutation_x86*)mutator;
     }
     else {
         delete (fuku_mutation_x64*)mutator;
     }
 
-    code.update_virtual_address(destination_virtual_address);
+    code->update_virtual_address(destination_virtual_address);
 }
 
 void fuku_obfuscator::spagetti_code() {
@@ -88,54 +84,68 @@ void fuku_obfuscator::spagetti_code() {
 
     //generate blocks of lines
     {
-        size_t lines_total = code.get_lines().size();
-        size_t lines_in_blocks = 0;
-        size_t current_block_size = 0;
+        std::vector<size_t> block_lens;
+ 
+        {
+            size_t lines_total = code->get_lines().size();
+            size_t lines_in_blocks = 0;
+            size_t current_block_size = 0;
 
-        while (lines_in_blocks < lines_total) {
+            while (lines_in_blocks < lines_total) {
 
-            if (FUKU_GET_CHANCE(settings.block_chance)) {
-                line_blocks.push_back(linestorage());
+                if (FUKU_GET_CHANCE(settings.block_chance)) {
 
-                auto start = code.get_lines().begin();
-                auto end = start;
-
-                if (current_block_size) {
-                    std::advance(end, current_block_size);
-
-                    line_blocks[line_blocks.size() - 1].splice(line_blocks[line_blocks.size() - 1].begin(), code.get_lines(), start, end);
+                    block_lens.push_back(current_block_size);
+                    current_block_size = 0;
+                }
+                else {
+                    lines_in_blocks++;
+                    current_block_size++;
                 }
 
-                if (++end != code.get_lines().end()) {
-
-                    fuku_instruction jmp_instruction = fuku_asm.jmp(0);
-                    jmp_instruction.set_rip_relocation_idx(code.create_rip_relocation(1, &(*end)));
-                    jmp_instruction.set_instruction_flags(end->get_instruction_flags() & (fuku_instruction_bad_stack));
-                    jmp_instruction.set_custom_flags(end->get_custom_flags());
-
-                    line_blocks[line_blocks.size() - 1].push_back(jmp_instruction);
-                }
-
-                current_block_size = 0;
-            }
-            else {
-                lines_in_blocks++;
-                current_block_size++;
             }
 
+            if (current_block_size) {
+                block_lens.push_back(current_block_size);
+            }
         }
 
-        if (current_block_size) {
-            auto start = code.get_lines().begin();
-            auto end = start;
-            std::advance(end, current_block_size);
+        line_blocks.resize(block_lens.size());
 
-            line_blocks[line_blocks.size() - 1].splice(line_blocks[line_blocks.size() - 1].begin(), code.get_lines(), start, end);
+        for (size_t block_idx = 0; block_idx < block_lens.size(); block_idx++) {
+
+            size_t block_len = block_lens[block_idx];
+
+
+            if (block_len) {
+                auto start = code->get_lines().begin();
+                auto end = start;
+
+                std::advance(end, block_len);
+
+                line_blocks[block_idx].splice(line_blocks[block_idx].begin(), code->get_lines(), start, end);
+            }
+
+            if (block_idx + 1 != block_lens.size()) {
+                line_blocks[block_idx].push_back(fuku_asm.jmp(0));
+            }
+
+            if (block_idx) {
+
+                auto& prev_block_jmp = line_blocks[block_idx - 1].back();
+                auto& first_item_of_current_block = line_blocks[block_idx].begin();
+
+                prev_block_jmp.set_rip_relocation_idx(code->create_rip_relocation(1, &(*first_item_of_current_block)));
+                prev_block_jmp.set_instruction_flags(first_item_of_current_block->get_instruction_flags() & (fuku_instruction_bad_stack));
+                prev_block_jmp.set_custom_flags(first_item_of_current_block->get_custom_flags());
+            }
+
         }
 
     }
 
     //rand blocks
+    
     if (line_blocks.size() > 2) {
         for (size_t r_block = 0; r_block < line_blocks.size()/2; r_block++) {
             size_t block_1 = FUKU_GET_RAND(0, line_blocks.size() - 1);
@@ -149,8 +159,7 @@ void fuku_obfuscator::spagetti_code() {
 
     //push lines
     {
-        auto& code_lines = code.get_lines();
-
+        auto& code_lines = code->get_lines();
         for (size_t block_idx = 0; block_idx < line_blocks.size(); block_idx++) {
             code_lines.splice(code_lines.end(), line_blocks[block_idx]);
         }
@@ -159,7 +168,7 @@ void fuku_obfuscator::spagetti_code() {
 
 void fuku_obfuscator::handle_jmps() {
 
-    for (auto& line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
+    for (auto& line_iter = code->get_lines().begin(); line_iter != code->get_lines().end(); line_iter++) {
 
         fuku_instruction& line = *line_iter;
 
@@ -198,7 +207,7 @@ void fuku_obfuscator::handle_jmps() {
                 op_code[line.get_op_pref_size() + 1] = 0x80 | (line.get_op_code()[line.get_op_pref_size()] & 0x0F);
                 line.set_op_code(op_code, line.get_op_length() + 4);
 
-                code.get_rip_relocations()[line.get_rip_relocation_idx()].offset += 1;
+                code->get_rip_relocations()[line.get_rip_relocation_idx()].offset += 1;
             }
 
             break;
@@ -222,11 +231,11 @@ void fuku_obfuscator::handle_jmps() {
             fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, 0);//jz
             jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
-            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
 
             line.set_rip_relocation_idx(-1);
 
-            code.get_lines().insert(++line_iter, jcc_line);
+            code->get_lines().insert(++line_iter, jcc_line);
             break;
         }
 
@@ -240,11 +249,11 @@ void fuku_obfuscator::handle_jmps() {
             fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, 0);//jnz
             jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
-            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
 
             line.set_rip_relocation_idx(-1);
 
-            code.get_lines().insert(++line_iter, jcc_line);
+            code->get_lines().insert(++line_iter, jcc_line);
             break;
         }
 
@@ -258,11 +267,11 @@ void fuku_obfuscator::handle_jmps() {
             fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, 0);//je
             jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
-            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
 
             line.set_rip_relocation_idx(-1);
 
-            code.get_lines().insert(++line_iter, jcc_line);
+            code->get_lines().insert(++line_iter, jcc_line);
             break;
         }
 
@@ -275,11 +284,11 @@ void fuku_obfuscator::handle_jmps() {
             fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, 0);//jne
             jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
 
-            code.get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
 
             line.set_rip_relocation_idx(-1);
 
-            code.get_lines().insert(++line_iter, jcc_line);
+            code->get_lines().insert(++line_iter, jcc_line);
 
             break;
         }

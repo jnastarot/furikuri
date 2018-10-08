@@ -112,7 +112,7 @@ int main() {
             }));
             */
 
-        fuku_ob_settings ob_set = { 1,1,50.f,50.f,50.f };
+        fuku_ob_settings ob_set = { 1,5,00.f,50.f,00.f };
         fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
         
         /*

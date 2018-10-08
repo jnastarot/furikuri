@@ -34,7 +34,6 @@ struct fuku_code_rip_relocation {
 class fuku_code_holder {
     fuku_arch arch;
 
-    size_t labels_count;
     std::vector<fuku_code_label> labels;
     std::vector<fuku_code_relocation> relocations;
     std::vector<fuku_code_rip_relocation> rip_relocations;

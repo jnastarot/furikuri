@@ -113,8 +113,8 @@ bool fuku_protector::virtualize_profiles() {
 
         for (auto& profile : vm_profiles) {
 
-            fuku_code_analyzer an_code;
-            an_code.set_arch(is32arch ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+            fuku_code_analyzer anal_code;
+            anal_code.set_arch(is32arch ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
 
             for (int item_idx = profile.second.items.size() - 1; item_idx >= 0; item_idx--) {
                 auto& item = profile.second.items[item_idx];
@@ -124,14 +124,14 @@ bool fuku_protector::virtualize_profiles() {
 
                     obfuscator.set_settings(item.settings);
                     obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
-                    obfuscator.set_code(item.an_code);
+                    obfuscator.set_code(&item.an_code.get_code());
 
                     obfuscator.obfuscate_code();
 
-                    if (!an_code.push_code(std::move(obfuscator.get_code()))) { return false; }
+                    if (!anal_code.push_code(std::move(item.an_code.get_code()))) { return false; }
                 }
                 else {
-                    if (!an_code.push_code(std::move(item.an_code))) { return false; }
+                    if (!anal_code.push_code(std::move(item.an_code))) { return false; }
                 }
 
                 profile.second.regions.insert(profile.second.regions.end(), item.regions.begin(), item.regions.end());
@@ -140,7 +140,7 @@ bool fuku_protector::virtualize_profiles() {
 
     
             fuku_vm_result result = profile.first.virtualizer->build_bytecode(
-                fuku_code_holder(an_code), profile.second.relocation_table, profile.second.association_table,
+                fuku_code_holder(anal_code), profile.second.relocation_table, profile.second.association_table,
                 target_module.get_image().get_image_base() + image_io.get_image_offset()
             );
             
