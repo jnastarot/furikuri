@@ -93,7 +93,7 @@ int main() {
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
-        fuku.add_extended_module(&_vm_module);
+    //    fuku.add_extended_module(&_vm_module);
 
 
         std::vector<uint8_t> out_image;
@@ -112,9 +112,12 @@ int main() {
             }));
             */
 
-        fuku_ob_settings ob_set = { 1,5,00.f,50.f,00.f };
-        fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
-        
+        fuku_ob_settings ob_set = { 1,2,00.f,50.f,00.f };
+        fuku_ob_settings ob1_set = { 1,3,00.f,50.f,00.f };
+
+        fuku.add_ob_code_list({ 0x1000 , 0x49 }, &_module, ob_set);
+        fuku.add_ob_code_list({ 0x1049 , 0x6A7 }, &_module, ob1_set);
+
         /*
         fuku.add_vm_code_list({ 0x1000 , 0x6F0 }, &_module, fuku_vm_settings({
             { 0,0,00.f,00.f,00.f },// { 2,2,50.f,50.f,50.f },

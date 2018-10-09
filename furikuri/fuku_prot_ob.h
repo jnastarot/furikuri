@@ -115,7 +115,7 @@ bool fuku_protector::obfuscate_profile() {
 
         
         fuku_obfuscator obfuscator;
-        obfuscator.set_settings({ 1, 1, 0, 5.f, 0 });
+        obfuscator.set_settings({ 1, 1, 0, 0.f, 0 });
 
         obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base() + dest_address_rva);
 

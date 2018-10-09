@@ -38,7 +38,7 @@ fuku_protector::~fuku_protector() {
 
 fuku_protector_code fuku_protector::protect_module() {
 
-    if (test_regions_scope()) {
+   // if (test_regions_scope()) {
 
         if (initialize_profiles_ob() && initialize_profiles_vm()) {
 
@@ -61,7 +61,7 @@ fuku_protector_code fuku_protector::protect_module() {
         }
 
         return fuku_protector_code::fuku_protector_error_initialization;
-    }
+  //  }
 
     return fuku_protector_code::fuku_protector_error_code_range;
 }

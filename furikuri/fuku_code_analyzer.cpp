@@ -104,8 +104,8 @@ bool fuku_code_analyzer::analyze_code(
                     if (current_insn.detail->x86.operands[0].type == X86_OP_IMM) {
                         
                         line.set_rip_relocation_idx(analyzed_code.create_rip_relocation(current_insn.detail->x86.encoding.imm_offset, 
-                            virtual_address + X86_REL_ADDR(current_insn)));
-
+                            virtual_address + (int32_t)(current_insn.detail->x86.operands[0].imm) ));
+                        
                     }
 
                     break;
@@ -225,7 +225,7 @@ bool fuku_code_analyzer::merge_labels() {
             }
         }
 
-      //  if (has_incorrect) {
+        if (has_incorrect) {
 
             for (size_t label_idx = 0; label_idx < new_labels_chain.size(); label_idx++) {
 
@@ -254,7 +254,7 @@ bool fuku_code_analyzer::merge_labels() {
 
             code.set_labels(labels);
 
-      //  }
+        }
     }
 
     return true;
@@ -267,14 +267,17 @@ bool fuku_code_analyzer::merge_code(const fuku_code_holder& code_holder) {
     if (this->code.get_lines().size()) {
 
         linestorage& src_lines = this->code.get_lines();
-        linestorage::iterator src_iter = src_lines.end()--;
+        size_t src_size = src_lines.size();
+        
 
         src_lines.insert(
             src_lines.end(),
             code_holder.get_lines().begin(), code_holder.get_lines().end()
         );
 
-        src_iter++;
+
+        auto src_iter = src_lines.begin();
+        std::advance(src_iter, src_size);
 
         size_t label_count = code.get_labels_count();
         size_t reloc_count = code.get_relocations().size();
