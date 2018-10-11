@@ -111,9 +111,9 @@ int main() {
             &vm
             }));
             */
-
-        fuku_ob_settings ob_set = { 1,2,00.f,50.f,00.f };
-        fuku_ob_settings ob1_set = { 1,3,00.f,50.f,00.f };
+       
+        fuku_ob_settings ob_set = { 1,4,50.f,50.f,00.f };
+        fuku_ob_settings ob1_set = { 1,4,50.f,50.f,00.f };
 
         fuku.add_ob_code_list({ 0x1000 , 0x49 }, &_module, ob_set);
         fuku.add_ob_code_list({ 0x1049 , 0x6A7 }, &_module, ob1_set);
@@ -152,6 +152,7 @@ int main() {
         
 
         //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
+
 
         if (fuku.fuku_protect(out_image)) {
             FILE* hTargetFile;

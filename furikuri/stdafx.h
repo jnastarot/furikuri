@@ -29,8 +29,11 @@ using namespace std;
 
 #define FUKU_GET_RAND(_min,_max) ((_min) == (_max) ? (_min) : ((_min) + (rand()%(((_max) + (((_max) == UINT_MAX) ? 0 : 1)) - (_min)))))
 
-
 #define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(1,1000) <= (10*(x))) //0.f - 100.f in
+
+#define GET_BITES(src, mask) (src & mask)
+#define IS_HAS_FULL_BITES(src, mask) ( (src & mask) == mask )
+
 
 #ifdef _DEBUG
     #define FUKU_DEBUG {printf("%s:%d | %s\n",__FILE__,__LINE__,__FUNCTION__);}

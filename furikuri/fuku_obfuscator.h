@@ -1,5 +1,8 @@
 #pragma once
 
+
+
+
 #include "fuku_mutation_imp.h"
 
 class fuku_obfuscator {
@@ -11,7 +14,7 @@ class fuku_obfuscator {
 
     void    fuku_obfuscator::handle_jmps();
     void    fuku_obfuscator::spagetti_code();
-    void    fuku_obfuscator::useless_flags_profiler(); 
+    void    fuku_obfuscator::unused_flags_profiler();
 public:
     fuku_obfuscator::fuku_obfuscator();
     fuku_obfuscator::~fuku_obfuscator();

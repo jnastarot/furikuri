@@ -157,6 +157,11 @@
     <ClInclude Include="fuku_map.h" />
     <ClInclude Include="fuku_msvc_map.h" />
     <ClInclude Include="fuku_mutation_imp.h" />
+    <ClInclude Include="fuku_mutation_x86_arith.h" />
+    <ClInclude Include="fuku_mutation_x86_graph.h" />
+    <ClInclude Include="fuku_mutation_x86_junk.h" />
+    <ClInclude Include="fuku_mutation_x86_logical.h" />
+    <ClInclude Include="fuku_mutation_x86_stack.h" />
     <ClInclude Include="fuku_pdb.h" />
     <ClInclude Include="fuku_protector.h" />
     <ClInclude Include="fuku_prot_ob.h" />

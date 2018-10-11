@@ -2,7 +2,7 @@
 #include "fuku_instruction.h"
 
 fuku_instruction::fuku_instruction()
-    :id(-1), op_length(0), op_pref_size(0),
+    :id(-1), op_length(0),
     source_virtual_address(-1), virtual_address(-1),
     label_idx(-1),
     code_relocation_1_idx(-1), code_relocation_2_idx(-1), code_rip_relocation_idx(-1),
@@ -26,7 +26,6 @@ fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
     this->id = line.id; 
 
     this->op_length = line.op_length;
-    this->op_pref_size = line.op_pref_size;
     this->source_virtual_address = line.source_virtual_address;
     this->virtual_address = line.virtual_address;
     this->label_idx = line.label_idx;
@@ -40,7 +39,7 @@ fuku_instruction& fuku_instruction::operator=(const fuku_instruction& line) {
     return *this;
 }
 
-uint8_t fuku_instruction::get_prefixes_number() {
+uint8_t fuku_instruction::get_prefixes_number() const {
     uint32_t i = 0;
     for (i = 0;
         i < op_length &&
@@ -72,7 +71,6 @@ fuku_instruction&  fuku_instruction::set_op_code(const uint8_t* _op_code, uint8_
 
     memcpy(this->op_code, _op_code, _lenght);
     this->op_length = _lenght;
-    this->op_pref_size = get_prefixes_number();
 
     return *this;
 }
@@ -148,16 +146,12 @@ const uint8_t* fuku_instruction::get_op_code() const {
     return this->op_code;
 }
 
-uint8_t* fuku_instruction::get_op_code() {
-    return this->op_code;
-}
-
 uint8_t  fuku_instruction::get_op_length() const {
     return this->op_length;
 }
 
 uint8_t  fuku_instruction::get_op_pref_size() const {
-    return this->op_pref_size;
+    return get_prefixes_number();
 }
 
 uint64_t fuku_instruction::get_source_virtual_address() const {

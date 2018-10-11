@@ -7,16 +7,16 @@ class fuku_mutation_x86 :
     fuku_asm_x86 f_asm;
     fuku_ob_settings settings;
 
-    void fuku_mutation_x86::fuku_junk_1b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::fuku_junk_2b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::fuku_junk_3b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::fuku_junk_4b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::fuku_junk_5b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::fuku_junk_6b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::fuku_junk_7b(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+    void fuku_mutation_x86::fuku_junk_1b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::fuku_junk_2b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::fuku_junk_3b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::fuku_junk_4b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::fuku_junk_5b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::fuku_junk_6b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::fuku_junk_7b(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
 
-    void fuku_mutation_x86::generate_junk(linestorage& junk,
-        fuku_instruction* next_line, uint32_t max_size, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
+    void fuku_mutation_x86::generate_junk(fuku_code_holder& code_holder,
+        linestorage::iterator lines_iter, uint32_t max_size, size_t junk_size);
 
 
     void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);

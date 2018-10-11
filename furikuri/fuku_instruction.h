@@ -15,9 +15,7 @@ class fuku_instruction {
     uint16_t id; //instruction id
 
     uint8_t op_length;    //instruction size
-    uint8_t op_pref_size; //count of prefixes in instruction
-
-    uint8_t	op_code[16]; //instruction mnemonic
+    uint8_t	op_code[16];  //instruction
     
     //association
     uint64_t source_virtual_address;    //original va of instruction , == -1 if wasnt in original code
@@ -25,7 +23,6 @@ class fuku_instruction {
 
     //relative idxs    if has index then value => 0 else -1
     size_t label_idx;
-//    size_t link_label_idx;
 
     size_t code_relocation_1_idx;
     size_t code_relocation_2_idx;
@@ -36,7 +33,7 @@ class fuku_instruction {
     uint64_t eflags;
     uint64_t custom_flags;
 
-    uint8_t fuku_instruction::get_prefixes_number();
+    uint8_t fuku_instruction::get_prefixes_number() const;
 public:
     fuku_instruction::fuku_instruction();
     fuku_instruction::fuku_instruction(const fuku_instruction& line);
@@ -66,7 +63,6 @@ public:
     uint16_t fuku_instruction::get_id() const;
 
     const uint8_t* fuku_instruction::get_op_code() const;
-    uint8_t* fuku_instruction::get_op_code();
     uint8_t  fuku_instruction::get_op_length() const;
     uint8_t  fuku_instruction::get_op_pref_size() const;
 

@@ -44,7 +44,7 @@ const fuku_code_holder* fuku_obfuscator::get_code() const {
 
 void fuku_obfuscator::obfuscate_code() {
 
-    if (code->get_arch() == fuku_arch::fuku_arch_unknown) {
+    if (code == nullptr || code->get_arch() == fuku_arch::fuku_arch_unknown) {
         return;
     }
 
@@ -55,11 +55,11 @@ void fuku_obfuscator::obfuscate_code() {
 
     handle_jmps();
 
-    useless_flags_profiler();
+    unused_flags_profiler();
 
     for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
-      //  mutator->obfuscate(code);
+        mutator->obfuscate(*code);
         
         if (settings.block_chance > 0.f) {
             spagetti_code(); //mix lines
@@ -298,27 +298,28 @@ void fuku_obfuscator::handle_jmps() {
     }
 }
 
-void fuku_obfuscator::useless_flags_profiler() {
+void fuku_obfuscator::unused_flags_profiler() {
 
-    /*
-    for (auto& line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
+    for (auto line_iter = code->get_lines().begin(); line_iter != code->get_lines().end(); line_iter++) {
 
-        uint64_t useless_flags = 0;
+        uint64_t unused_flags = 0;
 
-        if (line_idx + 1 < code.lines.size()) {
 
-            if (code.lines[line_idx].get_tested_flags() == 0) {
+            if ( !GET_BITES(line_iter->get_eflags(), X86_EFLAGS_GROUP_TEST)) {
 
-                for (uint32_t next_line_idx = line_idx + 1; next_line_idx < code.lines.size(); next_line_idx++) {
+                auto next_line_iter = line_iter; next_line_iter++;
 
-                    if (useless_flags == 0xED5 || code.lines[next_line_idx].get_tested_flags() || code.lines[next_line_idx].get_label_id()) {
+                for (; next_line_iter != code->get_lines().end(); next_line_iter++) {
+
+                    if (unused_flags == (X86_EFLAGS_GROUP_MODIFY | X86_EFLAGS_GROUP_SET | X86_EFLAGS_GROUP_RESET | X86_EFLAGS_GROUP_UNDEFINED) 
+                        || GET_BITES(next_line_iter->get_eflags(), X86_EFLAGS_GROUP_TEST) || next_line_iter->get_label_idx() != -1) {
+
                         break;
                     }
+                    
+                    uint16_t id = next_line_iter->get_id();
 
-                    uint16_t type = code.lines[next_line_idx].get_type();
-
-                    switch (type)
-                    {
+                    switch (id) {
                         
                     case X86_INS_JMP: case X86_INS_RET: case X86_INS_CALL: {
                         goto routine_exit;
@@ -329,13 +330,12 @@ void fuku_obfuscator::useless_flags_profiler() {
                     }
                     }
 
-                    useless_flags |= code.lines[next_line_idx].get_modified_flags();
+                    unused_flags |= GET_BITES(next_line_iter->get_eflags(), X86_EFLAGS_GROUP_MODIFY | X86_EFLAGS_GROUP_SET | X86_EFLAGS_GROUP_RESET | X86_EFLAGS_GROUP_UNDEFINED);
                 }
             }
         routine_exit:;
-        }
-            
-        line_iter->set_custom_flags(useless_flags);
+    
+        line_iter->set_custom_flags(unused_flags);
     }
-    */
+    
 }

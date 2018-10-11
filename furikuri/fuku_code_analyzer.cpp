@@ -99,7 +99,8 @@ bool fuku_code_analyzer::analyze_code(
                 case  X86_INS_JL: case  X86_INS_JGE:
                 case  X86_INS_JLE:case  X86_INS_JG: 
                 case  X86_INS_JMP:
-                case  X86_INS_JECXZ:case X86_INS_JCXZ: {
+                case  X86_INS_JECXZ:case X86_INS_JCXZ:
+                case  X86_INS_LOOP: case X86_INS_LOOPE: case X86_INS_LOOPNE: {
 
                     if (current_insn.detail->x86.operands[0].type == X86_OP_IMM) {
                         
