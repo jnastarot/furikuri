@@ -1,11 +1,7 @@
 #pragma once
 
 enum fuku_instuction_flags {
-    fuku_instruction_has_relocation_1     = 1 << 1,
-    fuku_instruction_has_relocation_2     = 1 << 2,
-    fuku_instruction_has_rip_relocation   = 1 << 2,
-
-    fuku_instruction_bad_stack         = 1 << 30,
+    fuku_instruction_bad_stack_pointer = 1 << 30,
     fuku_instruction_full_mutated      = 1 << 31,
 };
 

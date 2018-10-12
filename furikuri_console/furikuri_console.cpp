@@ -3,8 +3,8 @@
 
 
 
-//#pragma comment(lib,"..\\..\\LZO\\lzo2_d_86.lib")
-//#include "..\..\LZO\lzo1z.h"
+#pragma comment(lib,"..\\..\\LZO\\lzo2_d_86.lib")
+#include "..\..\LZO\lzo1z.h"
 
 unsigned char lzo_depack_32[] = {//0xCC,
     0x55, 0x8B, 0xEC, 0x8B, 0x55, 0x08, 0x8B, 0x45, 0x14, 0x01, 0x55, 0x0C, 0x53, 0x33, 0xDB, 0x56,
@@ -53,6 +53,7 @@ int main() {
 
     srand(3);
 
+    /*
     shibari_module _module(
         std::string("..\\..\\app for test\\vm_test.exe")//std::string("..\\..\\app for test\\swhtest.exe")
     );
@@ -85,7 +86,7 @@ int main() {
     image_io.write(jmpvm, sizeof(jmpvm));
     */
     
-   
+   /*
     shibari_module _vm_module(
         std::string("..\\Release\\vm_fuku_x86.dll")
     );
@@ -111,9 +112,9 @@ int main() {
             &vm
             }));
             */
-       
-        fuku_ob_settings ob_set = { 1,4,50.f,50.f,00.f };
-        fuku_ob_settings ob1_set = { 1,4,50.f,50.f,00.f };
+       /*
+        fuku_ob_settings ob_set = { 1,5,30.f,50.f,00.f };
+        fuku_ob_settings ob1_set = { 1,5,30.f,50.f,00.f };
 
         fuku.add_ob_code_list({ 0x1000 , 0x49 }, &_module, ob_set);
         fuku.add_ob_code_list({ 0x1049 , 0x6A7 }, &_module, ob1_set);
@@ -153,7 +154,7 @@ int main() {
 
         //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
 
-
+/*
         if (fuku.fuku_protect(out_image)) {
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
@@ -169,7 +170,7 @@ int main() {
 
 
 
-    /*
+    
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
     for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {
@@ -189,24 +190,29 @@ int main() {
 
     delete[] work_mem;
 
+    fuku_code_analyzer anal_code;
+    anal_code.set_arch(fuku_arch::fuku_arch_x32);
+    anal_code.push_code(lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
+
     typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
     for (unsigned int i = 0; i < 10000; i++) {
+
+        fuku_code_analyzer ob_anal_code = anal_code;
 
         fuku_obfuscator obfuscator;
         std::vector<fuku_code_relocation> relocations;
 
 
-        obfuscator.set_arch(fuku_arch::fuku_arch_x32);
         obfuscator.set_destination_virtual_address(0);
-        obfuscator.set_settings({ 2,2,30.f,30.f,30.f });
-        obfuscator.set_relocation_table(&relocations);
-
-
+        obfuscator.set_settings({ 1,3,30.f,30.f,30.f });
+        obfuscator.set_code(&ob_anal_code.get_code());
+            
         unsigned int s_time = GetTickCount();
 
-        obfuscator.push_code(lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
-
-        std::vector<uint8_t> __obf_unpacker = obfuscator.obfuscate_code();
+        obfuscator.obfuscate_code();
+        std::vector<fuku_code_association> associations;
+        std::vector<uint8_t> __obf_unpacker = finalize_code(ob_anal_code.get_code(), &associations, 0);
+        
         printf("%d obfuscated in %.4f sec | size scale %.2f |", i,(GetTickCount() - s_time) / 1000.f, (float)__obf_unpacker.size() / sizeof(lzo_depack_32));
 
         uint8_t * __obf_unpacker_ = __obf_unpacker.data();
@@ -215,13 +221,9 @@ int main() {
         VirtualProtect(__obf_unpacker_, __obf_unpacker.size(), PAGE_EXECUTE_READWRITE, &old_p);
         VirtualProtect(lzo_depack_32, sizeof(lzo_depack_32), PAGE_EXECUTE_READWRITE, &old_p);
 
-        _depack_algo depack = (_depack_algo)__obf_unpacker_;
+        _depack_algo depack = (_depack_algo)(__obf_unpacker_ + associations[0].virtual_address);
 
         unsigned long unpack_size = 0x1000;
-
-        for (auto &rel : relocations) { //fix reloc
-            *(DWORD*)&__obf_unpacker_[rel.virtual_address] += (DWORD)__obf_unpacker_;
-        }
 
         unsigned int n_time = GetTickCount();
        // ((_depack_algo)&lzo_depack_32[0])(compressed_buf, packed_size, data_1, &unpack_size, 0);

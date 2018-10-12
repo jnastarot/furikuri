@@ -87,7 +87,7 @@ void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, b
 
 void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
-    bool unstable_stack = lines_iter->get_instruction_flags() & fuku_instruction_bad_stack;
+    bool unstable_stack = lines_iter->get_instruction_flags() & fuku_instruction_bad_stack_pointer;
 
     if (FUKU_GET_CHANCE(settings.junk_chance)) {
         fuku_junk(code_holder, lines_iter);

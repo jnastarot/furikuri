@@ -55,12 +55,16 @@ void fuku_obfuscator::obfuscate_code() {
 
     handle_jmps();
 
-    unused_flags_profiler();
+    if (settings.junk_chance > 0.f || settings.mutate_chance > 0.f) {
+        unused_flags_profiler();
+    }
 
     for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
 
-        mutator->obfuscate(*code);
-        
+        if (settings.junk_chance > 0.f || settings.mutate_chance > 0.f) {
+            mutator->obfuscate(*code);
+        }
+
         if (settings.block_chance > 0.f) {
             spagetti_code(); //mix lines
         }
@@ -74,6 +78,7 @@ void fuku_obfuscator::obfuscate_code() {
     }
 
     code->update_virtual_address(destination_virtual_address);
+    code->update_origin_idxs();
 }
 
 void fuku_obfuscator::spagetti_code() {
@@ -115,7 +120,7 @@ void fuku_obfuscator::spagetti_code() {
         for (size_t block_idx = 0; block_idx < block_lens.size(); block_idx++) {
 
             size_t block_len = block_lens[block_idx];
-
+            uint32_t inst_flags = 0;
 
             if (block_len) {
                 auto start = code->get_lines().begin();
@@ -123,11 +128,15 @@ void fuku_obfuscator::spagetti_code() {
 
                 std::advance(end, block_len);
 
-                line_blocks[block_idx].splice(line_blocks[block_idx].begin(), code->get_lines(), start, end);
+                line_blocks[block_idx].splice(line_blocks[block_idx].begin(), code->get_lines(), start, end);   
+            }
+
+            if (code->get_lines().begin() != code->get_lines().end()) {
+                inst_flags = (code->get_lines().begin()->get_instruction_flags()) & fuku_instruction_bad_stack_pointer;
             }
 
             if (block_idx + 1 != block_lens.size()) {
-                line_blocks[block_idx].push_back(fuku_asm.jmp(0));
+                line_blocks[block_idx].push_back(fuku_asm.jmp(0).set_instruction_flags(inst_flags));
             }
 
             if (block_idx) {
@@ -136,7 +145,6 @@ void fuku_obfuscator::spagetti_code() {
                 auto& first_item_of_current_block = line_blocks[block_idx].begin();
 
                 prev_block_jmp.set_rip_relocation_idx(code->create_rip_relocation(1, &(*first_item_of_current_block)));
-                prev_block_jmp.set_instruction_flags(first_item_of_current_block->get_instruction_flags() & (fuku_instruction_bad_stack));
                 prev_block_jmp.set_custom_flags(first_item_of_current_block->get_custom_flags());
             }
 

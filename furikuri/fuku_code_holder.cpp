@@ -415,6 +415,11 @@ std::vector<uint8_t> finalize_code(fuku_code_holder&  code_holder,
         }
     }
     
+    if (associations) {
+        std::sort(associations->begin(), associations->end(), [](const fuku_code_association& l_assoc, const fuku_code_association& r_assoc) {
+            return l_assoc.original_virtual_address < r_assoc.original_virtual_address;
+        });
+    }
 
     return lines_raw;
 }

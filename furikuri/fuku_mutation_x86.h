@@ -34,8 +34,8 @@ class fuku_mutation_x86 :
     bool fuku_mutation_x86::fukutate_jmp(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
     bool fuku_mutation_x86::fukutate_ret(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
 
-    void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, unsigned int recurse_idx);
+    void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
+    void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx);
 
 public:
     fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings);

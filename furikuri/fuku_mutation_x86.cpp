@@ -12,9 +12,9 @@ fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings)
 
 fuku_mutation_x86::~fuku_mutation_x86() {}
 
-void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, unsigned int recurse_idx) {
+void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx) {
 
-    for (linestorage::iterator lines_iter = code_holder.get_lines().begin(); lines_iter != code_holder.get_lines().end(); lines_iter++) {
+    for (linestorage::iterator lines_iter = lines_iter_begin; lines_iter != lines_iter_end; lines_iter++) {
 
         fukutation(code_holder, lines_iter);
 
@@ -27,13 +27,14 @@ void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, unsigned 
         }
 
         if (recurse_idx_up) {
-            //obfuscate_lines(code_holder, recurse_idx_up);
+            auto next_iter = lines_iter; next_iter++;
+            obfuscate_lines(code_holder, lines_iter, next_iter, recurse_idx_up);
         }
     }
 }
 
 void fuku_mutation_x86::obfuscate(fuku_code_holder& code_holder) {
-    obfuscate_lines(code_holder, -1);
+    obfuscate_lines(code_holder, code_holder.get_lines().begin(), code_holder.get_lines().end(), -1);
 }
 
 void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
@@ -89,9 +90,21 @@ void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, b
 
 
 
-void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
 
-    bool unstable_stack = lines_iter->get_instruction_flags() & fuku_instruction_bad_stack;
+    bool unstable_stack = lines_iter->get_instruction_flags() & fuku_instruction_bad_stack_pointer;
+    bool is_first_line = lines_iter == code_holder.get_lines().begin();
+    linestorage::iterator begin_lines_iter;
+    linestorage::iterator end_lines_iter;
+
+    if (!is_first_line) {
+        begin_lines_iter = lines_iter;
+        end_lines_iter = lines_iter;
+
+        begin_lines_iter--;
+        end_lines_iter++;
+    }
+
 
     if (FUKU_GET_CHANCE(settings.junk_chance)) {
         fuku_junk(code_holder, lines_iter);
@@ -152,8 +165,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
             fukutate_jmp(code_holder, lines_iter);
             break;
         }
-                    
-             
+                               
         case  X86_INS_JO: case  X86_INS_JNO:
         case  X86_INS_JB: case  X86_INS_JAE:
         case  X86_INS_JE: case  X86_INS_JNE:
@@ -175,28 +187,52 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         }
     }
 
+    { //move label_idx and source_address to start of instruction's array 
 
-   /*
-    for (auto& line : out_lines) {
-        if (unstable_stack) {
-            line.set_flags(line.get_flags() | fuku_instruction_bad_stack);
+        if (!is_first_line) {
+            begin_lines_iter++;
+
+            if (begin_lines_iter != lines_iter) {
+
+                if (lines_iter->get_label_idx() != -1) {
+                    code_holder.get_labels()[lines_iter->get_label_idx()].instruction = &(*begin_lines_iter);
+                    begin_lines_iter->set_label_idx(lines_iter->get_label_idx());
+                    lines_iter->set_label_idx(-1);
+                }
+
+                begin_lines_iter->set_source_virtual_address(lines_iter->get_source_virtual_address());
+                lines_iter->set_source_virtual_address(-1);
+            }
+
+            for (auto current_line = begin_lines_iter; current_line != end_lines_iter; current_line++) {
+
+                if (unstable_stack) {
+                    current_line->set_instruction_flags(fuku_instruction_bad_stack_pointer);
+                }
+            }
+
         }
+        else {
+            if (code_holder.get_lines().begin() != lines_iter) {
 
+                if (lines_iter->get_label_idx() != -1) {
+                    code_holder.get_labels()[lines_iter->get_label_idx()].instruction = &(*code_holder.get_lines().begin());
+                    code_holder.get_lines().begin()->set_label_idx(lines_iter->get_label_idx());
+                    lines_iter->set_label_idx(-1);
+                }
 
-        line.set_label_id(0);
-
-        line.set_source_virtual_address(-1);
+                code_holder.get_lines().begin()->set_source_virtual_address(lines_iter->get_source_virtual_address());
+                lines_iter->set_source_virtual_address(-1);
+            }
+        }
     }
-
-    out_lines[0].set_source_virtual_address(lines[current_line_idx].get_source_virtual_address());
-
-    out_lines[0].set_label_id(lines[current_line_idx].get_label_id());
-    */
 }
 
 
 void fuku_mutation_x86::generate_junk(fuku_code_holder& code_holder,
     linestorage::iterator lines_iter, uint32_t max_size, size_t junk_size) {
+
+    return;
 
     size_t current_size = 0;
     
