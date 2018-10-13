@@ -153,24 +153,29 @@ void fuku_obfuscator::spagetti_code() {
     }
 
     //rand blocks
-    
-    if (line_blocks.size() > 2) {
-        for (size_t r_block = 0; r_block < line_blocks.size()/2; r_block++) {
-            size_t block_1 = FUKU_GET_RAND(0, line_blocks.size() - 1);
-            size_t block_2 = FUKU_GET_RAND(0, line_blocks.size() - 1);
-            
-            if (block_1 != block_2) {
-                line_blocks[block_1].swap(line_blocks[block_2]);
+    {
+        std::vector<size_t> block_idxs;
+        block_idxs.resize(line_blocks.size());
+
+        for (size_t idx = 0; idx < block_idxs.size(); idx++) {
+            block_idxs[idx] = idx;
+        }
+
+        if (line_blocks.size() > 2) {
+            for (size_t r_block = 0; r_block < block_idxs.size(); r_block++) {
+                std::swap(block_idxs[r_block], block_idxs[FUKU_GET_RAND(0, block_idxs.size() - 1)]);
             }
         }
-    }
 
-    //push lines
-    {
-        auto& code_lines = code->get_lines();
-        for (size_t block_idx = 0; block_idx < line_blocks.size(); block_idx++) {
-            code_lines.splice(code_lines.end(), line_blocks[block_idx]);
+        
+        //push lines
+        {
+            auto& code_lines = code->get_lines();
+            for (size_t block_idx : block_idxs) {
+                code_lines.splice(code_lines.end(), line_blocks[block_idx]);
+            }
         }
+
     }
 }
 

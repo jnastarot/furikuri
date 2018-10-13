@@ -117,31 +117,166 @@ size_t fuku_code_holder::create_label(uint64_t dst_address) {
 
 size_t fuku_code_holder::create_relocation(uint8_t offset, uint64_t dst_address, uint32_t relocation_id) {
 
-    relocations.push_back({ relocation_id , offset , create_label(dst_address) });
+    if (available_relocations.size()) {
+        size_t idx = available_relocations[0];
+        available_relocations.erase(available_relocations.begin());
 
-    return relocations.size() - 1;
+        relocations[idx] = { relocation_id , offset , create_label(dst_address) };
+
+        return idx;
+    }
+    else {
+        relocations.push_back({ relocation_id , offset , create_label(dst_address) });
+
+        return relocations.size() - 1;
+    }
 }
 
 size_t fuku_code_holder::create_relocation(uint8_t offset, fuku_instruction* line, uint32_t relocation_id) {
 
-    relocations.push_back({ relocation_id , offset , create_label(line) });
+    if (available_relocations.size()) {
+        size_t idx = available_relocations[0];
+        available_relocations.erase(available_relocations.begin());
 
-    return relocations.size() - 1;
+        relocations[idx] = { relocation_id , offset , create_label(line) };
+
+        return idx;
+    }
+    else {
+        relocations.push_back({ relocation_id , offset , create_label(line) });
+
+        return relocations.size() - 1;
+    }
+}
+
+size_t fuku_code_holder::create_relocation_lb(uint8_t offset, size_t label_idx, uint32_t relocation_id) {
+
+    if (available_relocations.size()) {
+        size_t idx = available_relocations[0];
+        available_relocations.erase(available_relocations.begin());
+
+        relocations[idx] = { relocation_id , offset , label_idx };
+
+        return idx;
+    }
+    else {
+        relocations.push_back({ relocation_id , offset , label_idx });
+
+        return relocations.size() - 1;
+    }
+}
+
+size_t fuku_code_holder::create_relocation(const fuku_code_relocation& reloc) {
+
+    if (available_relocations.size()) {
+        size_t idx = available_relocations[0];
+        available_relocations.erase(available_relocations.begin());
+
+        relocations[idx] = reloc;
+
+        return idx;
+    }
+    else {
+        relocations.push_back(reloc);
+
+        return relocations.size() - 1;
+    }
 }
 
 size_t fuku_code_holder::create_rip_relocation(uint8_t offset, uint64_t dst_address) {
 
-    
-    rip_relocations.push_back({ offset , create_label(dst_address) });
+    if (available_rip_relocations.size()) {
+        size_t idx = available_rip_relocations[0];
+        available_rip_relocations.erase(available_rip_relocations.begin());
 
-    return rip_relocations.size() - 1;
+        rip_relocations[idx] = { offset , create_label(dst_address) };
+
+        return idx;
+    }
+    else {
+        rip_relocations.push_back({ offset , create_label(dst_address) });
+
+        return rip_relocations.size() - 1;
+    }
 }
 
 size_t fuku_code_holder::create_rip_relocation(uint8_t offset, fuku_instruction* line) {
 
-    rip_relocations.push_back({ offset , create_label(line) });
+    if (available_rip_relocations.size()) {
+        size_t idx = available_rip_relocations[0];
+        available_rip_relocations.erase(available_rip_relocations.begin());
 
-    return rip_relocations.size() - 1;
+        rip_relocations[idx] = { offset , create_label(line) };
+
+        return idx;
+    }
+    else {
+        rip_relocations.push_back({ offset , create_label(line) });
+
+        return rip_relocations.size() - 1;
+    }
+}
+
+size_t fuku_code_holder::create_rip_relocation_lb(uint8_t offset, size_t label_idx) {
+
+    if (available_rip_relocations.size()) {
+        size_t idx = available_rip_relocations[0];
+        available_rip_relocations.erase(available_rip_relocations.begin());
+
+        rip_relocations[idx] = { offset , label_idx };
+
+        return idx;
+    }
+    else {
+        rip_relocations.push_back({ offset , label_idx });
+
+        return rip_relocations.size() - 1;
+    }
+}
+
+size_t fuku_code_holder::create_rip_relocation(const fuku_code_rip_relocation& rip_reloc) {
+
+    if (available_rip_relocations.size()) {
+        size_t idx = available_rip_relocations[0];
+        available_rip_relocations.erase(available_rip_relocations.begin());
+
+        rip_relocations[idx] = rip_reloc;
+
+        return idx;
+    }
+    else {
+        rip_relocations.push_back(rip_reloc);
+
+        return rip_relocations.size() - 1;
+    }
+}
+
+void  fuku_code_holder::delete_relocation(size_t idx) {
+    
+    if (idx < relocations.size() ) {
+
+        if (relocations.size() - 1 == idx) {
+            relocations.erase(relocations.begin() + idx);
+        }
+        else {
+            memset(&relocations[idx], 0 , sizeof(fuku_code_relocation));
+            available_relocations.push_back(idx);
+        }
+    }
+}
+
+void  fuku_code_holder::delete_rip_relocation(size_t idx) {
+
+    if (idx < rip_relocations.size()) {
+
+        if (rip_relocations.size() - 1 == idx) {
+            rip_relocations.erase(rip_relocations.begin() + idx);
+        }
+        else {
+            memset(&rip_relocations[idx], 0, sizeof(fuku_code_rip_relocation));
+            available_rip_relocations.push_back(idx);
+        }
+    }
 }
 
 fuku_instruction& fuku_code_holder::add_line() {
@@ -244,6 +379,14 @@ void fuku_code_holder::set_rip_relocations(const std::vector<fuku_code_rip_reloc
     this->rip_relocations = rip_relocs;
 }
 
+void fuku_code_holder::set_available_relocations(const std::vector<size_t>& relocs) {
+    this->available_relocations = relocs;
+}
+
+void fuku_code_holder::set_available_rip_relocations(const std::vector<size_t>& rip_relocs) {
+    this->available_rip_relocations = rip_relocs;
+}
+
 void fuku_code_holder::set_original_lines_idxs(const std::vector<fuku_instruction *>& original_lines) {
     this->original_lines = original_lines;
 }
@@ -262,6 +405,14 @@ std::vector<fuku_code_relocation>& fuku_code_holder::get_relocations() {
 
 std::vector<fuku_code_rip_relocation>& fuku_code_holder::get_rip_relocations() {
     return this->rip_relocations;
+}
+
+std::vector<size_t>& fuku_code_holder::get_available_relocations() {
+    return this->available_relocations;
+}
+
+std::vector<size_t>& fuku_code_holder::get_available_rip_relocations() {
+    return this->available_rip_relocations;
 }
 
 std::vector<fuku_instruction *>& fuku_code_holder::get_original_lines() {
@@ -293,6 +444,14 @@ const std::vector<fuku_code_rip_relocation>& fuku_code_holder::get_rip_relocatio
     return this->rip_relocations;
 }
 
+const std::vector<size_t>& fuku_code_holder::get_available_relocations() const {
+    return this->available_relocations;
+}
+
+const std::vector<size_t>& fuku_code_holder::get_available_rip_relocations() const {
+    return this->available_rip_relocations;
+}
+
 const std::vector<fuku_instruction *>& fuku_code_holder::get_original_lines() const {
     return this->original_lines;
 }
@@ -319,6 +478,7 @@ std::vector<uint8_t> finalize_code(fuku_code_holder&  code_holder,
     size_t raw_caret_pos = 0;
 
     for (auto &line : code_holder.get_lines()) {
+
 
         if (associations) {
             if (line.get_source_virtual_address() != -1) {

@@ -38,6 +38,10 @@ class fuku_code_holder {
     std::vector<fuku_code_relocation> relocations;
     std::vector<fuku_code_rip_relocation> rip_relocations;
 
+    std::vector<size_t> available_relocations;
+    std::vector<size_t> available_rip_relocations;
+
+
     std::vector<fuku_instruction *> original_lines; //sorted instructions with valid source_virtual_address
 
     linestorage  lines;
@@ -61,8 +65,16 @@ public:
     size_t create_label(uint64_t dst_address);
     size_t create_relocation(uint8_t offset, uint64_t dst_address, uint32_t relocation_id);
     size_t create_relocation(uint8_t offset, fuku_instruction* line, uint32_t relocation_id);
+    size_t create_relocation_lb(uint8_t offset, size_t label_idx, uint32_t relocation_id);
+    size_t create_relocation(const fuku_code_relocation& reloc);
     size_t create_rip_relocation(uint8_t offset, uint64_t dst_address);
     size_t create_rip_relocation(uint8_t offset, fuku_instruction* line);
+    size_t create_rip_relocation_lb(uint8_t offset, size_t label_idx);
+    size_t create_rip_relocation(const fuku_code_rip_relocation& rip_reloc);
+
+    void   delete_relocation(size_t idx);
+    void   delete_rip_relocation(size_t idx);
+
 
     fuku_instruction& add_line();
 
@@ -73,11 +85,13 @@ public:
 
 public:
     void set_arch(fuku_arch arch);
-    void set_labels_count(size_t labels_count);
 
     void set_labels(const std::vector<fuku_code_label>& labels);
     void set_relocations(const std::vector<fuku_code_relocation>& relocs);
     void set_rip_relocations(const std::vector<fuku_code_rip_relocation>& rip_relocs);
+
+    void set_available_relocations(const std::vector<size_t>& relocs);
+    void set_available_rip_relocations(const std::vector<size_t>& rip_relocs);
 
     void set_original_lines_idxs(const std::vector<fuku_instruction *>& original_lines);
 
@@ -86,6 +100,9 @@ public:
     std::vector<fuku_code_label>& get_labels();
     std::vector<fuku_code_relocation>& get_relocations();
     std::vector<fuku_code_rip_relocation>& get_rip_relocations();
+
+    std::vector<size_t>& get_available_relocations();
+    std::vector<size_t>& get_available_rip_relocations();
 
     std::vector<fuku_instruction *>& get_original_lines();
 
@@ -97,6 +114,9 @@ public:
     const std::vector<fuku_code_label>& get_labels() const;
     const std::vector<fuku_code_relocation>& get_relocations() const;
     const std::vector<fuku_code_rip_relocation>& get_rip_relocations() const;
+
+    const std::vector<size_t>& get_available_relocations() const;
+    const std::vector<size_t>& get_available_rip_relocations() const;
 
     const std::vector<fuku_instruction *>& get_original_lines() const;
 

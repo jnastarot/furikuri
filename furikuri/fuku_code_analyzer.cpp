@@ -345,6 +345,35 @@ bool fuku_code_analyzer::merge_code(const fuku_code_holder& code_holder) {
                 }
             }
 
+            { //cache update
+
+                auto& dst_cache_relocs = code.get_available_relocations();
+                auto& dst_cache_rip_relocs = code.get_available_rip_relocations();
+
+                auto& src_cache_relocs = code_holder.get_available_relocations();
+                auto& src_cache_rip_relocs = code_holder.get_available_rip_relocations();
+
+                if (src_cache_relocs.size()) {
+                    size_t delta_idx = dst_cache_relocs.size();
+
+                    dst_cache_relocs.insert(dst_cache_relocs.end(), src_cache_relocs.begin(), src_cache_relocs.end());
+
+                    for (size_t current_idx = delta_idx; current_idx < dst_cache_relocs.size(); current_idx++) {
+                        dst_cache_relocs[current_idx] += delta_idx;
+                    }
+                }
+
+                if (src_cache_rip_relocs.size()) {
+                    size_t delta_idx = dst_cache_rip_relocs.size();
+
+                    dst_cache_rip_relocs.insert(dst_cache_rip_relocs.end(), src_cache_rip_relocs.begin(), src_cache_rip_relocs.end());
+
+                    for (size_t current_idx = delta_idx; current_idx < dst_cache_rip_relocs.size(); current_idx++) {
+                        dst_cache_rip_relocs[current_idx] += delta_idx;
+                    }
+                }
+            }
+
             auto& dst_labels = code.get_labels();
             auto& src_labels = code_holder.get_labels();
 

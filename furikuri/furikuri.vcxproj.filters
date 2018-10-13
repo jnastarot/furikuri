@@ -87,9 +87,6 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x64">
       <UniqueIdentifier>{8c1583e0-a42d-4039-84a1-24d892d64829}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86\rules">
-      <UniqueIdentifier>{9f4a6c91-2491-4e3b-aee7-04118c73393f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -167,20 +164,8 @@
     <ClInclude Include="fuku_code_holder.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_holder</Filter>
     </ClInclude>
-    <ClInclude Include="fuku_mutation_x86_arith.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86\rules</Filter>
-    </ClInclude>
-    <ClInclude Include="fuku_mutation_x86_graph.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86\rules</Filter>
-    </ClInclude>
-    <ClInclude Include="fuku_mutation_x86_logical.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86\rules</Filter>
-    </ClInclude>
-    <ClInclude Include="fuku_mutation_x86_junk.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86\rules</Filter>
-    </ClInclude>
-    <ClInclude Include="fuku_mutation_x86_stack.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86\rules</Filter>
+    <ClInclude Include="fuku_mutation_x86_rules.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -240,6 +225,9 @@
     </ClCompile>
     <ClCompile Include="fuku_code_holder.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_holder</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_mutation_x86_rules.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
