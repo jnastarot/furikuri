@@ -53,7 +53,7 @@ int main() {
 
     srand(3);
 
-    /*
+    
     shibari_module _module(
         std::string("..\\..\\app for test\\vm_test.exe")//std::string("..\\..\\app for test\\swhtest.exe")
     );
@@ -86,7 +86,7 @@ int main() {
     image_io.write(jmpvm, sizeof(jmpvm));
     */
     
-    /*
+    
     shibari_module _vm_module(
         std::string("..\\Release\\vm_fuku_x86.dll")
     );
@@ -154,7 +154,7 @@ int main() {
 
         //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
 
-/*
+
         if (fuku.fuku_protect(out_image)) {
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
@@ -170,7 +170,7 @@ int main() {
 
 
 
-    
+    /*
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
     for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {

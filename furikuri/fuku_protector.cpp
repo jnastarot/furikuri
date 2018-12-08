@@ -104,6 +104,8 @@ bool fuku_protector::test_regions_scope() {
 
 bool    fuku_protector::finish_module() {
 
+    //todo do configuration of configuration \_(0-0)_/
+
     target_module.get_image_load_config().get_se_handlers().clear();
     target_module.get_image_load_config().get_guard_cf_functions().clear();
 

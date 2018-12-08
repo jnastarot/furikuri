@@ -3,9 +3,15 @@
 #include "fuku_mutation_x86_rules.h"
 
 fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings)
-: settings(settings){}
+: settings(settings){
 
-fuku_mutation_x86::~fuku_mutation_x86() {}
+    cs_open(CS_ARCH_X86, CS_MODE_32, &cap_handle);
+    cs_option(cap_handle, CS_OPT_DETAIL, CS_OPT_ON);
+}
+
+fuku_mutation_x86::~fuku_mutation_x86() {
+    cs_close(&cap_handle);
+}
 
 void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx) {
 
@@ -87,6 +93,7 @@ void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, b
 
 void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
 
+    cs_insn *instruction;
     bool unstable_stack = lines_iter->get_instruction_flags() & fuku_instruction_bad_stack_pointer;
     bool is_first_line = lines_iter == code_holder.get_lines().begin();
     linestorage::iterator begin_lines_iter;
@@ -98,9 +105,12 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
     }
 
 
+    cs_disasm(cap_handle, lines_iter->get_op_code(), lines_iter->get_op_length(), 0, 1, &instruction);
+
     if (FUKU_GET_CHANCE(settings.junk_chance)) {
         fuku_junk(code_holder, lines_iter);
     }
+
 
     if ( (lines_iter->get_instruction_flags() & fuku_instruction_full_mutated) == 0 &&
         FUKU_GET_CHANCE(settings.mutate_chance)) {
@@ -108,65 +118,65 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         switch (lines_iter->get_id()) {
 
         case X86_INS_PUSH: {
-            fukutate_push(f_asm, code_holder, lines_iter);
+            fukutate_push(instruction, f_asm, code_holder, lines_iter);
             break;
         }
                      
         case X86_INS_POP: {
-            fukutate_pop(f_asm, code_holder, lines_iter);
+            fukutate_pop(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
 
         case X86_INS_ADD: {
-            fukutate_add(f_asm, code_holder, lines_iter);
+            fukutate_add(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_SUB: {
-            fukutate_sub(f_asm, code_holder, lines_iter);
+            fukutate_sub(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_INC: {
-            fukutate_inc(f_asm, code_holder, lines_iter);
+            fukutate_inc(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_DEC: {
-            fukutate_dec(f_asm, code_holder, lines_iter);
+            fukutate_dec(instruction, f_asm, code_holder, lines_iter);
             break;
         }
                  
         case X86_INS_CMP: {
-            fukutate_cmp(f_asm, code_holder, lines_iter);
+            fukutate_cmp(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
 
         case X86_INS_AND: {
-            fukutate_and(f_asm, code_holder, lines_iter);
+            fukutate_and(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_OR: {
-            fukutate_or(f_asm, code_holder, lines_iter);
+            fukutate_or(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_XOR: {
-            fukutate_xor(f_asm, code_holder, lines_iter);
+            fukutate_xor(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_TEST: {
-            fukutate_test(f_asm, code_holder, lines_iter);
+            fukutate_test(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         
         case X86_INS_JMP: {
-            fukutate_jmp(f_asm, code_holder, lines_iter);
+            fukutate_jmp(instruction, f_asm, code_holder, lines_iter);
             break;
         }
                                
@@ -184,12 +194,14 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 
                     
         case X86_INS_RET: {
-            fukutate_ret(f_asm, code_holder, lines_iter);
+            fukutate_ret(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         
         }
     }
+
+    cs_free(instruction, 1);
 
     { //move label_idx and source_address to start of instruction's array 
 

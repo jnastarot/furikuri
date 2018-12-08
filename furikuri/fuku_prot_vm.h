@@ -38,23 +38,24 @@ bool    fuku_protector::initialize_profiles_vm() {
                 return lhs.region_rva < rhs.region_rva;
             });
 
-            struct _bind_part_code {
-                uint32_t rva_code_part;
+            struct code_region_buffer {
+                uint32_t code_rva;
                 std::vector<uint8_t> code_buffer;
-                std::vector<fuku_image_relocation> fuku_image_relocs;
+                std::vector<fuku_image_relocation> used_relocs;
             };
 
-            std::vector<_bind_part_code> bind_part_code;
+            std::vector<code_region_buffer> code_regions;
+
 
             size_t last_reloc_idx = 0;
 
             for (auto& region : item.regions) {
 
-                _bind_part_code part_code;
+                code_region_buffer code_region;
 
-                part_code.rva_code_part = region.region_rva;
+                code_region.code_rva = region.region_rva;
 
-                if (image_io.set_image_offset(region.region_rva).read(part_code.code_buffer, region.region_size) != enma_io_success) {
+                if (image_io.set_image_offset(region.region_rva).read(code_region.code_buffer, region.region_size) != enma_io_success) {
                     return false;
                 }
 
@@ -65,7 +66,8 @@ bool    fuku_protector::initialize_profiles_vm() {
 
                     if (reloc_item.relative_virtual_address > region.region_rva) {
                         if (reloc_item.relative_virtual_address < (region.region_rva + region.region_size)) {
-                            part_code.fuku_image_relocs.push_back({
+
+                            code_region.used_relocs.push_back({
                                 reloc_item.relocation_id,
                                 reloc_item.relative_virtual_address + base_address
                                 });
@@ -82,18 +84,19 @@ bool    fuku_protector::initialize_profiles_vm() {
                     }
                 }
 
-                bind_part_code.push_back(part_code);
+                code_regions.push_back(code_region);
 
                 image_io.set_image_offset(region.region_rva).memory_set(region.region_size, 0);
             }
 
 
-            for (auto& part_code : bind_part_code) {
+            for (auto& code_region : code_regions) {
+
                 item.an_code.push_code(
-                    part_code.code_buffer.data(),
-                    part_code.code_buffer.size(),
-                    base_address + part_code.rva_code_part,
-                    &part_code.fuku_image_relocs
+                    code_region.code_buffer.data(),
+                    code_region.code_buffer.size(),
+                    base_address + code_region.code_rva,
+                    &code_region.used_relocs
                 );
             }
         }
@@ -128,10 +131,10 @@ bool fuku_protector::virtualize_profiles() {
 
                     obfuscator.obfuscate_code();
 
-                    if (!anal_code.push_code(std::move(item.an_code.get_code()))) { return false; }
+                    if (!anal_code.push_code(std::move(item.an_code.get_code()))) { FUKU_DEBUG; return false; }
                 }
                 else {
-                    if (!anal_code.push_code(std::move(item.an_code))) { return false; }
+                    if (!anal_code.push_code(std::move(item.an_code))) { FUKU_DEBUG; return false; }
                 }
 
                 profile.second.regions.insert(profile.second.regions.end(), item.regions.begin(), item.regions.end());
@@ -145,10 +148,14 @@ bool fuku_protector::virtualize_profiles() {
             );
             
             if (result != fuku_vm_result::fuku_vm_ok) {
+
+                FUKU_DEBUG;
                 return false;
             }
 
             if (image_io.write(profile.first.virtualizer->get_bytecode()) != enma_io_success) {
+
+                FUKU_DEBUG;
                 return false;
             }
         }
@@ -183,11 +190,12 @@ bool    fuku_protector::finish_protected_vm_code() {
 
                     if (image_io.set_image_offset(region.region_rva).write(_jmp) != enma_io_success) {
 
+                        FUKU_DEBUG;
                         return false;
                     }
 
                 } else {
-
+                    FUKU_DEBUG;
                 }
             }
 
