@@ -167,6 +167,9 @@
     <ClInclude Include="fuku_mutation_x86_rules.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_mutation_x64_rules.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -228,6 +231,12 @@
     </ClCompile>
     <ClCompile Include="fuku_mutation_x86_rules.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x86</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_mutation_x64_rules.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_asm.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_asm</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

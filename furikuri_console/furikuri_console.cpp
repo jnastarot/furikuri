@@ -106,8 +106,8 @@ int main() {
 
 
        
-        fuku_ob_settings ob_set = { 1,5,30.f,50.f,00.f };
-        fuku_ob_settings ob1_set = { 1,5,30.f,50.f,00.f };
+        fuku_ob_settings ob_set = { 2,2,10.f,10.f,10.f };
+        fuku_ob_settings ob1_set = { 2,2,10.f,10.f,10.f };
 
         fuku.add_ob_code_list({ 0x1000 , 0x49 }, &_module, ob_set);
         fuku.add_ob_code_list({ 0x1049 , 0x6A7 }, &_module, ob1_set);

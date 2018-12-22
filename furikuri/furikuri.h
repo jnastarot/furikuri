@@ -90,8 +90,8 @@ public:
     bool furikuri::set_main_module(shibari_module* module,std::string module_path = "");
     bool furikuri::add_extended_module(shibari_module* module, std::string module_path = "");
 
-    bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_ob_settings& settings);
-    bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_vm_settings& settings);
+    bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module,const fuku_ob_settings& settings);
+    bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module,const fuku_vm_settings& settings);
 
     void furikuri::clear_code_lists();
     void furikuri::clear_extended_modules(); //delete only from pointer table without destruction classes

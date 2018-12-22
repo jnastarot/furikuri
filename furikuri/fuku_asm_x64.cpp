@@ -140,33 +140,6 @@ private:
 };
 
 
-fuku_immediate64::fuku_immediate64()
-:imm_value(0){}
-fuku_immediate64::fuku_immediate64(uint64_t imm)
-:imm_value(imm){}
-
-fuku_immediate64::~fuku_immediate64() {}
-
-void fuku_immediate64::set_imm(uint64_t imm) {
-    this->imm_value = imm;
-}
-bool fuku_immediate64::is_imm_8() const {
-    return !(imm_value & 0xFFFFFFFFFFFFFF00);
-}
-bool fuku_immediate64::is_imm_16() const {
-    return !(imm_value & 0xFFFFFFFFFFFF0000);
-}
-bool fuku_immediate64::is_imm_32() const {
-    return !(imm_value & 0xFFFFFFFF00000000);
-}
-bool fuku_immediate64::is_imm_64() const {
-    return (imm_value & 0xFFFFFFFF00000000) != 0;
-}
-uint64_t fuku_immediate64::get_imm() const {
-    return imm_value;
-}
-
-
 fuku_operand64::fuku_operand64(fuku_reg64 base, int32_t disp){
     OperandBuilder(base, disp).init_operand(*this);
 }
@@ -437,7 +410,7 @@ void fuku_asm_x64::arithmetic_op_8(uint8_t opcode, fuku_reg64 reg, fuku_reg64 rm
 
 void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode,
     fuku_reg64 dst,
-    fuku_immediate64& src,
+    fuku_immediate& src,
     fuku_asm64_size size) {
 
     clear_space();
@@ -459,7 +432,7 @@ void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode,
 }
 
 void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode, fuku_operand64& dst,
-    fuku_immediate64& src, fuku_asm64_size size) {
+    fuku_immediate& src, fuku_asm64_size size) {
 
     clear_space();
     emit_rex(dst, size);
@@ -478,7 +451,7 @@ void fuku_asm_x64::immediate_arithmetic_op(uint8_t subcode, fuku_operand64& dst,
 
 void fuku_asm_x64::immediate_arithmetic_op_16(uint8_t subcode,
     fuku_reg64 dst,
-    fuku_immediate64& src) {
+    fuku_immediate& src) {
 
     clear_space();
     emit_b(0x66);  // Operand size override prefix.
@@ -500,7 +473,7 @@ void fuku_asm_x64::immediate_arithmetic_op_16(uint8_t subcode,
 }
 
 void fuku_asm_x64::immediate_arithmetic_op_16(uint8_t subcode, fuku_operand64& dst,
-    fuku_immediate64& src) {
+    fuku_immediate& src) {
 
     clear_space();
     emit_b(0x66);  // Operand size override prefix.
@@ -518,7 +491,7 @@ void fuku_asm_x64::immediate_arithmetic_op_16(uint8_t subcode, fuku_operand64& d
 }
 
 void fuku_asm_x64::immediate_arithmetic_op_8(uint8_t subcode, fuku_operand64& dst,
-    fuku_immediate64& src) {
+    fuku_immediate& src) {
 
     clear_space();
     emit_optional_rex_32(dst);
@@ -531,7 +504,7 @@ void fuku_asm_x64::immediate_arithmetic_op_8(uint8_t subcode, fuku_operand64& ds
 
 void fuku_asm_x64::immediate_arithmetic_op_8(uint8_t subcode,
     fuku_reg64 dst,
-    fuku_immediate64& src) {
+    fuku_immediate& src) {
 
     clear_space();
     if (!is_byte_register(dst)) {
@@ -665,7 +638,7 @@ fuku_instruction fuku_asm_x64::cdq() {
 
 
 
-fuku_instruction fuku_asm_x64::cmpb_al(fuku_immediate64& imm8) {
+fuku_instruction fuku_asm_x64::cmpb_al(fuku_immediate& imm8) {
     clear_space();
     emit_b(0x3C);
     emit_b(imm8.get_imm()&0xFF);
@@ -766,7 +739,7 @@ fuku_instruction fuku_asm_x64::decb(fuku_operand64& dst) {
 }
 
 
-fuku_instruction fuku_asm_x64::enter(fuku_immediate64& size) {
+fuku_instruction fuku_asm_x64::enter(fuku_immediate& size) {
     clear_space();
     emit_b(0xC8);
     emit_w(size.get_imm()&0xFFFF);
@@ -836,7 +809,7 @@ fuku_instruction fuku_asm_x64::imul(fuku_reg64 dst, fuku_operand64& src, fuku_as
 }
 
 
-fuku_instruction fuku_asm_x64::imul(fuku_reg64 dst, fuku_reg64 src, fuku_immediate64& imm, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::imul(fuku_reg64 dst, fuku_reg64 src, fuku_immediate& imm, fuku_asm64_size size) {
     clear_space();
     emit_rex(dst, src, size);
     if (imm.is_imm_8()) {
@@ -852,7 +825,7 @@ fuku_instruction fuku_asm_x64::imul(fuku_reg64 dst, fuku_reg64 src, fuku_immedia
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_IMUL).set_eflags(X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_UNDEFINED_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_UNDEFINED_PF);
 }
 
-fuku_instruction fuku_asm_x64::imul(fuku_reg64 dst, fuku_operand64& src, fuku_immediate64& imm, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::imul(fuku_reg64 dst, fuku_operand64& src, fuku_immediate& imm, fuku_asm64_size size) {
     clear_space();
     emit_rex(dst, src, size);
     if (imm.is_imm_8()) {
@@ -922,7 +895,7 @@ fuku_instruction fuku_asm_x64::movb(fuku_reg64 dst, fuku_operand64& src) {
 }
 
 
-fuku_instruction fuku_asm_x64::movb(fuku_reg64 dst, fuku_immediate64& imm) {
+fuku_instruction fuku_asm_x64::movb(fuku_reg64 dst, fuku_immediate& imm) {
     clear_space();
     if (!is_byte_register(dst)) {
         emit_rex_32(dst);
@@ -945,7 +918,7 @@ fuku_instruction fuku_asm_x64::movb(fuku_operand64& dst, fuku_reg64 src) {
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_MOV).set_eflags(0);
 }
 
-fuku_instruction fuku_asm_x64::movb(fuku_operand64& dst, fuku_immediate64& imm) {
+fuku_instruction fuku_asm_x64::movb(fuku_operand64& dst, fuku_immediate& imm) {
     clear_space();
     emit_optional_rex_32(dst);
     emit_b(0xC6);
@@ -972,7 +945,7 @@ fuku_instruction fuku_asm_x64::movw(fuku_operand64& dst, fuku_reg64 src) {
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_MOV).set_eflags(0);
 }
 
-fuku_instruction fuku_asm_x64::movw(fuku_operand64& dst, fuku_immediate64& imm) {
+fuku_instruction fuku_asm_x64::movw(fuku_operand64& dst, fuku_immediate& imm) {
     clear_space();
     emit_b(0x66);
     emit_optional_rex_32(dst);
@@ -1016,7 +989,7 @@ fuku_instruction fuku_asm_x64::mov(fuku_operand64& dst, fuku_reg64 src, fuku_asm
 }
 
 
-fuku_instruction fuku_asm_x64::mov(fuku_reg64 dst, fuku_immediate64& value, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::mov(fuku_reg64 dst, fuku_immediate& value, fuku_asm64_size size) {
     clear_space();
     emit_rex(dst, size);
     if (size == fuku_asm64_size::asm64_size_64) {
@@ -1030,7 +1003,7 @@ fuku_instruction fuku_asm_x64::mov(fuku_reg64 dst, fuku_immediate64& value, fuku
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_MOV).set_eflags(0);
 }
 
-fuku_instruction fuku_asm_x64::mov(fuku_operand64& dst, fuku_immediate64& value, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::mov(fuku_operand64& dst, fuku_immediate& value, fuku_asm64_size size) {
     clear_space();
     emit_rex(dst, size);
     emit_b(0xC7);
@@ -1384,7 +1357,7 @@ fuku_instruction fuku_asm_x64::pushq(fuku_operand64& src) {
 }
 
 
-fuku_instruction fuku_asm_x64::pushq(fuku_immediate64& value) {
+fuku_instruction fuku_asm_x64::pushq(fuku_immediate& value) {
     clear_space();
     if (value.is_imm_8()) {
         emit_b(0x6A);
@@ -1509,11 +1482,11 @@ fuku_instruction fuku_asm_x64::testb(fuku_reg64 dst, fuku_reg64 src) {
     return test(dst, src, fuku_asm64_size::asm64_size_8);
 }
 
-fuku_instruction fuku_asm_x64::testb(fuku_reg64 reg, fuku_immediate64& mask) {
+fuku_instruction fuku_asm_x64::testb(fuku_reg64 reg, fuku_immediate& mask) {
     return test(reg, mask, fuku_asm64_size::asm64_size_8);
 }
 
-fuku_instruction fuku_asm_x64::testb(fuku_operand64& op, fuku_immediate64& mask) {
+fuku_instruction fuku_asm_x64::testb(fuku_operand64& op, fuku_immediate& mask) {
     return test(op, mask, fuku_asm64_size::asm64_size_8);
 }
 
@@ -1525,11 +1498,11 @@ fuku_instruction fuku_asm_x64::testw(fuku_reg64 dst, fuku_reg64 src) {
     return test(dst, src, fuku_asm64_size::asm64_size_16);
 }
 
-fuku_instruction fuku_asm_x64::testw(fuku_reg64 reg, fuku_immediate64& mask) {
+fuku_instruction fuku_asm_x64::testw(fuku_reg64 reg, fuku_immediate& mask) {
     return test(reg, mask, fuku_asm64_size::asm64_size_16);
 }
 
-fuku_instruction fuku_asm_x64::testw(fuku_operand64& op, fuku_immediate64& mask) {
+fuku_instruction fuku_asm_x64::testw(fuku_operand64& op, fuku_immediate& mask) {
     return test(op, mask, fuku_asm64_size::asm64_size_16);
 }
 
@@ -1560,7 +1533,7 @@ fuku_instruction fuku_asm_x64::test(fuku_reg64 dst, fuku_reg64 src, fuku_asm64_s
 }
 
 
-fuku_instruction fuku_asm_x64::test(fuku_reg64 reg, fuku_immediate64& mask, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::test(fuku_reg64 reg, fuku_immediate& mask, fuku_asm64_size size) {
     if (mask.is_imm_8()) {
         size = fuku_asm64_size::asm64_size_8;
     }
@@ -1600,7 +1573,7 @@ fuku_instruction fuku_asm_x64::test(fuku_reg64 reg, fuku_immediate64& mask, fuku
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_TEST).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::test(fuku_operand64& op, fuku_immediate64& mask, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::test(fuku_operand64& op, fuku_immediate& mask, fuku_asm64_size size) {
     if (mask.is_imm_8()) {
         size = fuku_asm64_size::asm64_size_8;
     }
@@ -1661,7 +1634,7 @@ fuku_instruction fuku_asm_x64::add(fuku_reg64 dst, fuku_reg64 src, fuku_asm64_si
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_ADD).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
 
-fuku_instruction fuku_asm_x64::add(fuku_reg64 dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::add(fuku_reg64 dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x0, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_ADD).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
@@ -1676,7 +1649,7 @@ fuku_instruction fuku_asm_x64::add(fuku_operand64& dst, fuku_reg64 src, fuku_asm
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_ADD).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
 
-fuku_instruction fuku_asm_x64::add(fuku_operand64& dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::add(fuku_operand64& dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x0, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_ADD).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
@@ -1696,12 +1669,12 @@ fuku_instruction fuku_asm_x64::and(fuku_operand64& dst, fuku_reg64 src, fuku_asm
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_AND).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::and(fuku_reg64 dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::and(fuku_reg64 dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x4, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_AND).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::and(fuku_operand64& dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::and(fuku_operand64& dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x4, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_AND).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
@@ -1721,12 +1694,12 @@ fuku_instruction fuku_asm_x64::cmp(fuku_operand64& dst, fuku_reg64 src, fuku_asm
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_CMP).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
 
-fuku_instruction fuku_asm_x64::cmp(fuku_reg64 dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::cmp(fuku_reg64 dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x7, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_CMP).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
 
-fuku_instruction fuku_asm_x64::cmp(fuku_operand64& dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::cmp(fuku_operand64& dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x7, dst, src, size); 
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_CMP).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
@@ -1746,12 +1719,12 @@ fuku_instruction fuku_asm_x64::or(fuku_operand64& dst, fuku_reg64 src, fuku_asm6
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_OR).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::or(fuku_reg64 dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::or(fuku_reg64 dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x1, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_OR).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::or(fuku_operand64& dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::or(fuku_operand64& dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x1, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_OR).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
@@ -1766,7 +1739,7 @@ fuku_instruction fuku_asm_x64::sub(fuku_reg64 dst, fuku_reg64 src, fuku_asm64_si
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_SUB).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
 
-fuku_instruction fuku_asm_x64::sub(fuku_reg64 dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::sub(fuku_reg64 dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x5, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_SUB).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
@@ -1781,7 +1754,7 @@ fuku_instruction fuku_asm_x64::sub(fuku_operand64& dst, fuku_reg64 src, fuku_asm
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_SUB).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
 
-fuku_instruction fuku_asm_x64::sub(fuku_operand64& dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::sub(fuku_operand64& dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x5, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_SUB).set_eflags(X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 }
@@ -1801,12 +1774,12 @@ fuku_instruction fuku_asm_x64::xor(fuku_reg64 dst, fuku_operand64& src, fuku_asm
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_XOR).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::xor(fuku_reg64 dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::xor(fuku_reg64 dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x6, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_XOR).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }
 
-fuku_instruction fuku_asm_x64::xor(fuku_operand64& dst, fuku_immediate64& src, fuku_asm64_size size) {
+fuku_instruction fuku_asm_x64::xor(fuku_operand64& dst, fuku_immediate& src, fuku_asm64_size size) {
     immediate_arithmetic_op(0x6, dst, src, size);
     return fuku_instruction().set_op_code(bytecode, length).set_id(X86_INS_XOR).set_eflags(X86_EFLAGS_RESET_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_RESET_CF);
 }

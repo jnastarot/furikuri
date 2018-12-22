@@ -1,7 +1,7 @@
 #pragma once
 
 //graph     JCC/JMP/RET
-bool fukutate_jcc(fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+bool fukutate_jcc(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
 bool fukutate_jmp(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
 bool fukutate_ret(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
 

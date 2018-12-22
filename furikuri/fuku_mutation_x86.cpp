@@ -188,7 +188,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         case  X86_INS_JP: case  X86_INS_JNP:
         case  X86_INS_JL: case  X86_INS_JGE:
         case  X86_INS_JLE:case  X86_INS_JG: {
-            fukutate_jcc(f_asm, code_holder, lines_iter);
+            fukutate_jcc(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 

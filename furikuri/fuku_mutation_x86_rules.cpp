@@ -68,7 +68,7 @@ uint8_t convert_regtable[] = {
 
 
 
-bool fukutate_jcc(fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+bool fukutate_jcc(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
     
     auto next_line = lines_iter; next_line++;
 

@@ -16,6 +16,7 @@
 #include <stdarg.h> 
 #include <cstdint>
 #include <random>  
+#include <intrin.h>
 
 using namespace std;
 
@@ -36,9 +37,11 @@ using namespace std;
 
 
 #ifdef _DEBUG
-    #define FUKU_DEBUG {printf("%s:%d | %s\n",__FILE__,__LINE__,__FUNCTION__);}
+#define FUKU_DEBUG {printf("%s:%d | %s\n",__FILE__,__LINE__,__FUNCTION__);}
 #else
-    #define FUKU_DEBUG {}
+#define FUKU_DEBUG __nop();
 #endif
+
+#define FUKU_ASSERT(cond) if(cond){FUKU_DEBUG}   
 
 #include "furikuri.h"
