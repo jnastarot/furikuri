@@ -43,5 +43,7 @@ using namespace std;
 #endif
 
 #define FUKU_ASSERT(cond) if(cond){FUKU_DEBUG}   
+#define FUKU_ASSERT_EQ(lhs, rhs) if( !(lhs == rhs) ){FUKU_DEBUG}
+#define FUKU_ASSERT_GT(lhs, rhs) if( !(lhs >  rhs) ){FUKU_DEBUG}
 
 #include "furikuri.h"

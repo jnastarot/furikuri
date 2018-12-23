@@ -99,6 +99,18 @@ enum fuku_register {
     FUKU_REG_MAX,
 };
 
+enum fuku_register_index {
+    FUKU_REG_INDEX_AX = 0, FUKU_REG_INDEX_R8 = 0,
+    FUKU_REG_INDEX_CX = 1, FUKU_REG_INDEX_R9 = 1,
+    FUKU_REG_INDEX_DX = 2, FUKU_REG_INDEX_R10 = 2,
+    FUKU_REG_INDEX_BX = 3, FUKU_REG_INDEX_R11 = 3,
+    FUKU_REG_INDEX_SP = 4, FUKU_REG_INDEX_R12 = 4,
+    FUKU_REG_INDEX_BP = 5, FUKU_REG_INDEX_R13 = 5,
+    FUKU_REG_INDEX_SI = 6, FUKU_REG_INDEX_R14 = 6,
+    FUKU_REG_INDEX_DI = 7, FUKU_REG_INDEX_R15 = 7,
+
+    FUKU_REG_INDEX_INVALID = -1
+};
 
 enum fuku_condition {
     FUKU_NO_CONDITION = -1,                jmp = -1,
@@ -109,16 +121,18 @@ enum fuku_condition {
     FUKU_CONDITION_ABOVE_EQUAL     = 3,    jae  = 3,    jnc = 3, //(CF != 1)
     FUKU_CONDITION_EQUAL           = 4,    je   = 4,    jz  = 4, //(ZF == 1)
     FUKU_CONDITION_NOT_EQUAL       = 5,    jne  = 5,    jnz = 5, //(ZF != 1)
-    FUKU_CONDITION_BELOW_EQUAL     = 6,    jna  = 6,             //(CF == 1 || ZF == 1)
-    FUKU_CONDITION_ABOVE           = 7,    jnbe = 7,    ja  = 7, //(CF != 1 && ZF != 1) //
+    FUKU_CONDITION_BELOW_EQUAL     = 6,    jbe  = 6,    jna = 6, //(CF == 1 || ZF == 1)
+    FUKU_CONDITION_ABOVE           = 7,    jnbe = 7,    ja  = 7, //(CF != 1 && ZF != 1)
     FUKU_CONDITION_NEGATIVE        = 8,    js   = 8,             //(SF == 1)
     FUKU_CONDITION_POSITIVE        = 9,    jns  = 9,             //(SF != 1)
     FUKU_CONDITION_PARITY_EVEN     = 10,   jp   = 10,            //(PF == 1)
     FUKU_CONDITION_PARITY_ODD      = 11,   jnp  = 11,   jpo = 11,//(PF != 1)
     FUKU_CONDITION_LESS            = 12,   jnge = 12,   jl  = 12,//(SF != OF)
-    FUKU_CONDITION_GREATER_EQUAL   = 13,   jnl  = 13,            //(SF == OF)
+    FUKU_CONDITION_GREATER_EQUAL   = 13,   jge  = 13,   jnl = 13,//(SF == OF)
     FUKU_CONDITION_LESS_EQUAL      = 14,   jng  = 14,   jle = 14,//(ZF == 1 || (SF != OF) )
     FUKU_CONDITION_GREATER         = 15,   jnle = 15,   jg  = 15,//(ZF != 1 && (SF == OF) )
+
+    FUKU_CONDITION_MAX
 };
 
 enum fuku_operand_scale {
@@ -156,7 +170,7 @@ enum fuku_operand_size {
     R8 = 0 R9 = 1 R10 = 2 
     and them lowest parts etc
 */
-uint8_t fuku_get_index_reg(fuku_register reg);
+fuku_register_index fuku_get_index_reg(fuku_register reg);
 fuku_register fuku_get_reg_by_index(uint8_t idx,bool x64ext, fuku_operand_size size);
 
 //  returns true for R8 - R15
@@ -179,6 +193,11 @@ fuku_operand_size get_register_size(fuku_register reg);
 
 uint8_t fuku_to_capstone_reg(fuku_register reg);
 uint8_t capstone_to_fuku_reg(fuku_register reg);
+
+x86_insn fuku_to_capstone_jcc(fuku_condition cond);
+fuku_condition capstone_to_fuku_jcc(x86_insn cond);
+
+
 
 class fuku_immediate {
     bool relocate;
@@ -203,6 +222,11 @@ public:
     uint16_t get_immediate16() const;
     uint32_t get_immediate32() const;
     uint64_t get_immediate64() const;
+
+    int8_t get_signed_value8() const;
+    int16_t get_signed_value16() const;
+    int32_t get_signed_value32() const;
+    int64_t get_signed_value64() const;
 };
 
 
