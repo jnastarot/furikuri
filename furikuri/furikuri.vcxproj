@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="fuku_asm.h" />
+    <ClInclude Include="fuku_asm_86_macro.h" />
     <ClInclude Include="fuku_asm_x64.h" />
     <ClInclude Include="fuku_asm_x86.h" />
     <ClInclude Include="fuku_bolrand_map.h" />

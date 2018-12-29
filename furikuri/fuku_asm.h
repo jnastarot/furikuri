@@ -205,7 +205,8 @@ class fuku_immediate {
     uint64_t immediate_value;
 public:
     fuku_immediate();
-    fuku_immediate(uint64_t imm);
+    fuku_immediate(uint64_t immediate);
+    fuku_immediate(uint64_t immediate, bool is_rel);
     ~fuku_immediate();
 public:
     fuku_immediate& set_relocate(bool is_rel);

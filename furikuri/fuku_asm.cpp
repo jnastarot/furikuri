@@ -261,10 +261,14 @@ uint8_t capstone_to_fuku_reg(fuku_register reg) {
 
 
 fuku_immediate::fuku_immediate()
-    :immediate_value(0) {}
+    :immediate_value(0), relocate(false){}
 
 fuku_immediate::fuku_immediate(uint64_t immediate)
-    : immediate_value(immediate) {}
+    : immediate_value(immediate), relocate(false) {}
+
+fuku_immediate::fuku_immediate(uint64_t immediate, bool is_rel)
+    : immediate_value(immediate), relocate(is_rel) {}
+
 
 fuku_immediate::~fuku_immediate() {};
 

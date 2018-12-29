@@ -133,6 +133,7 @@ bool fukutate_jmp(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
                 //push jmpdst
                 //ret
 
+                
                 fuku_instruction line[2];
 
                 line[0] = f_asm.push_imm32(0)
