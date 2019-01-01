@@ -208,6 +208,8 @@ public:
     fuku_immediate(uint64_t immediate);
     fuku_immediate(uint64_t immediate, bool is_rel);
     ~fuku_immediate();
+
+    fuku_immediate& operator=(const fuku_immediate& imm);
 public:
     fuku_immediate& set_relocate(bool is_rel);
     fuku_immediate& set_immediate(uint64_t immediate);
@@ -230,15 +232,48 @@ public:
     int64_t get_signed_value64() const;
 };
 
+enum fuku_mem_opernad_type {
+    FUKU_MEM_OPERAND_BASE_ONLY,
+    FUKU_MEM_OPERAND_DISP_ONLY,
+    FUKU_MEM_OPERAND_BASE_DISP,
+    FUKU_MEM_OPERAND_INDEX_DISP,
+    FUKU_MEM_OPERAND_BASE_INDEX,
+    FUKU_MEM_OPERAND_BASE_INDEX_DISP,
+};
 
-//imm
-class fuku_asm_imm86;
-class fuku_asm_imm64;
+class fuku_operand {
+    fuku_register base;
+    fuku_register index;
+    fuku_operand_scale scale;
+    fuku_immediate disp;
+public:
+    fuku_operand(const fuku_immediate& disp);                  // [disp/r]
+    fuku_operand(fuku_register base, const fuku_immediate& disp);  // [base + disp/r]
+    fuku_operand(fuku_register base, fuku_register index, fuku_operand_scale scale, const fuku_immediate& disp);// [base + index*scale + disp/r]
+    fuku_operand(fuku_register index, fuku_operand_scale scale, const fuku_immediate& disp);// [index*scale + disp/r]
+    ~fuku_operand();
 
-//OP[base + index*scale + disp]  
-class fuku_asm_op86;
-class fuku_asm_op64;
+public:
+    void set_base(fuku_register base);
+    void set_index(fuku_register index);
+    void set_scale(fuku_operand_scale scale);
+    void set_disp(const fuku_immediate& disp);
 
+public:
+    fuku_register get_base() const;
+    fuku_register get_index() const;
+    fuku_operand_scale get_scale() const;
+    const fuku_immediate& get_disp() const;
+
+    fuku_mem_opernad_type get_type() const;
+};
+
+enum fuku_asm_short_cfg {
+    FUKU_ASM_SHORT_CFG_USE_EAX_SHORT  = 1,
+    FUKU_ASM_SHORT_CFG_USE_DISP_SHORT = 2,
+    FUKU_ASM_SHORT_CFG_USE_IMM_SHORT  = 4,
+
+};
 
 #include "fuku_asm_x86.h"
 #include "fuku_asm_x64.h"

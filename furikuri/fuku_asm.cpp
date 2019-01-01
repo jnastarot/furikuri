@@ -272,6 +272,12 @@ fuku_immediate::fuku_immediate(uint64_t immediate, bool is_rel)
 
 fuku_immediate::~fuku_immediate() {};
 
+fuku_immediate& fuku_immediate::operator=(const fuku_immediate& imm) {
+    this->relocate = imm.relocate;
+    this->immediate_value = imm.immediate_value;
+    return *this;
+}
+
 fuku_immediate& fuku_immediate::set_relocate(bool is_rel) {
     this->relocate = is_rel;
     return *this;
@@ -338,6 +344,84 @@ int32_t fuku_immediate::get_signed_value32() const {
 
 int64_t fuku_immediate::get_signed_value64() const {
     return (int64_t)this->immediate_value;
+}
+
+
+
+fuku_operand::fuku_operand(const fuku_immediate& disp)
+    : base(FUKU_REG_NONE), index(FUKU_REG_NONE), scale(FUKU_OPERAND_SCALE_1), disp(disp){}
+
+fuku_operand::fuku_operand(fuku_register base, const fuku_immediate& disp) 
+    : base(base), index(FUKU_REG_NONE), scale(FUKU_OPERAND_SCALE_1), disp(disp) {}
+
+fuku_operand::fuku_operand(fuku_register base, fuku_register index, fuku_operand_scale scale, const fuku_immediate& disp)
+    : base(base), index(index), scale(scale), disp(disp) {}
+
+fuku_operand::fuku_operand(fuku_register index, fuku_operand_scale scale, const fuku_immediate& disp) 
+    : base(FUKU_REG_NONE), index(index), scale(scale), disp(disp) {}
+
+fuku_operand::~fuku_operand() {}
+
+void fuku_operand::set_base(fuku_register base) {
+    this->base = base;
+}
+
+void fuku_operand::set_index(fuku_register index) {
+    this->index = index;
+}
+
+void fuku_operand::set_scale(fuku_operand_scale scale) {
+    this->scale = scale;
+}
+
+void fuku_operand::set_disp(const fuku_immediate& disp) {
+    this->disp = disp;
+}
+
+fuku_register fuku_operand::get_base() const {
+    return this->base;
+}
+
+fuku_register fuku_operand::get_index() const {
+    return this->index;
+}
+
+fuku_operand_scale fuku_operand::get_scale() const {
+    return this->scale;
+}
+
+const fuku_immediate& fuku_operand::get_disp() const {
+    return this->disp;
+}
+
+fuku_mem_opernad_type fuku_operand::get_type() const {
+   
+    if (base != FUKU_REG_NONE) {
+        if (index != FUKU_REG_NONE) {
+            if (disp.get_immediate64()) {
+                return fuku_mem_opernad_type::FUKU_MEM_OPERAND_BASE_INDEX_DISP;
+            }
+            else {
+                return fuku_mem_opernad_type::FUKU_MEM_OPERAND_BASE_INDEX;
+            }
+        }
+        else {
+            if (disp.get_immediate64()) {
+                return fuku_mem_opernad_type::FUKU_MEM_OPERAND_BASE_DISP;
+            }
+            else {
+                return fuku_mem_opernad_type::FUKU_MEM_OPERAND_BASE_ONLY;
+            }
+        }
+    }
+    else {
+        if (index != FUKU_REG_NONE) {
+            return fuku_mem_opernad_type::FUKU_MEM_OPERAND_INDEX_DISP;
+        }
+        else {
+            return fuku_mem_opernad_type::FUKU_MEM_OPERAND_BASE_DISP;
+        }
+    }
 }
 
 x86_insn fuku_to_capstone_jcc(fuku_condition cond) {

@@ -33,6 +33,11 @@
 #define asm86_shift_shr 5
 #define asm86_shift_sar 7
 
+#define asm86_bittest_bt  4
+#define asm86_bittest_bts 5
+#define asm86_bittest_btr 6
+#define asm86_bittest_btc 7
+
 
 #define genname_asm86(prefix, sname, postfix) prefix ## sname ## postfix
 
@@ -90,7 +95,7 @@
     } 
 
 #define gen_func_body_ff_op(name ,type, cap_id, cap_eflags) \
-    genrettype_asm86 fuku_asm_x86:: ##name## (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: ##name## (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0xFF);\
         emit_operand((fuku_register_index)type, src);\
@@ -107,30 +112,35 @@
     } \
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (fuku_register dst,const fuku_immediate& src) { \
         gencleanerdata\
-        emit_b(0x80);\
-        emit_b((0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+        if(is_used_short_eax() && dst == fuku_register::FUKU_REG_AL) {\
+            emit_b(0x04 + 8*type); \
+        } else {\
+            emit_b(0x80); \
+            emit_b((0xC0 | fuku_get_index_reg(dst)) + 8 * type); \
+        }\
         emit_immediate_b(src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (fuku_register dst,const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (fuku_register dst,const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0x02 + 8*type);\
         emit_operand(fuku_get_index_reg(dst), src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand86& dst,const fuku_immediate& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand& dst,const fuku_immediate& src) { \
         gencleanerdata\
         emit_b(0x80);\
         emit_operand((fuku_register_index)type, dst);\
         emit_immediate_b(src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand86& dst, fuku_register src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand& dst, fuku_register src) { \
         gencleanerdata\
         emit_b(0x00 + 8*type);\
         emit_operand(fuku_get_index_reg(src), dst);\
         gen_func_return(cap_id, cap_eflags)\
     } \
+\
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register dst, fuku_register src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
@@ -141,38 +151,43 @@
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register dst,const fuku_immediate& src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
-        if (src.is_8()) {\
-            emit_b(0x83);\
-            emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
-            emit_immediate_b(src);\
-        }else{\
-            emit_b(0x81);\
-            emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+        if(is_used_short_eax() && dst == fuku_register::FUKU_REG_AX) {\
+            emit_b(0x05 + 8*type); \
             emit_immediate_w(src);\
+        } else {\
+            if (is_used_short_imm() && src.is_8()) {\
+                emit_b(0x83);\
+                emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+                emit_immediate_b(src);\
+            }else{\
+                emit_b(0x81);\
+                emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+                emit_immediate_w(src);\
+            }\
         }\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register dst,const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register dst,const fuku_operand& src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
         emit_b(0x03 + 8*type);\
         emit_operand(fuku_get_index_reg(dst), src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand86& dst, fuku_register src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand& dst, fuku_register src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
         emit_b(0x01 + 8*type);\
         emit_operand(fuku_get_index_reg(src), dst);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand86& dst,const fuku_immediate& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand& dst,const fuku_immediate& src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
-        if (src.is_8()) {\
+        if (is_used_short_imm() && src.is_8()) {\
             emit_b(0x83);\
             emit_operand((fuku_register_index)type, dst);\
-            emit_immediate_w(src);\
+            emit_immediate_b(src);\
         }else{\
             emit_b(0x81);\
             emit_operand((fuku_register_index)type, dst);\
@@ -180,51 +195,57 @@
         }\
         gen_func_return(cap_id, cap_eflags)\
     } \
+\
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register dst, fuku_register src) { \
         gencleanerdata\
         emit_b(0x01 + 8*type);\
-        emit_operand(fuku_get_index_reg(src), dst);\
+        emit_b(0xC0 | fuku_get_index_reg(src) << 3 | fuku_get_index_reg(dst));\
         gen_func_return(cap_id, cap_eflags)\
     } \
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register dst,const fuku_immediate& src) { \
         gencleanerdata\
-         if (src.is_8()) {\
-            emit_b(0x83);\
-            emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
-            emit_immediate_b(src);\
-        }else{\
-            emit_b(0x81);\
-            emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+         if(is_used_short_eax() && dst == fuku_register::FUKU_REG_EAX) {\
+            emit_b(0x05 + 8*type); \
             emit_immediate_w(src);\
+        } else {\
+            if (is_used_short_imm() && src.is_8()) {\
+                emit_b(0x83);\
+                emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+                emit_immediate_b(src);\
+            }else{\
+                emit_b(0x81);\
+                emit_b( (0xC0 | fuku_get_index_reg(dst)) + 8*type);\
+                emit_immediate_w(src);\
+            }\
         }\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register dst,const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register dst,const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0x03 + 8*type);\
         emit_operand(fuku_get_index_reg(dst), src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand86& dst, fuku_register src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand& dst, fuku_register src) { \
         gencleanerdata\
         emit_b(0x01 + 8*type);\
         emit_operand(fuku_get_index_reg(src), dst);\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand86& dst,const fuku_immediate& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand& dst,const fuku_immediate& src) { \
         gencleanerdata\
-         if (src.is_8()) {\
+         if (is_used_short_imm() && src.is_8()) {\
             emit_b(0x83);\
             emit_operand((fuku_register_index)type, dst);\
-            emit_immediate_w(src);\
+            emit_immediate_b(src);\
         }else{\
             emit_b(0x81);\
             emit_operand((fuku_register_index)type, dst);\
-            emit_immediate_w(src);\
+            emit_immediate_dw(src);\
         }\
         gen_func_return(cap_id, cap_eflags)\
     } 
-    
+
 #define gen_func_body_arith_ex_one_op(name ,type, cap_id, cap_eflags) \
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (fuku_register src) { \
         gencleanerdata\
@@ -232,12 +253,13 @@
         emit_b(0xC0 + 8*type + fuku_get_index_reg(src));\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0xF6);\
         emit_operand((fuku_register_index)type, src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
+\
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
@@ -245,20 +267,21 @@
         emit_b(0xC0 + 8*type + fuku_get_index_reg(src));\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
         emit_b(0xF7);\
         emit_operand((fuku_register_index)type, src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
+\
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register src) { \
         gencleanerdata\
         emit_b(0xF7);\
         emit_b(0xC0 + 8*type + fuku_get_index_reg(src));\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0xF7);\
         emit_operand((fuku_register_index)type, src);\
@@ -272,12 +295,13 @@
         emit_b(0xC0 + 8*type + fuku_get_index_reg(src));\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b) (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0xFE);\
         emit_operand((fuku_register_index)type, src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
+\
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
@@ -285,22 +309,205 @@
         emit_b(0xC0 + 8*type + fuku_get_index_reg(src));\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
         emit_b(0xFF);\
         emit_operand((fuku_register_index)type, src);\
         gen_func_return(cap_id, cap_eflags)\
     } \
+\
     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register src) { \
         gencleanerdata\
         emit_b(0xFF);\
         emit_b(0xC0 + 8*type + fuku_get_index_reg(src));\
         gen_func_return(cap_id, cap_eflags)\
     } \
-    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand86& src) { \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand& src) { \
         gencleanerdata\
         emit_b(0xFF);\
         emit_operand((fuku_register_index)type, src);\
+        gen_func_return(cap_id, cap_eflags)\
+    } 
+
+#define gen_func_body_shift(name ,type, cap_id, cap_eflags) \
+     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_cl_b)(fuku_register dst) {\
+       gencleanerdata\
+       emit_b(0xD2);\
+       emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_cl_b)(const fuku_operand& dst) {\
+       gencleanerdata\
+       emit_b(0xD2);\
+       emit_operand((fuku_register_index)type, dst);\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b)(fuku_register dst, const fuku_immediate& src) {\
+       gencleanerdata\
+       if(src.get_immediate8() == 1) {\
+          emit_b(0xD0); \
+          emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+       }else {\
+          emit_b(0xC0); \
+          emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+          emit_immediate_b(src);\
+       }\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b)(const fuku_operand& dst, const fuku_immediate& src) {\
+       gencleanerdata\
+       if(src.get_immediate8() == 1) {\
+          emit_b(0xD0); \
+          emit_operand((fuku_register_index)type, dst);\
+       }else {\
+          emit_b(0xC0); \
+          emit_operand((fuku_register_index)type, dst);\
+          emit_immediate_b(src);\
+       }\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+\
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_cl_w)(fuku_register dst) {\
+       gencleanerdata\
+       emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+       emit_b(0xD3);\
+       emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_cl_w)(const fuku_operand& dst) {\
+       gencleanerdata\
+       emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+       emit_b(0xD3);\
+       emit_operand((fuku_register_index)type, dst);\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w)(fuku_register dst, const fuku_immediate& src) {\
+       gencleanerdata\
+       emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+       if(src.get_immediate8() == 1) {\
+          emit_b(0xD1); \
+          emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+       }else {\
+          emit_b(0xC1); \
+          emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+          emit_immediate_b(src);\
+       }\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w)(const fuku_operand& dst, const fuku_immediate& src) {\
+       gencleanerdata\
+       emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+       if(src.get_immediate8() == 1) {\
+          emit_b(0xD1); \
+          emit_operand((fuku_register_index)type, dst);\
+       }else {\
+          emit_b(0xC1); \
+          emit_operand((fuku_register_index)type, dst);\
+          emit_immediate_b(src);\
+       }\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+\
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_cl_dw)(fuku_register dst) {\
+       gencleanerdata\
+       emit_b(0xD3);\
+       emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+     genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_cl_dw)(const fuku_operand& dst) {\
+       gencleanerdata\
+       emit_b(0xD3);\
+       emit_operand((fuku_register_index)type, dst);\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw)(fuku_register dst, const fuku_immediate& src) {\
+       gencleanerdata\
+       if(src.get_immediate8() == 1) {\
+          emit_b(0xD1); \
+          emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+       }else {\
+          emit_b(0xC1); \
+          emit_b(0xC0 + 8*type + fuku_get_index_reg(dst));\
+          emit_immediate_b(src);\
+       }\
+       gen_func_return(cap_id, cap_eflags)\
+     } \
+      genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_b)(const fuku_operand& dst, const fuku_immediate& src) {\
+       gencleanerdata\
+       if(src.get_immediate8() == 1) {\
+          emit_b(0xD1); \
+          emit_operand((fuku_register_index)type, dst);\
+       }else {\
+          emit_b(0xC1); \
+          emit_operand((fuku_register_index)type, dst);\
+          emit_immediate_b(src);\
+       }\
+       gen_func_return(cap_id, cap_eflags)\
+     } 
+
+#define gen_func_body_bittest(name ,type, cap_id, cap_eflags) \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register dst, fuku_register src) { \
+        gencleanerdata\
+        emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+        emit_b(0xF0);\
+        emit_b(0x83 + 8*type);\
+        emit_b(0xC0 | fuku_get_index_reg(src) << 3 | fuku_get_index_reg(dst));\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (fuku_register dst,const fuku_immediate& src) { \
+        gencleanerdata\
+        emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+        emit_b(0xF0);\
+        emit_b(0xBA);\
+        emit_b(0xC0 | type << 3 | fuku_get_index_reg(dst));\
+        emit_immediate_b(src);\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand& dst, fuku_register src) { \
+        gencleanerdata\
+        emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+        emit_b(0xF0);\
+        emit_b(0x83 + 8*type);\
+        emit_operand((fuku_register_index)type, dst);\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_w) (const fuku_operand& dst,const fuku_immediate& src) { \
+        gencleanerdata\
+        emit_b(FUKU_PREFIX_OVERRIDE_DATA);\
+        emit_b(0xF0);\
+        emit_b(0xBA);\
+        emit_operand((fuku_register_index)type, dst);\
+        emit_immediate_b(src);\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register dst, fuku_register src) { \
+        gencleanerdata\
+        emit_b(0xF0);\
+        emit_b(0x83 + 8*type);\
+        emit_b(0xC0 | fuku_get_index_reg(src) << 3 | fuku_get_index_reg(dst));\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (fuku_register dst,const fuku_immediate& src) { \
+        gencleanerdata\
+        emit_b(0xF0);\
+        emit_b(0xBA);\
+        emit_b(0xC0 | type << 3 | fuku_get_index_reg(dst));\
+        emit_immediate_b(src);\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand& dst, fuku_register src) { \
+        gencleanerdata\
+        emit_b(0xF0);\
+        emit_b(0x83 + 8*type);\
+        emit_operand((fuku_register_index)type, dst);\
+        gen_func_return(cap_id, cap_eflags)\
+    } \
+    genrettype_asm86 fuku_asm_x86:: genname_asm86(_,name,_dw) (const fuku_operand& dst,const fuku_immediate& src) { \
+        gencleanerdata\
+        emit_b(0xF0);\
+        emit_b(0xBA);\
+        emit_operand((fuku_register_index)type, dst);\
+        emit_immediate_b(src);\
         gen_func_return(cap_id, cap_eflags)\
     } 
