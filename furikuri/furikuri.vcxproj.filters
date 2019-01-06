@@ -170,7 +170,10 @@
     <ClInclude Include="fuku_mutation_x64_rules.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\fuku_code_defender\fuku_obfuscator\fuku_mutation_imp\x64</Filter>
     </ClInclude>
-    <ClInclude Include="fuku_asm_86_macro.h">
+    <ClInclude Include="fuku_asm_x64_macro.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_asm\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="fuku_asm_x86_macro.h">
       <Filter>Заголовочные файлы\furikuri\fuku_asm\x86</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,102 @@
 #include "stdafx.h"
 #include "fuku_asm.h"
 
+struct {
+	fuku_register register_;
+	fuku_register_index register_index_;
+	fuku_operand_size register_size_;
+	bool is_x64_arch;
+    bool is_x64_arch_ext;
+
+} ext_register_info[] = {
+	{FUKU_REG_NONE, (fuku_register_index)-1, fuku_operand_size::FUKU_OPERAND_SIZE_0, 0},
+
+	{FUKU_REG_RAX, fuku_register_index::FUKU_REG_INDEX_AX, fuku_operand_size::FUKU_OPERAND_SIZE_64, true , false},
+	{FUKU_REG_EAX, fuku_register_index::FUKU_REG_INDEX_AX, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_AX,  fuku_register_index::FUKU_REG_INDEX_AX, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_AH,  fuku_register_index::FUKU_REG_INDEX_AX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+	{FUKU_REG_AL,  fuku_register_index::FUKU_REG_INDEX_AX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+
+	{FUKU_REG_RCX, fuku_register_index::FUKU_REG_INDEX_CX, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+	{FUKU_REG_ECX, fuku_register_index::FUKU_REG_INDEX_CX, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_CX,  fuku_register_index::FUKU_REG_INDEX_CX, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_CH,  fuku_register_index::FUKU_REG_INDEX_CX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+	{FUKU_REG_CL,  fuku_register_index::FUKU_REG_INDEX_CX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+
+	{FUKU_REG_RDX, fuku_register_index::FUKU_REG_INDEX_DX, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+	{FUKU_REG_EDX, fuku_register_index::FUKU_REG_INDEX_DX, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_DX,  fuku_register_index::FUKU_REG_INDEX_DX, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_DH,  fuku_register_index::FUKU_REG_INDEX_DX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+	{FUKU_REG_DL,  fuku_register_index::FUKU_REG_INDEX_DX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+
+	{FUKU_REG_RBX, fuku_register_index::FUKU_REG_INDEX_BX, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+	{FUKU_REG_EBX, fuku_register_index::FUKU_REG_INDEX_BX, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_BX,  fuku_register_index::FUKU_REG_INDEX_BX, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_BH,  fuku_register_index::FUKU_REG_INDEX_BX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+	{FUKU_REG_BL,  fuku_register_index::FUKU_REG_INDEX_BX, fuku_operand_size::FUKU_OPERAND_SIZE_8,	false, false},
+
+	{FUKU_REG_RSP, fuku_register_index::FUKU_REG_INDEX_SP, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+	{FUKU_REG_ESP, fuku_register_index::FUKU_REG_INDEX_SP, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_SP,  fuku_register_index::FUKU_REG_INDEX_SP, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_SPL, fuku_register_index::FUKU_REG_INDEX_SP, fuku_operand_size::FUKU_OPERAND_SIZE_8,	true, false},
+    
+    {FUKU_REG_RBP, fuku_register_index::FUKU_REG_INDEX_BP, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+    {FUKU_REG_EBP, fuku_register_index::FUKU_REG_INDEX_BP, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_BP,  fuku_register_index::FUKU_REG_INDEX_BP, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_BPL, fuku_register_index::FUKU_REG_INDEX_BP, fuku_operand_size::FUKU_OPERAND_SIZE_8,	true, false},
+
+	{FUKU_REG_RSI, fuku_register_index::FUKU_REG_INDEX_SI, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+	{FUKU_REG_ESI, fuku_register_index::FUKU_REG_INDEX_SI, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_SI,  fuku_register_index::FUKU_REG_INDEX_SI, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_SIL, fuku_register_index::FUKU_REG_INDEX_SI, fuku_operand_size::FUKU_OPERAND_SIZE_8,	true, false},
+
+	{FUKU_REG_RDI, fuku_register_index::FUKU_REG_INDEX_DI, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, false},
+	{FUKU_REG_EDI, fuku_register_index::FUKU_REG_INDEX_DI, fuku_operand_size::FUKU_OPERAND_SIZE_32, false, false},
+	{FUKU_REG_DI,  fuku_register_index::FUKU_REG_INDEX_DI, fuku_operand_size::FUKU_OPERAND_SIZE_16, false, false},
+	{FUKU_REG_DIL, fuku_register_index::FUKU_REG_INDEX_DI, fuku_operand_size::FUKU_OPERAND_SIZE_8,	true, false},
+
+    {FUKU_REG_R8,  fuku_register_index::FUKU_REG_INDEX_R8, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R8D, fuku_register_index::FUKU_REG_INDEX_R8, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R8W, fuku_register_index::FUKU_REG_INDEX_R8, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R8B, fuku_register_index::FUKU_REG_INDEX_R8, fuku_operand_size::FUKU_OPERAND_SIZE_8,	true, true},
+
+    {FUKU_REG_R9,  fuku_register_index::FUKU_REG_INDEX_R9, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R9D, fuku_register_index::FUKU_REG_INDEX_R9, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R9W, fuku_register_index::FUKU_REG_INDEX_R9, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R9B, fuku_register_index::FUKU_REG_INDEX_R9, fuku_operand_size::FUKU_OPERAND_SIZE_8,	true, true},
+
+    {FUKU_REG_R10,  fuku_register_index::FUKU_REG_INDEX_R10, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R10D, fuku_register_index::FUKU_REG_INDEX_R10, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R10W, fuku_register_index::FUKU_REG_INDEX_R10, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R10B, fuku_register_index::FUKU_REG_INDEX_R10, fuku_operand_size::FUKU_OPERAND_SIZE_8,  true, true},
+
+    {FUKU_REG_R11,  fuku_register_index::FUKU_REG_INDEX_R11, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R11D, fuku_register_index::FUKU_REG_INDEX_R11, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R11W, fuku_register_index::FUKU_REG_INDEX_R11, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R11B, fuku_register_index::FUKU_REG_INDEX_R11, fuku_operand_size::FUKU_OPERAND_SIZE_8,  true, true},
+
+    {FUKU_REG_R12,  fuku_register_index::FUKU_REG_INDEX_R12, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R12D, fuku_register_index::FUKU_REG_INDEX_R12, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R12W, fuku_register_index::FUKU_REG_INDEX_R12, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R12B, fuku_register_index::FUKU_REG_INDEX_R12, fuku_operand_size::FUKU_OPERAND_SIZE_8,  true, true},
+
+    {FUKU_REG_R13,  fuku_register_index::FUKU_REG_INDEX_R13, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R13D, fuku_register_index::FUKU_REG_INDEX_R13, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R13W, fuku_register_index::FUKU_REG_INDEX_R13, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R13B, fuku_register_index::FUKU_REG_INDEX_R13, fuku_operand_size::FUKU_OPERAND_SIZE_8,  true, true},
+
+    {FUKU_REG_R14,  fuku_register_index::FUKU_REG_INDEX_R14, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R14D, fuku_register_index::FUKU_REG_INDEX_R14, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R14W, fuku_register_index::FUKU_REG_INDEX_R14, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R14B, fuku_register_index::FUKU_REG_INDEX_R14, fuku_operand_size::FUKU_OPERAND_SIZE_8,  true, true},
+
+    {FUKU_REG_R15,  fuku_register_index::FUKU_REG_INDEX_R15, fuku_operand_size::FUKU_OPERAND_SIZE_64, true, true},
+    {FUKU_REG_R15D, fuku_register_index::FUKU_REG_INDEX_R15, fuku_operand_size::FUKU_OPERAND_SIZE_32, true, true},
+    {FUKU_REG_R15W, fuku_register_index::FUKU_REG_INDEX_R15, fuku_operand_size::FUKU_OPERAND_SIZE_16, true, true},
+    {FUKU_REG_R15B, fuku_register_index::FUKU_REG_INDEX_R15, fuku_operand_size::FUKU_OPERAND_SIZE_8,  true, true},
+};
+
+
 fuku_register registers64[] = { FUKU_REG_RAX, FUKU_REG_RCX, FUKU_REG_RDX,  FUKU_REG_RBX,  FUKU_REG_RSP,  FUKU_REG_RBP,  FUKU_REG_RSI,  FUKU_REG_RDI,
                                 FUKU_REG_R8,  FUKU_REG_R9,  FUKU_REG_R10,  FUKU_REG_R11,  FUKU_REG_R12,  FUKU_REG_R13,  FUKU_REG_R14,  FUKU_REG_R15 };
 fuku_register registers32[] = { FUKU_REG_EAX, FUKU_REG_ECX, FUKU_REG_EDX,  FUKU_REG_EBX,  FUKU_REG_ESP,  FUKU_REG_EBP,  FUKU_REG_ESI,  FUKU_REG_EDI, 
@@ -21,51 +117,20 @@ x86_insn capstone_jcc[] = {
     X86_INS_JLE , X86_INS_JG ,
 };
 
-fuku_register_index fuku_get_index_reg(fuku_register reg) {
+fuku_register_index fuku_get_index_by_register(fuku_register reg) {
 
-    switch (reg) {
-        case FUKU_REG_R8:  case FUKU_REG_R8D: case FUKU_REG_R8W: case FUKU_REG_R8B:
-        case FUKU_REG_RAX: case FUKU_REG_EAX: case FUKU_REG_AX:  case FUKU_REG_AH: 
-        case FUKU_REG_AL: { return fuku_register_index::FUKU_REG_INDEX_AX; }
-
-        case FUKU_REG_R9:  case FUKU_REG_R9D: case FUKU_REG_R9W: case FUKU_REG_R9B:
-        case FUKU_REG_RCX: case FUKU_REG_ECX: case FUKU_REG_CX:  case FUKU_REG_CH: 
-        case FUKU_REG_CL: { return fuku_register_index::FUKU_REG_INDEX_CX; }
-
-        case FUKU_REG_R10: case FUKU_REG_R10D: case FUKU_REG_R10W: case FUKU_REG_R10B:
-        case FUKU_REG_RDX: case FUKU_REG_EDX:  case FUKU_REG_DX:   case FUKU_REG_DH:
-        case FUKU_REG_DL: { return fuku_register_index::FUKU_REG_INDEX_DX; }
-
-        case FUKU_REG_R11: case FUKU_REG_R11D: case FUKU_REG_R11W: case FUKU_REG_R11B:
-        case FUKU_REG_RBX: case FUKU_REG_EBX:  case FUKU_REG_BX:   case FUKU_REG_BH:
-        case FUKU_REG_BL: { return fuku_register_index::FUKU_REG_INDEX_BX; }
-
-        case FUKU_REG_R12: case FUKU_REG_R12D: case FUKU_REG_R12W: case FUKU_REG_R12B:
-        case FUKU_REG_RSP: case FUKU_REG_ESP:  case FUKU_REG_SP:   case FUKU_REG_SPL: 
-        { return fuku_register_index::FUKU_REG_INDEX_SP; }
-
-        case FUKU_REG_R13: case FUKU_REG_R13D: case FUKU_REG_R13W: case FUKU_REG_R13B:
-        case FUKU_REG_RBP: case FUKU_REG_EBP:  case FUKU_REG_BP:   case FUKU_REG_BPL: 
-        { return fuku_register_index::FUKU_REG_INDEX_BP; }
-
-        case FUKU_REG_R14: case FUKU_REG_R14D: case FUKU_REG_R14W: case FUKU_REG_R14B:
-        case FUKU_REG_RSI: case FUKU_REG_ESI:  case FUKU_REG_SI:   case FUKU_REG_SIL: 
-        { return fuku_register_index::FUKU_REG_INDEX_SI; }
-
-        case FUKU_REG_R15: case FUKU_REG_R15D: case FUKU_REG_R15W: case FUKU_REG_R15B:
-        case FUKU_REG_RDI: case FUKU_REG_EDI:  case FUKU_REG_DI:   case FUKU_REG_DIL: 
-        { return fuku_register_index::FUKU_REG_INDEX_DI; }
-
-    default: {
-        return fuku_register_index::FUKU_REG_INDEX_INVALID;
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
+        return FUKU_REG_INDEX_INVALID;
     }
-    }
+
+    return ext_register_info[reg].register_index_;
 }
 
-fuku_register fuku_get_reg_by_index(uint8_t idx, bool x64ext, fuku_operand_size size) {
+fuku_register fuku_get_register_by_index(fuku_register_index idx, bool x64ext, fuku_operand_size size) {
 
-    if (idx >= 8) {
-        return fuku_register::FUKU_REG_NONE;
+    if ( (idx < FUKU_REG_INDEX_AX || idx > FUKU_REG_INDEX_DI) ||
+          (size <= FUKU_OPERAND_SIZE_0 || size > FUKU_OPERAND_SIZE_64)) {
+        return FUKU_REG_NONE;
     }
 
     switch (size) {
@@ -84,172 +149,72 @@ fuku_register fuku_get_reg_by_index(uint8_t idx, bool x64ext, fuku_operand_size 
 
 
     default:
-        return fuku_register::FUKU_REG_NONE;
+        return FUKU_REG_NONE;
     }
 }
 
-bool is_fuku_x64arch_reg(fuku_register reg) {
-
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
-        return false;
+fuku_operand_size fuku_get_register_size(fuku_register reg) {
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
+        return FUKU_OPERAND_SIZE_0;
     }
 
-    switch (reg) {
-
-        case FUKU_REG_RAX:
-        case FUKU_REG_RCX:
-        case FUKU_REG_RDX:
-        case FUKU_REG_RBX:
-        case FUKU_REG_RSP: case FUKU_REG_SPL:
-        case FUKU_REG_RBP: case FUKU_REG_BPL:
-        case FUKU_REG_RSI: case FUKU_REG_SIL:
-        case FUKU_REG_RDI: case FUKU_REG_DIL:
-        case FUKU_REG_R8:  case FUKU_REG_R8D:  case FUKU_REG_R8W:  case FUKU_REG_R8B:
-        case FUKU_REG_R9:  case FUKU_REG_R9D:  case FUKU_REG_R9W:  case FUKU_REG_R9B:
-        case FUKU_REG_R10: case FUKU_REG_R10D: case FUKU_REG_R10W: case FUKU_REG_R10B:
-        case FUKU_REG_R11: case FUKU_REG_R11D: case FUKU_REG_R11W: case FUKU_REG_R11B:
-        case FUKU_REG_R12: case FUKU_REG_R12D: case FUKU_REG_R12W: case FUKU_REG_R12B:
-        case FUKU_REG_R13: case FUKU_REG_R13D: case FUKU_REG_R13W: case FUKU_REG_R13B:
-        case FUKU_REG_R14: case FUKU_REG_R14D: case FUKU_REG_R14W: case FUKU_REG_R14B:
-        case FUKU_REG_R15: case FUKU_REG_R15D: case FUKU_REG_R15W: case FUKU_REG_R15B: {
-            return true;
-        }
-
-    default: {
-        return false;
-    }        
-    }
-
-    return false;
+    return ext_register_info[reg].register_size_;
 }
 
-bool is_fuku_x32arch_reg(fuku_register reg) {
+bool fuku_is_x64arch_reg(fuku_register reg) {
 
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
         return false;
     }
 
-    return !is_fuku_x64arch_reg(reg);
+    return ext_register_info[reg].is_x64_arch;
 }
 
-bool is_fuku_64bit_reg(fuku_register reg) {
+bool fuku_is_x64arch_ext_reg(fuku_register reg) {
 
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
         return false;
     }
 
-    switch (reg) {
-
-        case FUKU_REG_RAX: case FUKU_REG_RCX: case FUKU_REG_RDX:
-        case FUKU_REG_RBX: case FUKU_REG_RSP: case FUKU_REG_RBP:
-        case FUKU_REG_RSI: case FUKU_REG_RDI:
-        case FUKU_REG_R8:  case FUKU_REG_R9: case FUKU_REG_R10:
-        case FUKU_REG_R11: case FUKU_REG_R12: case FUKU_REG_R13:
-        case FUKU_REG_R14: case FUKU_REG_R15:{
-            return true;
-        }
-
-    default: {
-        return false;
-    }
-    }
-
-    return false;
+    return ext_register_info[reg].is_x64_arch_ext;
 }
 
-bool is_fuku_32bit_reg(fuku_register reg) {
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
-        return false;
-    }
-
-    switch (reg) {
-
-        case FUKU_REG_EAX:  case FUKU_REG_ECX: case FUKU_REG_EDX:
-        case FUKU_REG_EBX:  case FUKU_REG_ESP: case FUKU_REG_EBP:
-        case FUKU_REG_ESI:  case FUKU_REG_EDI:
-        case FUKU_REG_R8B:  case FUKU_REG_R9B: case FUKU_REG_R10B:
-        case FUKU_REG_R11B: case FUKU_REG_R12B: case FUKU_REG_R13B:
-        case FUKU_REG_R14B: case FUKU_REG_R15B: {
-            return true;
-        }
-
-    default: {
-        return false;
-    }
-    }
-
-    return false;
+bool fuku_is_x32arch_reg(fuku_register reg) {
+    return !fuku_is_x64arch_reg(reg);
 }
 
-bool is_fuku_16bit_reg(fuku_register reg) {
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
+bool fuku_is_64bit_reg(fuku_register reg) {
+
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
         return false;
     }
 
-    switch (reg) {
-
-    case FUKU_REG_AX:  case FUKU_REG_CX: case FUKU_REG_DX:
-    case FUKU_REG_BX:  case FUKU_REG_SP: case FUKU_REG_BP:
-    case FUKU_REG_SI:  case FUKU_REG_DI:
-    case FUKU_REG_R8W:  case FUKU_REG_R9W: case FUKU_REG_R10W:
-    case FUKU_REG_R11W: case FUKU_REG_R12W: case FUKU_REG_R13W:
-    case FUKU_REG_R14W: case FUKU_REG_R15W: {
-        return true;
-    }
-
-    default: {
-        return false;
-    }
-    }
-
-    return false;
+    return ext_register_info[reg].register_size_ == FUKU_OPERAND_SIZE_64;
 }
 
-bool is_fuku_8bit_reg(fuku_register reg) {
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
+bool fuku_is_32bit_reg(fuku_register reg) {
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
         return false;
     }
 
-    switch (reg) {
+    return ext_register_info[reg].register_size_ == FUKU_OPERAND_SIZE_32;
+}
 
-        case FUKU_REG_AL:   case FUKU_REG_CL:   case FUKU_REG_DL:   case FUKU_REG_BL:
-        case FUKU_REG_AH:   case FUKU_REG_CH:   case FUKU_REG_DH:   case FUKU_REG_BH:
-        case FUKU_REG_SPL:  case FUKU_REG_BPL:  case FUKU_REG_SIL:  case FUKU_REG_DIL:
-        case FUKU_REG_R8B:  case FUKU_REG_R9B:  case FUKU_REG_R10B: case FUKU_REG_R11B: 
-        case FUKU_REG_R12B: case FUKU_REG_R13B: case FUKU_REG_R14B: case FUKU_REG_R15B: {
-            return true;
-        }
-
-    default: {
+bool fuku_is_16bit_reg(fuku_register reg) {
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
         return false;
     }
-    }
 
-    return false;
+    return ext_register_info[reg].register_size_ == FUKU_OPERAND_SIZE_16;
 }
 
-
-fuku_operand_size get_register_size(fuku_register reg) {
-    if (reg == fuku_register::FUKU_REG_NONE || reg >= fuku_register::FUKU_REG_MAX) {
-        return fuku_operand_size::FUKU_OPERAND_SIZE_0;
+bool fuku_is_8bit_reg(fuku_register reg) {
+    if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
+        return false;
     }
 
-    if (is_fuku_64bit_reg(reg)) {
-        return fuku_operand_size::FUKU_OPERAND_SIZE_64;
-    }
-    else if (is_fuku_32bit_reg(reg)) {
-        return fuku_operand_size::FUKU_OPERAND_SIZE_32;
-    }
-    else if (is_fuku_16bit_reg(reg)) {
-        return fuku_operand_size::FUKU_OPERAND_SIZE_16;
-    }
-    else if (is_fuku_8bit_reg(reg)) {
-        return fuku_operand_size::FUKU_OPERAND_SIZE_8;
-    }
-
-    return fuku_operand_size::FUKU_OPERAND_SIZE_0;
+    return ext_register_info[reg].register_size_ == FUKU_OPERAND_SIZE_8;
 }
-
 
 uint8_t fuku_to_capstone_reg(fuku_register reg) {
     return 0;

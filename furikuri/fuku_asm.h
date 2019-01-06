@@ -165,39 +165,45 @@ enum fuku_operand_size {
 };
 
 
-/*
-    EAX = 0 ECX = 1 r_EDX = 2 
-    R8 = 0 R9 = 1 R10 = 2 
-    and them lowest parts etc
-*/
-fuku_register_index fuku_get_index_reg(fuku_register reg);
-fuku_register fuku_get_reg_by_index(uint8_t idx,bool x64ext, fuku_operand_size size);
+#define genname_asm(prefix, sname, postfix) prefix##sname##postfix
 
-//  returns true for R8 - R15
-bool is_fuku_x64arch_reg(fuku_register reg);
-//  returns true for EAX - EDI
-bool is_fuku_x32arch_reg(fuku_register reg);
+#define genrettype_asm fuku_instruction
 
-//  returns true for RAX - RDI and R8 - R15 
-bool is_fuku_64bit_reg(fuku_register reg);
-//  returns true for EAX - EDI
-bool is_fuku_32bit_reg(fuku_register reg);
-//  returns true for AX - DI
-bool is_fuku_16bit_reg(fuku_register reg);
-//  returns true for AH,AL - Dl and R8B - R15B 
-bool is_fuku_8bit_reg(fuku_register reg);
+#define asm_def_b_r_r(name)      genrettype_asm genname_asm(_,name,_b)(fuku_register dst, fuku_register src);      
+#define asm_def_b_r_op(name)     genrettype_asm genname_asm(_,name,_b)(fuku_register dst,const fuku_operand& src);  
+#define asm_def_b_r_imm(name)    genrettype_asm genname_asm(_,name,_b)(fuku_register dst,const fuku_immediate& src);  
+#define asm_def_b_op_r(name)     genrettype_asm genname_asm(_,name,_b)(const fuku_operand& dst, fuku_register src);   
+#define asm_def_b_op_imm(name)   genrettype_asm genname_asm(_,name,_b)(const fuku_operand& dst,const fuku_immediate& src);  
+#define asm_def_w_r_r(name)      genrettype_asm genname_asm(_,name,_w)(fuku_register dst, fuku_register src);      
+#define asm_def_w_r_op(name)     genrettype_asm genname_asm(_,name,_w)(fuku_register dst,const fuku_operand& src);     
+#define asm_def_w_r_imm(name)    genrettype_asm genname_asm(_,name,_w)(fuku_register dst,const fuku_immediate& src);    
+#define asm_def_w_op_r(name)     genrettype_asm genname_asm(_,name,_w)(const fuku_operand& dst, fuku_register src);  
+#define asm_def_w_op_imm(name)   genrettype_asm genname_asm(_,name,_w)(const fuku_operand& dst,const fuku_immediate& src); 
+#define asm_def_dw_r_r(name)     genrettype_asm genname_asm(_,name,_dw)(fuku_register dst, fuku_register src);      
+#define asm_def_dw_r_op(name)    genrettype_asm genname_asm(_,name,_dw)(fuku_register dst,const fuku_operand& src);    
+#define asm_def_dw_r_imm(name)   genrettype_asm genname_asm(_,name,_dw)(fuku_register dst,const fuku_immediate& src);    
+#define asm_def_dw_op_r(name)    genrettype_asm genname_asm(_,name,_dw)(const fuku_operand& dst, fuku_register src);  
+#define asm_def_dw_op_imm(name)  genrettype_asm genname_asm(_,name,_dw)(const fuku_operand& dst,const fuku_immediate& src);    
+#define asm_def_qw_r_r(name)     genrettype_asm genname_asm(_,name,_qw)(fuku_register dst, fuku_register src);      
+#define asm_def_qw_r_op(name)    genrettype_asm genname_asm(_,name,_qw)(fuku_register dst,const fuku_operand& src);    
+#define asm_def_qw_r_imm(name)   genrettype_asm genname_asm(_,name,_qw)(fuku_register dst,const fuku_immediate& src);    
+#define asm_def_qw_op_r(name)    genrettype_asm genname_asm(_,name,_qw)(const fuku_operand& dst, fuku_register src);  
+#define asm_def_qw_op_imm(name)  genrettype_asm genname_asm(_,name,_qw)(const fuku_operand& dst,const fuku_immediate& src);    
 
+#define asm_def_b_r(name)     genrettype_asm genname_asm(_,name,_b)(fuku_register src);
+#define asm_def_b_op(name)    genrettype_asm genname_asm(_,name,_b)(const fuku_operand& src);
+#define asm_def_b_imm(name)   genrettype_asm genname_asm(_,name,_b)(const fuku_immediate& src);
+#define asm_def_w_r(name)     genrettype_asm genname_asm(_,name,_w)(fuku_register src);
+#define asm_def_w_op(name)    genrettype_asm genname_asm(_,name,_w)(const fuku_operand& src);
+#define asm_def_w_imm(name)   genrettype_asm genname_asm(_,name,_w)(const fuku_immediate& src);
+#define asm_def_dw_r(name)    genrettype_asm genname_asm(_,name,_dw)(fuku_register src);
+#define asm_def_dw_op(name)   genrettype_asm genname_asm(_,name,_dw)(const fuku_operand& src);
+#define asm_def_dw_imm(name)  genrettype_asm genname_asm(_,name,_dw)(const fuku_immediate& src);
+#define asm_def_qw_r(name)    genrettype_asm genname_asm(_,name,_qw)(fuku_register src);
+#define asm_def_qw_op(name)   genrettype_asm genname_asm(_,name,_qw)(const fuku_operand& src);
+#define asm_def_qw_imm(name)  genrettype_asm genname_asm(_,name,_qw)(const fuku_immediate& src);
 
-fuku_operand_size get_register_size(fuku_register reg);
-
-
-uint8_t fuku_to_capstone_reg(fuku_register reg);
-uint8_t capstone_to_fuku_reg(fuku_register reg);
-
-x86_insn fuku_to_capstone_jcc(fuku_condition cond);
-fuku_condition capstone_to_fuku_jcc(x86_insn cond);
-
-
+#define asm_def_noarg(name) genrettype_asm name();
 
 class fuku_immediate {
     bool relocate;
@@ -275,5 +281,82 @@ enum fuku_asm_short_cfg {
 
 };
 
+
+/*
+	EAX = 0 ECX = 1 r_EDX = 2
+	R8 = 0 R9 = 1 R10 = 2
+	and them lowest parts etc
+*/
+fuku_register_index fuku_get_index_by_register(fuku_register reg);
+fuku_register       fuku_get_register_by_index(fuku_register_index idx, bool x64ext, fuku_operand_size size);
+fuku_operand_size   fuku_get_register_size(fuku_register reg);
+
+//  returns true for RAX - RDI,SPL - DIL, R8 - R15
+bool fuku_is_x64arch_reg(fuku_register reg);
+//  returns true for R8 - R15
+bool fuku_is_x64arch_ext_reg(fuku_register reg);
+//  returns true for EAX - EDI
+bool fuku_is_x32arch_reg(fuku_register reg);
+
+//  returns true for RAX - RDI and R8 - R15 
+bool fuku_is_64bit_reg(fuku_register reg);
+//  returns true for EAX - EDI
+bool fuku_is_32bit_reg(fuku_register reg);
+//  returns true for AX - DI
+bool fuku_is_16bit_reg(fuku_register reg);
+//  returns true for AH,AL - Dl and R8B - R15B 
+bool fuku_is_8bit_reg(fuku_register reg);
+
+
+uint8_t fuku_to_capstone_reg(fuku_register reg);
+uint8_t capstone_to_fuku_reg(fuku_register reg);
+
+x86_insn fuku_to_capstone_jcc(fuku_condition cond);
+fuku_condition capstone_to_fuku_jcc(x86_insn cond);
+
+
+
+
 #include "fuku_asm_x86.h"
 #include "fuku_asm_x64.h"
+
+
+#undef genname_asm
+
+#undef genrettype_asm
+
+#undef asm_def_b_r_r
+#undef asm_def_b_r_op
+#undef asm_def_b_r_imm 
+#undef asm_def_b_op_r
+#undef asm_def_b_op_imm 
+#undef asm_def_w_r_r 
+#undef asm_def_w_r_op  
+#undef asm_def_w_r_imm   
+#undef asm_def_w_op_r
+#undef asm_def_w_op_imm
+#undef asm_def_dw_r_r    
+#undef asm_def_dw_r_op  
+#undef asm_def_dw_r_imm 
+#undef asm_def_dw_op_r
+#undef asm_def_dw_op_imm
+#undef asm_def_qw_r_r 
+#undef asm_def_qw_r_op 
+#undef asm_def_qw_r_imm  
+#undef asm_def_qw_op_r  
+#undef asm_def_qw_op_imm 
+
+#undef asm_def_b_r
+#undef asm_def_b_op
+#undef asm_def_b_imm
+#undef asm_def_w_r
+#undef asm_def_w_op  
+#undef asm_def_w_imm 
+#undef asm_def_dw_r  
+#undef asm_def_dw_op
+#undef asm_def_dw_imm
+#undef asm_def_qw_r 
+#undef asm_def_qw_op 
+#undef asm_def_qw_imm 
+
+#undef asm_def_noarg
