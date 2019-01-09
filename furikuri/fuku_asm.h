@@ -272,6 +272,7 @@ public:
     const fuku_immediate& get_disp() const;
 
     fuku_mem_opernad_type get_type() const;
+    uint8_t get_low_rex() const;
 };
 
 enum fuku_asm_short_cfg {
@@ -293,8 +294,8 @@ fuku_operand_size   fuku_get_register_size(fuku_register reg);
 
 //  returns true for RAX - RDI,SPL - DIL, R8 - R15
 bool fuku_is_x64arch_reg(fuku_register reg);
-//  returns true for R8 - R15
-bool fuku_is_x64arch_ext_reg(fuku_register reg);
+//  returns true for R8 - R15 , return 0 - 1
+uint8_t fuku_is_x64arch_ext_reg(fuku_register reg);
 //  returns true for EAX - EDI
 bool fuku_is_x32arch_reg(fuku_register reg);
 

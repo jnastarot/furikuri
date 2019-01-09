@@ -170,7 +170,7 @@ bool fuku_is_x64arch_reg(fuku_register reg) {
     return ext_register_info[reg].is_x64_arch;
 }
 
-bool fuku_is_x64arch_ext_reg(fuku_register reg) {
+uint8_t fuku_is_x64arch_ext_reg(fuku_register reg) {
 
     if (reg <= FUKU_REG_NONE || reg >= FUKU_REG_MAX) {
         return false;
@@ -387,6 +387,22 @@ fuku_mem_opernad_type fuku_operand::get_type() const {
             return fuku_mem_opernad_type::FUKU_MEM_OPERAND_BASE_DISP;
         }
     }
+}
+
+uint8_t fuku_operand::get_low_rex() const {
+
+    if (base != FUKU_REG_NONE) {
+        if (index != FUKU_REG_NONE) {
+            return 
+        }
+    }
+    else {
+        if (index != FUKU_REG_NONE) {
+
+        }
+    }
+
+    return 0;
 }
 
 x86_insn fuku_to_capstone_jcc(fuku_condition cond) {

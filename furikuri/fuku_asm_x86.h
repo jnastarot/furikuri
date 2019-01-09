@@ -83,6 +83,9 @@ class fuku_asm_x86 {
     void emit_immediate_w(const fuku_immediate& imm);
     void emit_immediate_dw(const fuku_immediate& imm);
 
+    void emit_modrm(fuku_register reg, fuku_register rm_reg);
+    void emit_modrm(int code, fuku_register rm_reg);
+
     void emit_operand(fuku_register_index reg, const fuku_operand& operand);
 public:
     fuku_asm_x86();

@@ -90,6 +90,14 @@ void fuku_asm_x86::emit_immediate_dw(const fuku_immediate& imm) {
     length += sizeof(uint32_t);
 }
 
+void fuku_asm_x86::emit_modrm(fuku_register reg, fuku_register rm_reg) {
+    emit_b(0xC0 | fuku_get_index_by_register(reg) << 3 | fuku_get_index_by_register(rm_reg));
+}
+
+void fuku_asm_x86::emit_modrm(int code, fuku_register rm_reg) {
+    emit_b(0xC0 | code << 3 | fuku_get_index_by_register(rm_reg));
+}
+
 void fuku_asm_x86::emit_operand(fuku_register_index reg,const fuku_operand& adr) {    
     FUKU_ASSERT_GT(length, 0);
 
