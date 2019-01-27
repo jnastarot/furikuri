@@ -1,29 +1,16 @@
 #pragma once
 
 #include "..\capstone\include\capstone\capstone.h"
+#include "..\fukutasm\fukutasm\fukutasm.h"
 
-#define X86_EFLAGS_GROUP_TEST (X86_EFLAGS_TEST_OF | X86_EFLAGS_TEST_SF | X86_EFLAGS_TEST_ZF | X86_EFLAGS_TEST_PF | X86_EFLAGS_TEST_CF | X86_EFLAGS_TEST_DF | X86_EFLAGS_TEST_AF)
-#define X86_EFLAGS_GROUP_MODIFY (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_DF | X86_EFLAGS_MODIFY_AF)
-#define X86_EFLAGS_GROUP_SET (X86_EFLAGS_SET_CF | X86_EFLAGS_SET_DF | X86_EFLAGS_SET_OF | X86_EFLAGS_SET_SF | X86_EFLAGS_SET_ZF | X86_EFLAGS_SET_AF | X86_EFLAGS_SET_PF)
-#define X86_EFLAGS_GROUP_RESET (X86_EFLAGS_RESET_OF | X86_EFLAGS_RESET_CF | X86_EFLAGS_RESET_DF | X86_EFLAGS_RESET_SF | X86_EFLAGS_RESET_AF | X86_EFLAGS_RESET_ZF)
-#define X86_EFLAGS_GROUP_UNDEFINED (X86_EFLAGS_UNDEFINED_OF | X86_EFLAGS_UNDEFINED_SF | X86_EFLAGS_UNDEFINED_ZF | X86_EFLAGS_UNDEFINED_PF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_UNDEFINED_CF)
-
-enum fuku_code_type {
-    fuku_code_obfuscation,
-    fuku_code_virtualization,
-};
-
-enum fuku_arch {
-    fuku_arch_unknown,
-    fuku_arch_x32,
-    fuku_arch_x64
-};
+using namespace fukutasm;
 
 class fuku_code_analyzer;
 class fuku_obfuscator;
 class fuku_instruction;
-class fuku_mutation;
 class fuku_virtualizer;
+class fuku_mutation;
+
 
 struct fuku_ob_settings {
     unsigned int complexity;        //number of passes for single line
@@ -50,6 +37,11 @@ struct fuku_protected_region {
     uint32_t region_size;
 };
 
+enum fuku_code_type {
+    fuku_code_obfuscation,
+    fuku_code_virtualization,
+};
+
 struct fuku_code_list {
     fuku_code_type type;
 
@@ -65,16 +57,13 @@ struct fuku_code_list {
     fuku_code_list& fuku_code_list::operator=(const fuku_code_list& set);
 };
 
-#include "fuku_instruction.h"
-#include "fuku_vm_instruction.h"
 
-#include "fuku_asm.h"
-#include "fuku_code_holder.h"
+
+
 #include "fuku_code_analyzer.h"
 #include "fuku_obfuscator.h"
 #include "fuku_virtualizer_imp.h"
-#include "fuku_debug_info.h"
-#include "fuku_protector.h"
+#include "fuku_protect_mgr.h"
 
 class furikuri {
     std::vector<shibari_module*> extended_modules;

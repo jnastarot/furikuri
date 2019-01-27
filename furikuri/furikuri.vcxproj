@@ -30,6 +30,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -37,12 +38,14 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -50,6 +53,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -147,58 +151,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="fuku_asm.h" />
-    <ClInclude Include="fuku_asm_x86_macro.h" />
-    <ClInclude Include="fuku_asm_x64.h" />
-    <ClInclude Include="fuku_asm_x64_macro.h" />
-    <ClInclude Include="fuku_asm_x86.h" />
-    <ClInclude Include="fuku_bolrand_map.h" />
     <ClInclude Include="fuku_code_analyzer.h" />
-    <ClInclude Include="fuku_code_holder.h" />
-    <ClInclude Include="fuku_debug_info.h" />
-    <ClInclude Include="fuku_map.h" />
-    <ClInclude Include="fuku_msvc_map.h" />
     <ClInclude Include="fuku_mutation_imp.h" />
     <ClInclude Include="fuku_mutation_x64_rules.h" />
     <ClInclude Include="fuku_mutation_x86_rules.h" />
-    <ClInclude Include="fuku_pdb.h" />
-    <ClInclude Include="fuku_protector.h" />
-    <ClInclude Include="fuku_prot_ob.h" />
-    <ClInclude Include="fuku_prot_vm.h" />
-    <ClInclude Include="fuku_tds.h" />
+    <ClInclude Include="fuku_protect_mgr.h" />
+    <ClInclude Include="fuku_protect_obfuscator_mgr.h" />
+    <ClInclude Include="fuku_protect_virtualizer_mgr.h" />
     <ClInclude Include="fuku_virtualizer_imp.h" />
     <ClInclude Include="fuku_virtualization_x64.h" />
     <ClInclude Include="fuku_virtualization_x86.h" />
-    <ClInclude Include="fuku_vm_instruction.h" />
     <ClInclude Include="furikuri.h" />
     <ClInclude Include="fuku_obfuscator.h" />
-    <ClInclude Include="fuku_instruction.h" />
     <ClInclude Include="fuku_mutation_x64.h" />
     <ClInclude Include="fuku_mutation_x86.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="fuku_asm.cpp" />
-    <ClCompile Include="fuku_asm_x64.cpp" />
-    <ClCompile Include="fuku_asm_x86.cpp" />
-    <ClCompile Include="fuku_bolrand_map.cpp" />
     <ClCompile Include="fuku_code_analyzer.cpp" />
-    <ClCompile Include="fuku_code_holder.cpp" />
-    <ClCompile Include="fuku_map.cpp" />
-    <ClCompile Include="fuku_msvc_map.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />
     <ClCompile Include="fuku_mutation_x64_rules.cpp" />
     <ClCompile Include="fuku_mutation_x86.cpp" />
     <ClCompile Include="fuku_mutation_x86_rules.cpp" />
-    <ClCompile Include="fuku_pdb.cpp" />
-    <ClCompile Include="fuku_protector.cpp" />
-    <ClCompile Include="fuku_tds.cpp" />
+    <ClCompile Include="fuku_protect_mgr.cpp" />
     <ClCompile Include="fuku_virtualization_x64.cpp" />
     <ClCompile Include="fuku_virtualization_x86.cpp" />
-    <ClCompile Include="fuku_vm_instruction.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />
-    <ClCompile Include="fuku_instruction.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

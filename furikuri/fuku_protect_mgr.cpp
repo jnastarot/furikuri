@@ -1,10 +1,9 @@
 #include "stdafx.h"
-#include "fuku_protector.h"
+#include "fuku_protect_mgr.h"
 
 
-#include "fuku_prot_ob.h"
-#include "fuku_prot_vm.h"
-
+#include "fuku_protect_obfuscator_mgr.h"
+#include "fuku_protect_virtualizer_mgr.h"
 
 
 fuku_vm_environment::fuku_vm_environment()
@@ -14,10 +13,14 @@ fuku_vm_environment::fuku_vm_environment(uint32_t virtual_machine_entry, fuku_vi
 :virtual_machine_entry(virtual_machine_entry), virtualizer(virtualizer){}
 
 fuku_vm_environment::fuku_vm_environment(const fuku_vm_environment& env) {
+    operator=(env);
+}
+fuku_vm_environment& fuku_vm_environment::operator=(const fuku_vm_environment& env) {
     this->virtualizer = env.virtualizer;
     this->virtual_machine_entry = env.virtual_machine_entry;
-}
 
+    return *this;
+}
 bool fuku_vm_environment::operator==(const fuku_vm_environment& env) const {
     return this->virtualizer == env.virtualizer && this->virtual_machine_entry == env.virtual_machine_entry;
 }
@@ -26,49 +29,49 @@ bool fuku_vm_environment::operator<(const fuku_vm_environment& rhs) const {
     return this->virtualizer < rhs.virtualizer && this->virtual_machine_entry < rhs.virtual_machine_entry;
 }
 
-fuku_protector::fuku_protector(const shibari_module& _module)
+fuku_protect_mgr::fuku_protect_mgr(const shibari_module& _module)
     :target_module(_module) {
 }
 
 
-fuku_protector::~fuku_protector() {
+fuku_protect_mgr::~fuku_protect_mgr() {
     clear_profiles();
 }
 
 
-fuku_protector_code fuku_protector::protect_module() {
+fuku_protect_mgr_result fuku_protect_mgr::protect_module() {
 
     if (test_regions_scope()) {
 
-        if (initialize_profiles_ob() && initialize_profiles_vm()) {
+        if (initialize_obfuscation_profiles() && initialize_virtualization_profiles()) {
 
-            if (obfuscate_profile() && virtualize_profiles()) {
+            if (process_obfuscation_profiles() && process_virtualization_profiles()) {
 
-                if (finish_protected_ob_code() && finish_protected_vm_code()) {
+                if (postprocess_obfuscation() && postprocess_virtualization()) {
 
                     if (finish_module()) {
 
-                        return fuku_protector_code::fuku_protector_ok;
+                        return fuku_protect_ok;
                     }
 
-                    return fuku_protector_code::fuku_protector_error_module_processing;
+                    return fuku_protect_err_module_processing;
                 }
 
-                return fuku_protector_code::fuku_protector_error_post_processing;
+                return fuku_protect_err_post_processing;
             }
 
-            return fuku_protector_code::fuku_protector_error_processing;
+            return fuku_protect_err_processing;
         }
 
-        return fuku_protector_code::fuku_protector_error_initialization;
+        return fuku_protect_err_initialization;
     }
 
-    return fuku_protector_code::fuku_protector_error_code_range;
+    return fuku_protect_err_code_range;
 }
 
 
 
-bool fuku_protector::test_regions_scope() {
+bool fuku_protect_mgr::test_regions_scope() {
 
     std::vector<fuku_protected_region>   regions;
 
@@ -102,7 +105,7 @@ bool fuku_protector::test_regions_scope() {
     return true;
 }
 
-bool    fuku_protector::finish_module() {
+bool    fuku_protect_mgr::finish_module() {
 
     //todo do configuration of configuration \_(0-0)_/
 
@@ -112,7 +115,7 @@ bool    fuku_protector::finish_module() {
     return true;
 }
 
-fuku_code_association * fuku_protector::find_profile_association(fuku_protection_profile& profile, uint32_t rva) {
+fuku_code_association * fuku_protect_mgr::find_profile_association(fuku_protection_profile& profile, uint32_t rva) {
 
     for (auto& region : profile.regions) {
         
@@ -143,11 +146,11 @@ fuku_code_association * fuku_protector::find_profile_association(fuku_protection
 }
 
 
-void fuku_protector::clear_profiles() {
+void fuku_protect_mgr::clear_profiles() {
     ob_profile.items.clear();
     vm_profiles.clear();
 }
 
-const shibari_module& fuku_protector::get_target_module() const {
+const shibari_module& fuku_protect_mgr::get_target_module() const {
     return this->target_module;
 }

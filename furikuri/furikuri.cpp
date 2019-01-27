@@ -49,7 +49,7 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
         return false;
     }
 
-    fuku_protector protector(*main_module);
+    fuku_protect_mgr protector(*main_module);
 
     for (auto& list : code_lists) {
         uint32_t module_offset = list.target_module->get_module_position().get_address_offset();
@@ -75,9 +75,9 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
         
     }
 
-    fuku_protector_code code = protector.protect_module();
+    fuku_protect_mgr_result code = protector.protect_module();
 
-    if (code == fuku_protector_code::fuku_protector_ok) {
+    if (code == fuku_protect_mgr_result::fuku_protect_ok) {
 
         shibari_builder(protector.get_target_module(), main_has_relocations, out_image);
 

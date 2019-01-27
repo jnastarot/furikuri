@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "fuku_mutation_x64_rules.h"
 
+/*
 //graph     JCC/JMP/RET
 bool fukutate_jcc(cs_insn *instruction, fuku_asm_x64& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
      /*
@@ -32,7 +33,7 @@ bool fukutate_jcc(cs_insn *instruction, fuku_asm_x64& f_asm, fuku_code_holder& c
         out_lines.push_back(l_jmp);
         return true;
     }
-    */
+    
     return false;
 }
 bool fukutate_jmp(cs_insn *instruction, fuku_asm_x64& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
@@ -63,7 +64,7 @@ bool fukutate_ret(cs_insn *instruction, fuku_asm_x64& f_asm, fuku_code_holder& c
             return true;
         }
     }
-    */
+    
     return false;
 }
 
@@ -181,3 +182,4 @@ void fuku_junk_7b(fuku_asm_x64& f_asm, fuku_code_holder& code_holder, linestorag
     }
     }
 }
+*/

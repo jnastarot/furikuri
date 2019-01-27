@@ -1,73 +1,7 @@
 #include "stdafx.h"
 #include "fuku_mutation_x86_rules.h"
 
-uint8_t convert_regtable[] = {
-    X86_REG_INVALID,
-    X86_REG_AH, X86_REG_AL, X86_REG_AX, X86_REG_BH, X86_REG_BL,
-    X86_REG_BP, X86_REG_BPL, X86_REG_BX, X86_REG_CH, X86_REG_CL,
-    X86_REG_CS, X86_REG_CX, X86_REG_DH, X86_REG_DI, X86_REG_DIL,
-    X86_REG_DL, X86_REG_DS, X86_REG_DX, 
-
-    r_EAX /*X86_REG_EAX*/, 
-    r_EBP /*X86_REG_EBP*/ ,
-    r_EBX /*X86_REG_EBX*/,
-    r_ECX /*X86_REG_ECX*/,
-    r_EDI /*X86_REG_EDI*/,
-    r_EDX /*X86_REG_EDX*/, 
-    X86_REG_EFLAGS, X86_REG_EIP, X86_REG_EIZ, X86_REG_ES,
-    r_ESI /*X86_REG_ESI*/,
-    r_ESP /*X86_REG_ESP*/,
-
-    X86_REG_FPSW, X86_REG_FS, X86_REG_GS, X86_REG_IP, X86_REG_RAX,
-    X86_REG_RBP, X86_REG_RBX, X86_REG_RCX, X86_REG_RDI, X86_REG_RDX,
-    X86_REG_RIP, X86_REG_RIZ, X86_REG_RSI, X86_REG_RSP, X86_REG_SI,
-    X86_REG_SIL, X86_REG_SP, X86_REG_SPL, X86_REG_SS, X86_REG_CR0,
-    X86_REG_CR1, X86_REG_CR2, X86_REG_CR3, X86_REG_CR4, X86_REG_CR5,
-    X86_REG_CR6, X86_REG_CR7, X86_REG_CR8, X86_REG_CR9, X86_REG_CR10,
-    X86_REG_CR11, X86_REG_CR12, X86_REG_CR13, X86_REG_CR14, X86_REG_CR15,
-    X86_REG_DR0, X86_REG_DR1, X86_REG_DR2, X86_REG_DR3, X86_REG_DR4,
-    X86_REG_DR5, X86_REG_DR6, X86_REG_DR7, X86_REG_DR8, X86_REG_DR9,
-    X86_REG_DR10, X86_REG_DR11, X86_REG_DR12, X86_REG_DR13, X86_REG_DR14,
-    X86_REG_DR15, X86_REG_FP0, X86_REG_FP1, X86_REG_FP2, X86_REG_FP3,
-    X86_REG_FP4, X86_REG_FP5, X86_REG_FP6, X86_REG_FP7,
-    X86_REG_K0, X86_REG_K1, X86_REG_K2, X86_REG_K3, X86_REG_K4,
-    X86_REG_K5, X86_REG_K6, X86_REG_K7, X86_REG_MM0, X86_REG_MM1,
-    X86_REG_MM2, X86_REG_MM3, X86_REG_MM4, X86_REG_MM5, X86_REG_MM6,
-    X86_REG_MM7, X86_REG_R8, X86_REG_R9, X86_REG_R10, X86_REG_R11,
-    X86_REG_R12, X86_REG_R13, X86_REG_R14, X86_REG_R15,
-    X86_REG_ST0, X86_REG_ST1, X86_REG_ST2, X86_REG_ST3,
-    X86_REG_ST4, X86_REG_ST5, X86_REG_ST6, X86_REG_ST7,
-    X86_REG_XMM0, X86_REG_XMM1, X86_REG_XMM2, X86_REG_XMM3, X86_REG_XMM4,
-    X86_REG_XMM5, X86_REG_XMM6, X86_REG_XMM7, X86_REG_XMM8, X86_REG_XMM9,
-    X86_REG_XMM10, X86_REG_XMM11, X86_REG_XMM12, X86_REG_XMM13, X86_REG_XMM14,
-    X86_REG_XMM15, X86_REG_XMM16, X86_REG_XMM17, X86_REG_XMM18, X86_REG_XMM19,
-    X86_REG_XMM20, X86_REG_XMM21, X86_REG_XMM22, X86_REG_XMM23, X86_REG_XMM24,
-    X86_REG_XMM25, X86_REG_XMM26, X86_REG_XMM27, X86_REG_XMM28, X86_REG_XMM29,
-    X86_REG_XMM30, X86_REG_XMM31, X86_REG_YMM0, X86_REG_YMM1, X86_REG_YMM2,
-    X86_REG_YMM3, X86_REG_YMM4, X86_REG_YMM5, X86_REG_YMM6, X86_REG_YMM7,
-    X86_REG_YMM8, X86_REG_YMM9, X86_REG_YMM10, X86_REG_YMM11, X86_REG_YMM12,
-    X86_REG_YMM13, X86_REG_YMM14, X86_REG_YMM15, X86_REG_YMM16, X86_REG_YMM17,
-    X86_REG_YMM18, X86_REG_YMM19, X86_REG_YMM20, X86_REG_YMM21, X86_REG_YMM22,
-    X86_REG_YMM23, X86_REG_YMM24, X86_REG_YMM25, X86_REG_YMM26, X86_REG_YMM27,
-    X86_REG_YMM28, X86_REG_YMM29, X86_REG_YMM30, X86_REG_YMM31, X86_REG_ZMM0,
-    X86_REG_ZMM1, X86_REG_ZMM2, X86_REG_ZMM3, X86_REG_ZMM4, X86_REG_ZMM5,
-    X86_REG_ZMM6, X86_REG_ZMM7, X86_REG_ZMM8, X86_REG_ZMM9, X86_REG_ZMM10,
-    X86_REG_ZMM11, X86_REG_ZMM12, X86_REG_ZMM13, X86_REG_ZMM14, X86_REG_ZMM15,
-    X86_REG_ZMM16, X86_REG_ZMM17, X86_REG_ZMM18, X86_REG_ZMM19, X86_REG_ZMM20,
-    X86_REG_ZMM21, X86_REG_ZMM22, X86_REG_ZMM23, X86_REG_ZMM24, X86_REG_ZMM25,
-    X86_REG_ZMM26, X86_REG_ZMM27, X86_REG_ZMM28, X86_REG_ZMM29, X86_REG_ZMM30,
-    X86_REG_ZMM31, X86_REG_R8B, X86_REG_R9B, X86_REG_R10B, X86_REG_R11B,
-    X86_REG_R12B, X86_REG_R13B, X86_REG_R14B, X86_REG_R15B, X86_REG_R8D,
-    X86_REG_R9D, X86_REG_R10D, X86_REG_R11D, X86_REG_R12D, X86_REG_R13D,
-    X86_REG_R14D, X86_REG_R15D, X86_REG_R8W, X86_REG_R9W, X86_REG_R10W,
-    X86_REG_R11W, X86_REG_R12W, X86_REG_R13W, X86_REG_R14W, X86_REG_R15W,
-
-    X86_REG_ENDING		// <-- mark the end of the list of registers
-};
-
-
-
-
+/*
 bool fukutate_jcc(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
     
     auto next_line = lines_iter; next_line++;
@@ -319,7 +253,7 @@ bool fukutate_add(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
             return true;
         }
     }
-    */
+    //
     return false;
 }
 
@@ -405,7 +339,7 @@ bool fukutate_sub(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
             return true;
         }
     }
-    */
+    //
     return false;
 }
 
@@ -444,7 +378,7 @@ bool fukutate_inc(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
         
         return false;
     }
-    */
+    //
     return false;
 }
 
@@ -481,7 +415,7 @@ bool fukutate_dec(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
 
         return false;
     }
-    */
+    //
     return false;
 }
 
@@ -581,7 +515,7 @@ bool fukutate_cmp(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
             return true;
         }
     }
-    */
+    //
     return false;
 }
 
@@ -738,7 +672,7 @@ bool fukutate_and(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& c
 
         return false;
     }
-    */
+    //
     return false;
 }
 
@@ -1050,7 +984,7 @@ bool fukutate_test(cs_insn *instruction, fuku_asm_x86& f_asm, fuku_code_holder& 
             return true;
         }
     }
-    */
+    //
     
     return false;
 }
@@ -1604,7 +1538,7 @@ void fuku_junk_6b(fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorag
         }
         else {
             generate_junk(f_asm, code_holder, lines_iter, 5, 6);
-        }*/
+        }//
         generate_junk(f_asm, code_holder, lines_iter, 5, 6);
         break;
     }
@@ -1639,3 +1573,4 @@ void fuku_junk_7b(fuku_asm_x86& f_asm, fuku_code_holder& code_holder, linestorag
     }
 
 }
+*/

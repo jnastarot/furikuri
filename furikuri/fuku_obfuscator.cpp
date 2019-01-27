@@ -2,8 +2,9 @@
 #include "fuku_obfuscator.h"
 
 
+
 fuku_obfuscator::fuku_obfuscator()
-    : destination_virtual_address(0),
+    :code(0), destination_virtual_address(0),
     settings({ 1 , 2 , 10.f, 10.f, 10.f }){}
 
 
@@ -22,7 +23,7 @@ void fuku_obfuscator::set_settings(const fuku_ob_settings& settings) {
     memcpy(&this->settings,&settings,sizeof(fuku_ob_settings));
 }
 
-fuku_arch   fuku_obfuscator::get_arch() const {
+fuku_assambler_arch fuku_obfuscator::get_arch() const {
     return this->code->get_arch();
 }
 
@@ -44,12 +45,12 @@ const fuku_code_holder* fuku_obfuscator::get_code() const {
 
 void fuku_obfuscator::obfuscate_code() {
 
-    if (code == nullptr || code->get_arch() == fuku_arch::fuku_arch_unknown) {
+    if (code == nullptr) {
         return;
     }
 
 
-    fuku_mutation * mutator = (code->get_arch() == fuku_arch::fuku_arch_x32) ?
+    fuku_mutation * mutator = (code->get_arch() == fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86) ?
         (fuku_mutation*)(new fuku_mutation_x86(settings)) : (fuku_mutation*)(new fuku_mutation_x64(settings));
 
 
@@ -70,7 +71,7 @@ void fuku_obfuscator::obfuscate_code() {
         }
     }
 
-    if (code->get_arch() == fuku_arch::fuku_arch_x32) {
+    if (code->get_arch() == fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86) {
         delete (fuku_mutation_x86*)mutator;
     }
     else {
@@ -85,7 +86,12 @@ void fuku_obfuscator::spagetti_code() {
 
     std::vector<linestorage> line_blocks;
 
-    fuku_asm_x86 fuku_asm;
+    fuku_assambler_ctx context;
+    fuku_instruction inst;
+
+    context.arch = code->get_arch();
+    context.inst = &inst;
+    _jmp(context, imm(0));
 
     //generate blocks of lines
     {
@@ -132,11 +138,11 @@ void fuku_obfuscator::spagetti_code() {
             }
 
             if (code->get_lines().begin() != code->get_lines().end()) {
-                inst_flags = (code->get_lines().begin()->get_instruction_flags()) & fuku_instruction_bad_stack_pointer;
+                inst_flags = (code->get_lines().begin()->get_instruction_flags()) & FUKU_INST_BAD_STACK;
             }
 
             if (block_idx + 1 != block_lens.size()) {
-                line_blocks[block_idx].push_back(fuku_asm.jmp(0).set_instruction_flags(inst_flags));
+                line_blocks[block_idx].push_back(inst.set_instruction_flags(inst_flags));
             }
 
             if (block_idx) {
@@ -180,6 +186,9 @@ void fuku_obfuscator::spagetti_code() {
 }
 
 void fuku_obfuscator::handle_jmps() {
+
+    fuku_assambler fuku_asm(code->get_arch());
+    fuku_asm.set_holder(code, ASSAMBLER_HOLD_TYPE_FIRST_OVERWRITE);
 
     for (auto& line_iter = code->get_lines().begin(); line_iter != code->get_lines().end(); line_iter++) {
 
@@ -230,79 +239,80 @@ void fuku_obfuscator::handle_jmps() {
         case X86_INS_JCXZ:
         case X86_INS_JECXZ: {
 
-            if (line.get_id() == X86_INS_JECXZ) {
-                fuku_instruction cc_line = fuku_asm_x86().or(fuku_reg86::r_ECX, fuku_reg86::r_ECX);//or ecx,ecx
-                
-                line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
+            fuku_asm.set_first_emit(true).set_position(line_iter);
+
+            size_t label_idx_f = line.get_label_idx();
+            size_t rip_label_idx = line.get_rip_relocation_idx();
+
+            fuku_register reg;
+
+            if (line.get_id() == X86_INS_JECXZ) { //or ecx,ecx
+                reg = reg_(FUKU_REG_ECX);
             }
-            else { //todo with cx
-                fuku_instruction cc_line = fuku_asm_x86(). or(fuku_reg86::r_ECX, fuku_reg86::r_ECX);//or cx,cx
-                
-                line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());       
+            else { //or cx,cx
+                reg = reg_(FUKU_REG_CX);
             }
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, 0);//jz
-            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
+            fuku_asm.or_(reg, reg);
+            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
 
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+            fuku_asm.jcc(FUKU_CONDITION_EQUAL, fuku_immediate(0));
+            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            line.set_rip_relocation_idx(-1);
-
-            code->get_lines().insert(++line_iter, jcc_line);
+            line_iter++;
             break;
         }
 
 
         case X86_INS_LOOP: {
+            fuku_asm.set_first_emit(true).set_position(line_iter);
 
-            fuku_instruction cc_line = fuku_asm_x86().dec(fuku_reg86::r_ECX);//dec ecx
-            line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
+            size_t label_idx_f = line.get_label_idx();
+            size_t rip_label_idx = line.get_rip_relocation_idx();
 
+            fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
+            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, 0);//jnz
-            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
+            fuku_asm.jcc(FUKU_CONDITION_NOT_EQUAL, imm(0));      //jnz
+            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
-
-            line.set_rip_relocation_idx(-1);
-
-            code->get_lines().insert(++line_iter, jcc_line);
+            line_iter++;
             break;
         }
 
         case X86_INS_LOOPE: {
+            fuku_asm.set_first_emit(true).set_position(line_iter);
 
+            size_t label_idx_f = line.get_label_idx();
+            size_t rip_label_idx = line.get_rip_relocation_idx();
 
-            fuku_instruction cc_line = fuku_asm_x86().dec(fuku_reg86::r_ECX);//dec ecx
-            line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
+            fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
+            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
 
+            fuku_asm.jcc(FUKU_CONDITION_EQUAL, imm(0));      //jz
+            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::equal, 0);//je
-            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
-
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
-
-            line.set_rip_relocation_idx(-1);
-
-            code->get_lines().insert(++line_iter, jcc_line);
+            line_iter++;
             break;
         }
 
         case X86_INS_LOOPNE: {
+            fuku_asm.set_first_emit(true).set_position(line_iter);
 
-            fuku_instruction cc_line = fuku_asm_x86().dec(fuku_reg86::r_ECX);//dec ecx
-            line.set_op_code(cc_line.get_op_code(), cc_line.get_op_length());
+            size_t label_idx_f = line.get_label_idx();
+            size_t rip_label_idx = line.get_rip_relocation_idx();
 
+            fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
+            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
 
-            fuku_instruction jcc_line = fuku_asm_x86().jcc(fuku_condition::not_equal, 0);//jne
-            jcc_line.set_rip_relocation_idx(line.get_rip_relocation_idx());
+            fuku_asm.jcc(FUKU_CONDITION_NOT_EQUAL, imm(0));      //jne
+            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
-
-            line.set_rip_relocation_idx(-1);
-
-            code->get_lines().insert(++line_iter, jcc_line);
-
+            line_iter++;
             break;
         }
 
@@ -317,7 +327,7 @@ void fuku_obfuscator::unused_flags_profiler() {
 
         uint64_t unused_flags = 0;
 
-
+        
             if ( !GET_BITES(line_iter->get_eflags(), X86_EFLAGS_GROUP_TEST)) {
 
                 auto next_line_iter = line_iter; next_line_iter++;

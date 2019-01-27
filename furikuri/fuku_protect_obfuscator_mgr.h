@@ -1,17 +1,17 @@
 #pragma once
 
-void fuku_protector::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings) {
+void fuku_protect_mgr::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings) {
     ob_profile.items.push_back({ fuku_code_analyzer() , settings, regions });
 }
 
-bool    fuku_protector::initialize_profiles_ob() {
+bool fuku_protect_mgr::initialize_obfuscation_profiles() {
 
     pe_image_io image_io(target_module.get_image());
     bool     is32arch = target_module.get_image().is_x32_image();
     uint64_t base_address = target_module.get_image().get_image_base();
 
     for (auto& item : ob_profile.items) {
-        item.an_code.set_arch(is32arch ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+        item.an_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
         std::sort(item.regions.begin(), item.regions.end(), [](fuku_protected_region& lhs, fuku_protected_region& rhs) {
             return lhs.region_rva < rhs.region_rva;
@@ -85,15 +85,15 @@ bool    fuku_protector::initialize_profiles_ob() {
     return true;
 }
 
-bool fuku_protector::obfuscate_profile() {
+bool fuku_protect_mgr::process_obfuscation_profiles() {
 
     if (ob_profile.items.size()) {
 
         pe_image_io image_io(target_module.get_image(), enma_io_mode::enma_io_mode_allow_expand);
         fuku_code_analyzer anal_code;
-        anal_code.set_arch(target_module.get_image().is_x32_image() ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+        anal_code.set_arch(target_module.get_image().is_x32_image() ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
-        for (int item_idx = ob_profile.items.size() - 1; item_idx >= 0; item_idx--) {
+        for (int32_t item_idx = ob_profile.items.size() - 1; item_idx >= 0; item_idx--) {
             auto& item = ob_profile.items[item_idx];
 
             fuku_obfuscator obfuscator;
@@ -148,11 +148,17 @@ bool fuku_protector::obfuscate_profile() {
     return true;
 }
 
-bool    fuku_protector::finish_protected_ob_code() {
+bool    fuku_protect_mgr::postprocess_obfuscation() {
 
     if (ob_profile.regions.size()) {
 
-        fuku_asm_x86 fuku_asm;
+        fuku_assambler_ctx asm_ctx;
+        fuku_instruction inst;
+
+        asm_ctx.arch = FUKU_ASSAMBLER_ARCH_X86;
+        asm_ctx.short_cfg = 0xFF;
+        asm_ctx.inst = &inst;
+
         pe_image_io image_io(target_module.get_image());
         uint64_t base_address = target_module.get_image().get_image_base();
         auto&   image_relocs = target_module.get_image_relocations();
@@ -202,11 +208,12 @@ bool    fuku_protector::finish_protected_ob_code() {
 
             fuku_code_association * dst_func_assoc = find_profile_association(ob_profile, region.region_rva);   //set jumps to start of obfuscated funcs
             if (dst_func_assoc) {
-                auto _jmp = fuku_asm.jmp(uint32_t(dst_func_assoc->virtual_address - (region.region_rva + base_address) - 5));
+                
+                _jmp(asm_ctx, fuku_immediate(uint32_t(dst_func_assoc->virtual_address - (region.region_rva + base_address) - 5)));
 
                 if (image_io.set_image_offset(region.region_rva).write(
-                    _jmp.get_op_code(), _jmp.get_op_length()) != enma_io_success) {
-
+                    asm_ctx.bytecode, asm_ctx.length) != enma_io_success) {
+                    
                     FUKU_DEBUG;
                     return false;
                 }

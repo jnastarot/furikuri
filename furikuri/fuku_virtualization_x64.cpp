@@ -22,6 +22,6 @@ std::vector<uint8_t> fuku_virtualization_x64::get_bytecode() const {
     return std::vector<uint8_t>();
 }
 
-fuku_arch fuku_virtualization_x64::get_target_arch() const {
-    return fuku_arch::fuku_arch_x64;
+fuku_assambler_arch fuku_virtualization_x64::get_target_arch() const {
+    return fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X64;
 }

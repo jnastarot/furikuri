@@ -1,7 +1,7 @@
 #pragma once
 
 
-void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_vm_settings& settings) {
+void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_vm_settings& settings) {
 
     fuku_vm_environment env(settings.vm_holder_module->get_module_position().get_address_offset() + settings.vm_entry_rva, settings.virtualizer);
     auto& vm_profile = vm_profiles.find(env);
@@ -21,7 +21,7 @@ void fuku_protector::add_vm_profile(const std::vector<fuku_protected_region>& re
     }
 }
 
-bool    fuku_protector::initialize_profiles_vm() {
+bool    fuku_protect_mgr::initialize_virtualization_profiles() {
 
     pe_image_io image_io(target_module.get_image());
     bool     is32arch = target_module.get_image().is_x32_image();
@@ -32,7 +32,7 @@ bool    fuku_protector::initialize_profiles_vm() {
     for (auto& profile : vm_profiles) {
 
         for (auto& item : profile.second.items) {
-            item.an_code.set_arch(is32arch ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+            item.an_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
             
             std::sort(item.regions.begin(), item.regions.end(), [](fuku_protected_region& lhs, fuku_protected_region& rhs) {
                 return lhs.region_rva < rhs.region_rva;
@@ -105,7 +105,7 @@ bool    fuku_protector::initialize_profiles_vm() {
     return true;
 }
 
-bool fuku_protector::virtualize_profiles() {
+bool fuku_protect_mgr::process_virtualization_profiles() {
 
     if (vm_profiles.size()) {
 
@@ -117,9 +117,9 @@ bool fuku_protector::virtualize_profiles() {
         for (auto& profile : vm_profiles) {
 
             fuku_code_analyzer anal_code;
-            anal_code.set_arch(is32arch ? fuku_arch::fuku_arch_x32 : fuku_arch::fuku_arch_x64);
+            anal_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
-            for (int item_idx = profile.second.items.size() - 1; item_idx >= 0; item_idx--) {
+            for (int32_t item_idx = profile.second.items.size() - 1; item_idx >= 0; item_idx--) {
                 auto& item = profile.second.items[item_idx];
 
                 if (item.settings.is_null() != false) {
@@ -143,7 +143,7 @@ bool fuku_protector::virtualize_profiles() {
 
     
             fuku_vm_result result = profile.first.virtualizer->build_bytecode(
-                fuku_code_holder(anal_code), profile.second.relocation_table, profile.second.association_table,
+                anal_code.get_code(), profile.second.relocation_table, profile.second.association_table,
                 target_module.get_image().get_image_base() + image_io.get_image_offset()
             );
             
@@ -164,7 +164,7 @@ bool fuku_protector::virtualize_profiles() {
     return true;
 }
 
-bool    fuku_protector::finish_protected_vm_code() {
+bool    fuku_protect_mgr::postprocess_virtualization() {
 
 
     if (vm_profiles.size()) {

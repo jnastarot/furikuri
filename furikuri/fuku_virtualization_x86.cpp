@@ -15,6 +15,7 @@ char *reg_names[] = { "EAX",
 "ESI",
 "EDI" };
 
+/*
 
 std::vector<fuku_vm_instruction> fuku_virtualization_x86::create_operand_reg(uint8_t r_reg, bool ptr) {
     std::vector<fuku_vm_instruction> operands;
@@ -216,7 +217,7 @@ void fuku_virtualization_x86::get_operands(const cs_insn *insn,const fuku_instru
 
         current_op.clear();
     }
-    */
+    
     printf("\n");
 }
 
@@ -261,7 +262,7 @@ uint8_t fuku_virtualization_x86::get_ext_code(const cs_insn *insn) {
         } 
     }
 
-    */
+    
 
     return ex_code.ex_code;
 }
@@ -351,7 +352,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
 
                 vm_lines[vm_lines.size() - 2].set_original(&current_line);
             }
-            */
+            
             break;
         }
 
@@ -378,7 +379,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
              //   }
 
             }
-            */
+            
             break;
         }
 
@@ -767,7 +768,7 @@ fuku_vm_result fuku_virtualization_x86::build_bytecode(fuku_code_holder& code_ho
 
             break;
         }
-        */
+        
         case X86_INS_DIV: {
             printf("DIV ");
 
@@ -946,3 +947,4 @@ fuku_arch fuku_virtualization_x86::get_target_arch() const {
     return fuku_arch::fuku_arch_x32;
 }
 
+*/

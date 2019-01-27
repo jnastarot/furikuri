@@ -6,7 +6,7 @@ class fuku_mutation_x64 :
     public fuku_mutation {
 
     csh cap_handle;
-    fuku_asm_x64 f_asm;
+    fuku_assambler f_asm;
     fuku_ob_settings settings;
 
 
