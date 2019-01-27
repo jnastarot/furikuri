@@ -7,3 +7,6 @@
 [submodule "capstone"]
 	path = capstone
 	url = https://github.com/jnastarot/capstone.git
+[submodule "fukutasm"]
+	path = fukutasm
+	url = https://github.com/jnastarot/fukutasm.git
