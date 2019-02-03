@@ -17,9 +17,7 @@ e.mail..: jnastarot@yandex.ru
 
 <h3 align="center">Third Party</h3>
 
+[capstone](http://www.capstone-engine.org/)<br>
 [shibari project](https://github.com/jnastarot/shibari)<br>
 [enma pe](https://github.com/jnastarot/enma_pe)<br>
-[capstone](http://www.capstone-engine.org/)<br>
-[v8 assambler(Ia32\x64)](https://github.com/v8/v8)<br>
-[denisenkomik.narod.ru tds parser](http://denisenkomik.narod.ru/main.cpp)
-
+[fukutasm](https://github.com/jnastarot/fukutasm)<br>

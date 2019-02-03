@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "fuku_mutation_x86.h"
 #include "fuku_mutation_x86_rules.h"
+#include "fuku_mutation_x86_junk.h"
 
 fuku_mutation_x86::fuku_mutation_x86(const fuku_ob_settings& settings)
 : settings(settings){
@@ -103,7 +104,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 
     bool is_first_line_begin = lines_iter == code_holder.get_lines().begin();
     bool is_next_line_end = next_lines_iter == code_holder.get_lines().end();
-    
+    bool is_mutated = false;
 
     cs_disasm(cap_handle, lines_iter->get_op_code(), lines_iter->get_op_length(), 0, 1, &instruction);
 
@@ -132,11 +133,11 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 //CONTROL GRAPH
 
         case X86_INS_JMP: {
-            fukutate_jmp(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_jmp(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_CALL: {
-            fukutate_call(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_call(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case  X86_INS_JO: case  X86_INS_JNO:
@@ -148,154 +149,170 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         case  X86_INS_JL: case  X86_INS_JGE:
         case  X86_INS_JLE:case  X86_INS_JG: {
             if (!is_next_line_end) { //idk but it check dont works in fukutate_jcc \_(._.)/
-             fukutate_jcc(instruction, f_asm, code_holder, lines_iter);
+                is_mutated = fukutate_jcc(instruction, f_asm, code_holder, lines_iter);
             }
             break;
         }
         case X86_INS_RET: {
-            fukutate_ret(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_ret(instruction, f_asm, code_holder, lines_iter);
+            break;
+        }
+
+        case X86_INS_MOV: {
+            is_mutated = fukutate_mov(instruction, f_asm, code_holder, lines_iter);
+            break;
+        }
+
+        case X86_INS_XCHG: {
+            is_mutated = fukutate_xchg(instruction, f_asm, code_holder, lines_iter);
+            break;
+        }
+
+        case X86_INS_LEA: {
+            is_mutated = fukutate_lea(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
 //STACK CONTROL
         case X86_INS_PUSH: {
-            fukutate_push(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_push(instruction, f_asm, code_holder, lines_iter);
             break;
         }
    
         case X86_INS_POP: {
-            fukutate_pop(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_pop(instruction, f_asm, code_holder, lines_iter);
             break;
         }
-/*
 
+//ARITHMETIC
         case X86_INS_ADD: {
-            fukutate_add(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_add(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_OR: {
-            fukutate_or(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_or(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_ADC: {
-            fukutate_adc(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_adc(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_SBB: {
-            fukutate_sbb(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_sbb(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_AND: {
-            fukutate_and(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_and(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_SUB: {
-            fukutate_sub(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_sub(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_XOR: {
-            fukutate_xor(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_xor(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_CMP: {
-            fukutate_cmp(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_cmp(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_INC: {
-            fukutate_inc(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_inc(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_DEC: {
-            fukutate_dec(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_dec(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_TEST: {
-            fukutate_test(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_test(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_NOT: {
-            fukutate_not(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_not(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_NEG: {
-            fukutate_neg(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_neg(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_MUL: {
-            fukutate_mul(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_mul(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_IMUL: {
-            fukutate_imul(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_imul(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_DIV: {
-            fukutate_div(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_div(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_IDIV: {
-            fukutate_idiv(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_idiv(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
-
+//SHIFT
         case X86_INS_ROL: {
-            fukutate_rol(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_rol(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
         case X86_INS_ROR: {
-            fukutate_ror(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_ror(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_RCL: {
-            fukutate_rcl(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_rcl(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_RCR: {
-            fukutate_rcr(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_rcr(instruction, f_asm, code_holder, lines_iter);
             break;
         }
+        case X86_INS_SAL: //SAL is too SHL
         case X86_INS_SHL: {
-            fukutate_shl(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_shl(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_SHR: {
-            fukutate_shr(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_shr(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_SAR: {
-            fukutate_sar(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_sar(instruction, f_asm, code_holder, lines_iter);
             break;
         }
 
-
+//BITTEST
         case X86_INS_BT: {
-            fukutate_bt(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_bt(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_BTS: {
-            fukutate_bts(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_bts(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_BTR: {
-            fukutate_btr(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_btr(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_BTC: {
-            fukutate_btc(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_btc(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_BSF: {
-            fukutate_bsf(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_bsf(instruction, f_asm, code_holder, lines_iter);
             break;
         }
         case X86_INS_BSR: {
-            fukutate_bsr(instruction, f_asm, code_holder, lines_iter);
+            is_mutated = fukutate_bsr(instruction, f_asm, code_holder, lines_iter);
             break;
         }
-        */
+        
 
 
         }

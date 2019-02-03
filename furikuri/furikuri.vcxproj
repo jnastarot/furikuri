@@ -153,7 +153,9 @@
   <ItemGroup>
     <ClInclude Include="fuku_code_analyzer.h" />
     <ClInclude Include="fuku_mutation_imp.h" />
+    <ClInclude Include="fuku_mutation_x64_junk.h" />
     <ClInclude Include="fuku_mutation_x64_rules.h" />
+    <ClInclude Include="fuku_mutation_x86_junk.h" />
     <ClInclude Include="fuku_mutation_x86_rules.h" />
     <ClInclude Include="fuku_protect_mgr.h" />
     <ClInclude Include="fuku_protect_obfuscator_mgr.h" />
@@ -170,8 +172,10 @@
   <ItemGroup>
     <ClCompile Include="fuku_code_analyzer.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />
+    <ClCompile Include="fuku_mutation_x64_junk.cpp" />
     <ClCompile Include="fuku_mutation_x64_rules.cpp" />
     <ClCompile Include="fuku_mutation_x86.cpp" />
+    <ClCompile Include="fuku_mutation_x86_junk.cpp" />
     <ClCompile Include="fuku_mutation_x86_rules.cpp" />
     <ClCompile Include="fuku_protect_mgr.cpp" />
     <ClCompile Include="fuku_virtualization_x64.cpp" />

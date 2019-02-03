@@ -50,7 +50,7 @@ unsigned char lzo_depack_32[] = {//0xCC,
 
 int main() {
 
-    /*
+    
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(3);
 
@@ -91,7 +91,7 @@ int main() {
     shibari_module _vm_module(
         std::string("..\\Release\\vm_fuku_x86.dll")
     );
-
+    */
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
@@ -107,8 +107,8 @@ int main() {
 
 
 
-        fuku_ob_settings ob_set = { 6,3,66.f,66.f,66.f };
-        fuku_ob_settings ob1_set = { 6,3,66.f,66.f,66.f };
+        fuku_ob_settings ob_set = { 4,3,40.f,40.f,40.f };
+        fuku_ob_settings ob1_set = { 4,3,40.f,40.f,40.f };
 
         fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
      //   fuku.add_ob_code_list({ 0x103A , 0x6B6 }, &_module, ob1_set);
@@ -150,7 +150,7 @@ int main() {
             _vm_module.get_image_exports().get_items()[0].get_rva(),
             &vm
             }));
-            //
+            //*/
 
 
             //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
@@ -172,7 +172,7 @@ int main() {
 
 
 
-      
+      /*
       uint8_t * data_ = new uint8_t[0x1000];
       uint8_t * data_1 = new uint8_t[0x1000];
       for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {

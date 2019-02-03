@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "fuku_mutation_x64.h"
 #include "fuku_mutation_x64_rules.h"
+#include "fuku_mutation_x64_junk.h"
 
 fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings)
 : settings(settings){

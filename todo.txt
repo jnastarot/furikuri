@@ -1,4 +1,3 @@
 improve junk and mutation rules for x86 and x64
 rewrite x86 virtualizer
 create x64 virtualizer and vm
-make assambler great again

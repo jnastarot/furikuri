@@ -95,6 +95,9 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
                 code_holder.delete_rip_relocation(rip_label_orig);
             }
+            else {
+                return false;
+            }
         }
         else {
             //je(jcc) jmpdst
@@ -139,13 +142,13 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
     if (detail.operands[0].type == X86_OP_MEM) { //call [op]
 
-        if (detail.operands[1].size == 4) { //call [op]
+        if (detail.operands[0].size == 4) { //call [op]
 
         }
-        else if (detail.operands[1].size == 2) { //call [op]
+        else if (detail.operands[0].size == 2) { //call [op]
 
         }
-        else if (detail.operands[1].size == 1) { //call [op]
+        else if (detail.operands[0].size == 1) { //call [op]
 
         }
 
@@ -153,14 +156,7 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
     }
     else if (detail.operands[0].type == X86_OP_REG) {//call reg
 
-        cs_x86_op * reg_op = 0;
-
-        if (detail.operands[0].type == X86_OP_REG) {
-            reg_op = &detail.operands[0];
-        }
-        else {
-            reg_op = &detail.operands[1];
-        }
+        cs_x86_op * reg_op = &detail.operands[0];
 
 
         if (reg_op->size == 4) { //call reg32
@@ -171,7 +167,7 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
 
         }
-        else if (reg_op->size == 1) { //call imm8
+        else if (reg_op->size == 1) { //call reg8
 
         }
 
@@ -201,6 +197,7 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
             code_holder.get_rip_relocations()[rip_label_orig].offset = f_asm.get_context().immediate_offset;
 
+            return true;
         }
     }
 
@@ -240,9 +237,11 @@ bool fukutate_ret(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         f_asm.get_context().inst->
             set_custom_flags(custom_flags)
             .set_instruction_flags(FUKU_INST_BAD_STACK);
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 /*
@@ -289,6 +288,9 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
                 f_asm.get_context().inst->
                     set_custom_flags(lines_iter->get_custom_flags())
                     .set_instruction_flags(FUKU_INST_BAD_STACK);
+            }
+            else {
+                return false;
             }
 
             return true;
@@ -340,6 +342,10 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
                 code_holder.get_relocations()[reloc_idx].offset = f_asm.get_context().immediate_offset;
             }
         }
+        else {
+            return false;
+        }
+
         return true;
     }
 
@@ -417,6 +423,9 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
                         .set_instruction_flags(FUKU_INST_BAD_STACK);
                 }
             }
+            else {
+                return false;
+            }
 
             return true;
         }
@@ -438,12 +447,25 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 }
 
 
+bool fukutate_mov(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    return false;
+}
+bool fukutate_xchg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    return false;
+}
+bool fukutate_lea(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    return false;
+}
+
 bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //add [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //add [op],imm
 
         if (detail.operands[1].size == 4) { //add [op],imm32
 
@@ -457,8 +479,8 @@ bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//add [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//add reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//add [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//add reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -484,7 +506,7 @@ bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//add reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//add reg,reg
 
         if (detail.operands[0].size == 4) { //add reg32 ,reg32
 
@@ -496,7 +518,7 @@ bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//add reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//add reg,imm
 
         if (detail.operands[0].size == 4) { //add reg32 ,imm32
 
@@ -516,7 +538,7 @@ bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& 
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //or [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //or [op],imm
 
         if (detail.operands[1].size == 4) { //or [op],imm32
 
@@ -530,8 +552,8 @@ bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& 
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//or [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//or reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//or [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//or reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -557,7 +579,7 @@ bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& 
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//or reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//or reg,reg
 
         if (detail.operands[0].size == 4) { //or reg32 ,reg32
 
@@ -569,7 +591,7 @@ bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& 
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//or reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//or reg,imm
 
         if (detail.operands[0].size == 4) { //or reg32 ,imm32
 
@@ -589,7 +611,7 @@ bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //adc [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //adc [op],imm
 
         if (detail.operands[1].size == 4) { //adc [op],imm32
 
@@ -603,8 +625,8 @@ bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//adc [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//adc reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//adc [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//adc reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -630,7 +652,7 @@ bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//adc reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//adc reg,reg
 
         if (detail.operands[0].size == 4) { //adc reg32 ,reg32
 
@@ -642,7 +664,7 @@ bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//adc reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//adc reg,imm
 
         if (detail.operands[0].size == 4) { //adc reg32 ,imm32
 
@@ -662,7 +684,7 @@ bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //sbb [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //sbb [op],imm
 
         if (detail.operands[1].size == 4) { //sbb [op],imm32
 
@@ -676,8 +698,8 @@ bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//sbb [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//sbb reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//sbb [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//sbb reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -703,7 +725,7 @@ bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//sbb reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//sbb reg,reg
 
         if (detail.operands[0].size == 4) { //sbb reg32 ,reg32
 
@@ -715,7 +737,7 @@ bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//sbb reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//sbb reg,imm
 
         if (detail.operands[0].size == 4) { //sbb reg32 ,imm32
 
@@ -735,7 +757,7 @@ bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //and [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //and [op],imm
 
         if (detail.operands[1].size == 4) { //and [op],imm32
 
@@ -749,8 +771,8 @@ bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//and [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//and reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//and [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//and reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -776,7 +798,7 @@ bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//and reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//and reg,reg
 
         if (detail.operands[0].size == 4) { //and reg32 ,reg32
 
@@ -788,7 +810,7 @@ bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//and reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//and reg,imm
 
         if (detail.operands[0].size == 4) { //and reg32 ,imm32
 
@@ -809,7 +831,7 @@ bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //sub [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //sub [op],imm
 
         if (detail.operands[1].size == 4) { //sub [op],imm32
 
@@ -823,8 +845,8 @@ bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//sub [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//sub reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//sub [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//sub reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -850,7 +872,7 @@ bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//sub reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//sub reg,reg
 
         if (detail.operands[0].size == 4) { //sub reg32 ,reg32
 
@@ -862,7 +884,7 @@ bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//sub reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//sub reg,imm
 
         if (detail.operands[0].size == 4) { //sub reg32 ,imm32
 
@@ -882,7 +904,7 @@ bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //xor [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //xor [op],imm
 
         if (detail.operands[1].size == 4) { //xor [op],imm32
 
@@ -896,8 +918,8 @@ bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//xor [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//xor reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//xor [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//xor reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -923,7 +945,7 @@ bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//xor reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//xor reg,reg
 
         if (detail.operands[0].size == 4) { //xor reg32 ,reg32
 
@@ -935,7 +957,7 @@ bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//xor reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//xor reg,imm
 
         if (detail.operands[0].size == 4) { //xor reg32 ,imm32
 
@@ -955,7 +977,7 @@ bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //cmp [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //cmp [op],imm
 
         if (detail.operands[1].size == 4) { //cmp [op],imm32
 
@@ -969,8 +991,8 @@ bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//cmp [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//cmp reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//cmp [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//cmp reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -996,7 +1018,7 @@ bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//cmp reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//cmp reg,reg
 
         if (detail.operands[0].size == 4) { //cmp reg32 ,reg32
 
@@ -1008,7 +1030,7 @@ bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//cmp reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//cmp reg,imm
 
         if (detail.operands[0].size == 4) { //cmp reg32 ,imm32
 
@@ -1029,7 +1051,7 @@ bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
     auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
 
-    if (detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_IMM) { //test [op],imm
+    if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //test [op],imm
 
         if (detail.operands[1].size == 4) { //test [op],imm32
 
@@ -1043,8 +1065,8 @@ bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
 
     }
-    else if ((detail.operands[0].type == X86_OP_MEM || detail.operands[1].type == X86_OP_REG) ||//test [op],reg
-        (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_MEM)) {//test reg,[op]
+    else if ((detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_REG) ||//test [op],reg
+        (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_MEM)) {//test reg,[op]
 
         cs_x86_op * reg_op = 0;
 
@@ -1070,7 +1092,7 @@ bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
 
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_REG) {//test reg,reg
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_REG) {//test reg,reg
 
         if (detail.operands[0].size == 4) { //test reg32 ,reg32
 
@@ -1082,7 +1104,7 @@ bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
         }
     }
-    else if (detail.operands[0].type == X86_OP_REG || detail.operands[1].type == X86_OP_IMM) {//test reg,imm
+    else if (detail.operands[0].type == X86_OP_REG && detail.operands[1].type == X86_OP_IMM) {//test reg,imm
 
         if (detail.operands[0].size == 4) { //test reg32 ,imm32
 
@@ -1106,13 +1128,13 @@ bool fukutate_inc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     if (detail.operands[0].type == X86_OP_MEM) { //inc [op]
 
-        if (detail.operands[1].size == 4) { //inc [op]
+        if (detail.operands[0].size == 4) { //inc [op]
 
         }
-        else if (detail.operands[1].size == 2) { //inc [op]
+        else if (detail.operands[0].size == 2) { //inc [op]
 
         }
-        else if (detail.operands[1].size == 1) { //inc [op]
+        else if (detail.operands[0].size == 1) { //inc [op]
 
         }
 
@@ -1148,13 +1170,13 @@ bool fukutate_dec(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     if (detail.operands[0].type == X86_OP_MEM) { //dec [op]
 
-        if (detail.operands[1].size == 4) { //dec [op]
+        if (detail.operands[0].size == 4) { //dec [op]
 
         }
-        else if (detail.operands[1].size == 2) { //dec [op]
+        else if (detail.operands[0].size == 2) { //dec [op]
 
         }
-        else if (detail.operands[1].size == 1) { //dec [op]
+        else if (detail.operands[0].size == 1) { //dec [op]
 
         }
 
@@ -1162,25 +1184,18 @@ bool fukutate_dec(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     }
     else if (detail.operands[0].type == X86_OP_REG) {//dec reg
 
-        cs_x86_op * reg_op = 0;
-
-        if (detail.operands[0].type == X86_OP_REG) {
-            reg_op = &detail.operands[0];
-        }
-        else {
-            reg_op = &detail.operands[1];
-        }
+        cs_x86_op * reg_op = &detail.operands[0];
 
 
-        if (reg_op->size == 4) { //dec [op]
+        if (reg_op->size == 4) { //dec reg
 
 
         }
-        else if (reg_op->size == 2) { //dec [op]
+        else if (reg_op->size == 2) { //dec reg
 
 
         }
-        else if (reg_op->size == 1) { //dec [op]
+        else if (reg_op->size == 1) { //dec reg
 
         }
 
@@ -1190,432 +1205,1052 @@ bool fukutate_dec(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     return false;
 }
 
-/*
+bool fukutate_not(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
-void generate_junk(fuku_assambler& f_asm, fuku_code_holder& code_holder,
-    linestorage::iterator lines_iter, uint32_t max_size, size_t junk_size) {
-
-
-    size_t current_size = 0;
-
-    while (junk_size != current_size) {
-
-        switch (FUKU_GET_RAND(1, min(min(junk_size - current_size, max_size), 7))) {
-        case 1: {
-            fuku_junk_1b(f_asm, code_holder, lines_iter); current_size += 1;
-            break;
-        }
-        case 2: {
-            fuku_junk_2b(f_asm, code_holder, lines_iter); current_size += 2;
-            break;
-        }
-        case 3: {
-            fuku_junk_3b(f_asm, code_holder, lines_iter); current_size += 3;
-            break;
-        }
-        case 4: {
-            fuku_junk_4b(f_asm, code_holder, lines_iter); current_size += 4;
-            break;
-        }
-        case 5: {
-            fuku_junk_5b(f_asm, code_holder, lines_iter); current_size += 5;
-            break;
-        }
-        case 6: {
-            fuku_junk_6b(f_asm, code_holder, lines_iter); current_size += 6;
-            break;
-        }
-        case 7: {
-            fuku_junk_7b(f_asm, code_holder, lines_iter); current_size += 7;
-            break;
-        }
-        }
-    }
-}
-
-
-void fuku_junk_1b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
-
-    //nop
-    code_holder.get_lines().insert(lines_iter, f_asm.nop()); 
-}
-
-
-
-void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
-
-    switch (FUKU_GET_RAND(0, 3)) {
-    case 0: {
-        //ror reg1, 0
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-        code_holder.get_lines().insert(lines_iter, f_asm.ror(reg1, 0).set_custom_flags(lines_iter->get_custom_flags()));
-
-        break;
-    }
-    case 1: {
-        //rol reg1, 0
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-        code_holder.get_lines().insert(lines_iter, f_asm.rol(reg1, 0).set_custom_flags(lines_iter->get_custom_flags()));
-
-        break;
-    }
-    case 2: {
-        //sub reg1, 0
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            code_holder.get_lines().insert(lines_iter, f_asm.sub(fuku_reg86::r_EAX, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 2, 3);
-        }
-        break;
-    }
-    case 3: {
-        //add reg1, 0
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            code_holder.get_lines().insert(lines_iter, f_asm.add(fuku_reg86::r_EAX, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 2, 3);
-        }
-        break;
-    }
-    }
-}
-
-void fuku_junk_4b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
-
-    switch (FUKU_GET_RAND(0, 1)) {
-    case 0: {
-        //not reg1
-        //not reg1
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-
-        fuku_instruction line[2];
-
-        line[0] = f_asm.not(reg1).set_custom_flags(lines_iter->get_custom_flags());
-        line[1] = f_asm.not(reg1).set_custom_flags(lines_iter->get_custom_flags());
-
-
-        if (reg1 == fuku_reg86::r_ESP) {
-            line[1].set_instruction_flags(fuku_instruction_bad_stack_pointer);
-        }
-
-        code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
-
-        break;
-    }
-    case 1: {
-        //xchg reg1, reg2
-        //xchg reg2, reg1
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_ECX, fuku_reg86::r_EBX));
-        fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-
-        fuku_instruction line[2];
-
-        if (FUKU_GET_RAND(0, 1)) {
-            line[0] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
-        }
-        else {
-            line[0] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
-        }
-
-        if (FUKU_GET_RAND(0, 1)) {
-            line[1] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
-        }
-        else {
-            line[1] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
-        }
-
-        if (reg1 == fuku_reg86::r_ESP || reg2 == fuku_reg86::r_ESP) {
-            line[1].set_instruction_flags(fuku_instruction_bad_stack_pointer);
-        }
-
-        code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
-
-        break;
-    }
-
-    }
-}
-
-void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
-
-
-    switch (FUKU_GET_RAND(0, 1)) {
-    case 0: {
-        //push reg1
-        //ror reg1, rand
-        //pop reg1
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed) &&
-            !HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
-
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-            if (reg1 == fuku_reg86::r_ESP) { reg1 = fuku_reg86::r_EAX; }
-
-            fuku_instruction line[3];
-
-            line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-            line[1] = f_asm.ror(reg1, FUKU_GET_RAND(1, 31)).set_custom_flags(lines_iter->get_custom_flags());
-            line[2] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
-
-            code_holder.get_lines().insert(lines_iter, &line[0], &line[3]);
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 4, 5);
-        }
-        break;
-    }
-    case 1: {
-        //push reg1
-        //rol reg1, rand
-        //pop reg1
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed) &&
-            !HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
-
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-            if (reg1 == fuku_reg86::r_ESP) { reg1 = fuku_reg86::r_EAX; }
-
-
-            fuku_instruction line[3];
-
-            line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-            line[1] = f_asm.rol(reg1, FUKU_GET_RAND(1, 31)).set_custom_flags(lines_iter->get_custom_flags());
-            line[2] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
-
-            code_holder.get_lines().insert(lines_iter, &line[0], &line[3]);
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 4, 5);
-        }
-        break;
-    }
-    }
-}
-
-void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
-
-
-    switch (FUKU_GET_RAND(0, 2)) {
-    case 0: {
-        //sub reg1(not eax), 0
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_ECX, fuku_reg86::r_EDI));
-
-            code_holder.get_lines().insert(lines_iter, f_asm.sub(reg1, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 5, 6);
-        }
-        break;
-    }
-    case 1: {
-        //add reg1(not eax), 0
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_ECX, fuku_reg86::r_EDI));
-
-            code_holder.get_lines().insert(lines_iter, f_asm.add(reg1, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 5, 6);
-        }
-        break;
-    }
-    case 2: {
-        //jcc next_inst
-
-        /*
-        if (lines_iter != code_holder.get_lines().end()) {
-            
-
-            code_holder.get_lines().insert(lines_iter,
-                f_asm.jcc((fuku_condition)FUKU_GET_RAND(0, 15), 0)
-                .set_custom_flags(lines_iter->get_custom_flags()) 
-            );
-            
-            auto jcc_iter = lines_iter; jcc_iter--;
-
-            if (lines_iter->get_label_idx() != -1) {
-                jcc_iter->set_label_idx(lines_iter->get_label_idx());
-                code_holder.get_labels()[lines_iter->get_label_idx()].instruction = &(*jcc_iter);
-                lines_iter->set_label_idx(-1);    
-            }
-            
-            jcc_iter->set_rip_relocation_idx(code_holder.create_rip_relocation(2, &(*lines_iter)));
-        }
-        else {
-            generate_junk(f_asm, code_holder, lines_iter, 5, 6);
-        }//
-        generate_junk(f_asm, code_holder, lines_iter, 5, 6);
-        break;
-    }
-    }
-}
-
-
-void fuku_junk_7b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
-
-    //push reg1
-    //mov reg1, randval
-    //pop reg1
-
-    if (!HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-        fuku_immediate86 imm = fuku_immediate86(FUKU_GET_RAND(0x10000000, 0xFFFFFFFF));
-
-        fuku_instruction line[3];
-        line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-        line[1] = f_asm.mov(reg1, imm).set_custom_flags(lines_iter->get_custom_flags());
-        line[2] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
-
-        if (FUKU_GET_RAND(0, 1)) {
-            line[1].set_relocation_first_idx(code_holder.create_relocation(1, imm.get_imm(), 0));
-        }
-
-        code_holder.get_lines().insert(lines_iter, &line[0], &line[3]);
-    }
-    else {
-        generate_junk(f_asm, code_holder, lines_iter, 6, 7);
-    }
-
-}
-*/
-
-void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
+    auto detail = instruction->detail->x86;
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
-    if (!HAS_FULL_MASK(instruction_flags, FUKU_INST_BAD_STACK)) {
 
-        f_asm.push(reg_(FUKU_REG_EAX));
-      //  f_asm.get_context().inst->set_custom_flags(lines_iter->get_custom_flags());
-        f_asm.pop(reg_(FUKU_REG_EAX));
-      //  f_asm.get_context().inst->set_custom_flags(lines_iter->get_custom_flags());
-    }
-    /*
-    switch (FUKU_GET_RAND(0, 4)) {
+    if (detail.operands[0].type == X86_OP_MEM) { //not [op]
 
-    case 0: {
-        //mov reg1, reg1
+        if (detail.operands[0].size == 4) { //not [op]
 
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-
-        code_holder.get_lines().insert(lines_iter, f_asm.mov(reg1, reg1).set_custom_flags(lines_iter->get_custom_flags()));
-        break;
-    }
-    case 1: {
-        //xchg eax, reg2
-        //xchg reg2, eax
-
-    jk_2s:
-
-        fuku_reg86 reg1 = fuku_reg86::r_EAX;
-        fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-
-        fuku_instruction line[2];
-
-        if (FUKU_GET_RAND(0, 1)) {
-            line[0] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
         }
-        else {
-            line[0] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
+        else if (detail.operands[0].size == 2) { //not [op]
+
+        }
+        else if (detail.operands[0].size == 1) { //not [op]
+
         }
 
-        if (FUKU_GET_RAND(0, 1)) {
-            line[1] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
-        }
-        else {
-            line[1] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
-        }
-
-        if (reg2 == fuku_reg86::r_ESP) {
-            line[1].set_instruction_flags(fuku_instruction_bad_stack_pointer);
-        }
-
-        code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
-
-        break;
-    }
-    case 2: {
-    jk_3s:
-        //push reg1
-        //pop reg1
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-
-        if (!HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
-
-            fuku_instruction line[2];
-
-            line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-            line[1] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
-
-            code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
-        }
-        else {
-            //lea reg1, [reg1]
-
-            code_holder.get_lines().insert(lines_iter, f_asm.lea(reg1, fuku_operand86(reg1, operand_scale::operand_scale_1, 0)).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-
-        break;
-    }
-
-    case 3: {
-        //cmp reg1, reg2
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_AF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-            fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-
-            code_holder.get_lines().insert(lines_iter, f_asm.cmp(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-        else {
-            goto jk_2s;
-        }
-
-        break;
-    }
-    case 4: {
-        //test reg1, reg2
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_AF);
-
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-            fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-
-            code_holder.get_lines().insert(lines_iter, f_asm.test(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags()));
-        }
-        else {
-            goto jk_3s;
-        }
-
-        break;
-    }
 
     }
-    */
+    else if (detail.operands[0].type == X86_OP_REG) {//not reg
+
+        cs_x86_op * reg_op = &detail.operands[0];
+
+
+        if (reg_op->size == 4) { //not reg
+
+
+        }
+        else if (reg_op->size == 2) { //not reg
+
+
+        }
+        else if (reg_op->size == 1) { //not reg
+
+        }
+
+
+    }
+
+    return false;
 }
+bool fukutate_neg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_MEM) { //neg [op]
+
+        if (detail.operands[0].size == 4) { //neg [op]
+
+        }
+        else if (detail.operands[0].size == 2) { //neg [op]
+
+        }
+        else if (detail.operands[0].size == 1) { //neg [op]
+
+        }
+
+
+    }
+    else if (detail.operands[0].type == X86_OP_REG) {//neg reg
+
+        cs_x86_op * reg_op = &detail.operands[0];
+
+
+        if (reg_op->size == 4) { //neg reg
+
+
+        }
+        else if (reg_op->size == 2) { //neg reg
+
+
+        }
+        else if (reg_op->size == 1) { //neg reg
+
+        }
+
+
+    }
+
+    return false;
+}
+bool fukutate_mul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_MEM) { //mul [op]
+
+        if (detail.operands[0].size == 4) { //mul [op]
+
+        }
+        else if (detail.operands[0].size == 2) { //mul [op]
+
+        }
+        else if (detail.operands[0].size == 1) { //mul [op]
+
+        }
+
+
+    }
+    else if (detail.operands[0].type == X86_OP_REG) {//mul reg
+
+        cs_x86_op * reg_op = &detail.operands[0];
+
+
+        if (reg_op->size == 4) { //mul reg
+
+
+        }
+        else if (reg_op->size == 2) { //mul reg
+
+
+        }
+        else if (reg_op->size == 1) { //mul reg
+
+        }
+
+
+    }
+
+    return false;
+}
+bool fukutate_imul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    return false;
+}
+
+bool fukutate_div(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_MEM) { //div [op]
+
+        if (detail.operands[0].size == 4) { //div [op]
+
+        }
+        else if (detail.operands[0].size == 2) { //div [op]
+
+        }
+        else if (detail.operands[0].size == 1) { //div [op]
+
+        }
+
+
+    }
+    else if (detail.operands[0].type == X86_OP_REG) {//div reg
+
+        cs_x86_op * reg_op = &detail.operands[0];
+
+
+        if (reg_op->size == 4) { //div reg
+
+
+        }
+        else if (reg_op->size == 2) { //div reg
+
+
+        }
+        else if (reg_op->size == 1) { //div reg
+
+        }
+
+
+    }
+
+    return false;
+}
+bool fukutate_idiv(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_MEM) { //idiv [op]
+
+        if (detail.operands[0].size == 4) { //idiv [op]
+
+        }
+        else if (detail.operands[0].size == 2) { //idiv [op]
+
+        }
+        else if (detail.operands[0].size == 1) { //idiv [op]
+
+        }
+
+
+    }
+    else if (detail.operands[0].type == X86_OP_REG) {//idiv reg
+
+        cs_x86_op * reg_op = &detail.operands[0];
+
+
+        if (reg_op->size == 4) { //idiv reg
+
+
+        }
+        else if (reg_op->size == 2) { //idiv reg
+
+
+        }
+        else if (reg_op->size == 1) { //idiv reg
+
+        }
+
+
+    }
+
+    return false;
+}
+
+
+bool fukutate_rol(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//rol reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rol reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//rol [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rol [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+bool fukutate_ror(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//ror reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//ror reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//ror [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//ror [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool fukutate_rcl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//rcl reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcl reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//rcl [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcl [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool fukutate_rcr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//rcr reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcr reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//rcr [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcr [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool fukutate_shl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//shl reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shl reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//shl [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shl [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool fukutate_shr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//shr reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shr reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//shr [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shr [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool fukutate_sar(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//sar reg, cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//sar reg, imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//sar [op], cl
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//sar [op], imm
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+            else if (reg_op->size == 1) {
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool fukutate_bt(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[1].type == X86_OP_REG) { 
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[0].type == X86_OP_REG) {//bt reg, reg
+
+            if (reg_op->size == 4) { 
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//bt [op], reg
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+
+    }
+    else if (detail.operands[1].type == X86_OP_IMM) { 
+
+        if (detail.operands[0].type == X86_OP_REG) {//bt reg, imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//bt [op], imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+bool fukutate_bts(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[1].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[0].type == X86_OP_REG) {//bts reg, reg
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//bts [op], reg
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+    else if (detail.operands[1].type == X86_OP_IMM) {
+
+        if (detail.operands[0].type == X86_OP_REG) {//bts reg, imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//bts [op], imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+bool fukutate_btr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[1].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[0].type == X86_OP_REG) {//btr reg, reg
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//btr [op], reg
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+    else if (detail.operands[1].type == X86_OP_IMM) {
+
+        if (detail.operands[0].type == X86_OP_REG) {//btr reg, imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//btr [op], imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+bool fukutate_btc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[1].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[0].type == X86_OP_REG) {//btc reg, reg
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//btc [op], reg
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+    else if (detail.operands[1].type == X86_OP_IMM) {
+
+        if (detail.operands[0].type == X86_OP_REG) {//btc reg, imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+        }
+        else if (detail.operands[0].type == X86_OP_MEM) {//btc [op], imm
+
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+bool fukutate_bsf(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//bsf reg, reg
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//bsf reg, [op]
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+bool fukutate_bsr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+
+
+    auto detail = instruction->detail->x86;
+    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        cs_x86_op * reg_op = &detail.operands[0];
+
+        if (detail.operands[1].type == X86_OP_REG) {//bsr reg, reg
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+            }
+
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//bsr reg, [op]
+            cs_x86_op * reg_op = &detail.operands[0];
+
+            if (reg_op->size == 4) {
+
+
+            }
+            else if (reg_op->size == 2) {
+
+
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
