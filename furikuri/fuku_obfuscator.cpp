@@ -92,7 +92,6 @@ void fuku_obfuscator::spagetti_code() {
     context.arch = code->get_arch();
     context.inst = &inst;
     _jmp(context, imm(0));
-
     //generate blocks of lines
     {
         std::vector<size_t> block_lens;
@@ -137,11 +136,11 @@ void fuku_obfuscator::spagetti_code() {
                 line_blocks[block_idx].splice(line_blocks[block_idx].begin(), code->get_lines(), start, end);   
             }
 
-            if (code->get_lines().begin() != code->get_lines().end()) {
+            if (code->get_lines().size()) {
                 inst_flags = (code->get_lines().begin()->get_instruction_flags()) & FUKU_INST_BAD_STACK;
             }
 
-            if (block_idx + 1 != block_lens.size()) {
+            if (block_idx + 1 != block_lens.size()) { //insert jmp to next block
                 line_blocks[block_idx].push_back(inst.set_instruction_flags(inst_flags));
             }
 
@@ -229,7 +228,7 @@ void fuku_obfuscator::handle_jmps() {
                 op_code[line.get_op_pref_size() + 1] = 0x80 | (line.get_op_code()[line.get_op_pref_size()] & 0x0F);
                 line.set_op_code(op_code, line.get_op_length() + 4);
 
-                code->get_rip_relocations()[line.get_rip_relocation_idx()].offset += 1;
+                code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
             }
 
             break;
@@ -254,10 +253,10 @@ void fuku_obfuscator::handle_jmps() {
             }
 
             fuku_asm.or_(reg, reg);
-            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
 
             fuku_asm.jcc(FUKU_CONDITION_EQUAL, fuku_immediate(0));
-            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
             line_iter++;
@@ -272,10 +271,10 @@ void fuku_obfuscator::handle_jmps() {
             size_t rip_label_idx = line.get_rip_relocation_idx();
 
             fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
-            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
 
             fuku_asm.jcc(FUKU_CONDITION_NOT_EQUAL, imm(0));      //jnz
-            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
             line_iter++;
@@ -289,10 +288,10 @@ void fuku_obfuscator::handle_jmps() {
             size_t rip_label_idx = line.get_rip_relocation_idx();
 
             fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
-            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
 
             fuku_asm.jcc(FUKU_CONDITION_EQUAL, imm(0));      //jz
-            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
             line_iter++;
@@ -306,10 +305,10 @@ void fuku_obfuscator::handle_jmps() {
             size_t rip_label_idx = line.get_rip_relocation_idx();
 
             fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
-            fuku_asm.get_last_emit()->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
 
             fuku_asm.jcc(FUKU_CONDITION_NOT_EQUAL, imm(0));      //jne
-            fuku_asm.get_last_emit()->set_rip_relocation_idx(rip_label_idx);
+            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
             line_iter++;

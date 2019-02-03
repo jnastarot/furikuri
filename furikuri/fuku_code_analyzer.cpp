@@ -85,6 +85,8 @@ bool fuku_code_analyzer::analyze_code(
             }
 
             switch (current_insn.id) {
+            case  X86_INS_CALL:
+         //       __debugbreak();
                 case  X86_INS_JO: case  X86_INS_JNO:
                 case  X86_INS_JB: case  X86_INS_JAE:
                 case  X86_INS_JE: case  X86_INS_JNE:
@@ -96,6 +98,8 @@ bool fuku_code_analyzer::analyze_code(
                 case  X86_INS_JMP:
                 case  X86_INS_JECXZ:case X86_INS_JCXZ:
                 case  X86_INS_LOOP: case X86_INS_LOOPE: case X86_INS_LOOPNE: {
+
+
 
                     if (current_insn.detail->x86.operands[0].type == X86_OP_IMM) {
                         
@@ -144,7 +148,7 @@ bool fuku_code_analyzer::analyze_code(
 
 
 
-       // merge_labels();
+        analyzed_code.merge_labels();
 
         cs_free(insn, count);
         cs_close(&handle);

@@ -70,15 +70,39 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
             image_io.set_image_offset(region.region_rva).memory_set(region.region_size, 0);
         }
 
+        {
+            fuku_assambler_ctx context;
+            fuku_instruction inst;
 
-        for (auto& code_region : code_regions) {
+            context.arch = is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64;
+            context.inst = &inst;
+            _jmp(context, imm(0));
 
-            item.an_code.push_code(
-                code_region.code_buffer.data(),
-                code_region.code_buffer.size(),
-                base_address + code_region.code_rva,
-                &code_region.used_relocs
-            );
+            for (auto& code_region : code_regions) {
+
+                item.an_code.push_code(
+                    code_region.code_buffer.data(),
+                    code_region.code_buffer.size(),
+                    base_address + code_region.code_rva,
+                    &code_region.used_relocs
+                );
+
+                auto& code = item.an_code.get_code();
+
+                if (code.get_lines().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
+                    uint16_t id = code.get_lines().back().get_id();
+
+                    if (id != X86_INS_JMP && id != X86_INS_RET) {
+                        code.add_line() =
+                            inst.set_rip_relocation_idx(
+                                code.create_rip_relocation(
+                                    context.immediate_offset,
+                                    code.get_lines().back().get_source_virtual_address() + code.get_lines().back().get_op_length()
+                                )
+                            );
+                    }
+                }
+            }
         }
     }
 

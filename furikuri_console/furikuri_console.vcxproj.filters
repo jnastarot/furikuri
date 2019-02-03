@@ -9,10 +9,22 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Заголовочные файлы\lzo">
+      <UniqueIdentifier>{f4a1943a-4a6a-457f-9f0f-d55a70710bc9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="lzoconf.h">
+      <Filter>Заголовочные файлы\lzo</Filter>
+    </ClInclude>
+    <ClInclude Include="lzo1z.h">
+      <Filter>Заголовочные файлы\lzo</Filter>
+    </ClInclude>
+    <ClInclude Include="lzodefs.h">
+      <Filter>Заголовочные файлы\lzo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
