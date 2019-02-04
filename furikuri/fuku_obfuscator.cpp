@@ -4,8 +4,7 @@
 
 
 fuku_obfuscator::fuku_obfuscator()
-    :code(0), destination_virtual_address(0),
-    settings({ 1 , 2 , 10.f, 10.f, 10.f }){}
+    :code(0), destination_virtual_address(0){}
 
 
 fuku_obfuscator::~fuku_obfuscator(){
@@ -19,8 +18,8 @@ void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtu
     this->destination_virtual_address = destination_virtual_address;
 }
 
-void fuku_obfuscator::set_settings(const fuku_ob_settings& settings) {
-    memcpy(&this->settings,&settings,sizeof(fuku_ob_settings));
+void fuku_obfuscator::set_settings(const fuku_settings_obfuscation& settings) {
+    memcpy(&this->settings,&settings,sizeof(fuku_settings_obfuscation));
 }
 
 fuku_assambler_arch fuku_obfuscator::get_arch() const {
@@ -31,7 +30,7 @@ uint64_t     fuku_obfuscator::get_destination_virtual_address() const {
     return this->destination_virtual_address;
 }
 
-fuku_ob_settings fuku_obfuscator::get_settings() const {
+const fuku_settings_obfuscation& fuku_obfuscator::get_settings() const {
     return this->settings;
 }
 
@@ -56,17 +55,17 @@ void fuku_obfuscator::obfuscate_code() {
 
     handle_jmps();
 
-    if (settings.junk_chance > 0.f || settings.mutate_chance > 0.f) {
+    if (settings.get_junk_chance() > 0.f || settings.get_mutate_chance() > 0.f) {
         unused_flags_profiler();
     }
 
-    for (unsigned int passes = 0; passes < settings.number_of_passes; passes++) {
+    for (unsigned int passes = 0; passes < settings.get_number_of_passes(); passes++) {
 
-        if (settings.junk_chance > 0.f || settings.mutate_chance > 0.f) {
+        if (settings.get_junk_chance() > 0.f || settings.get_mutate_chance() > 0.f) {
             mutator->obfuscate(*code);
         }
 
-        if (settings.block_chance > 0.f) {
+        if (settings.get_block_chance() > 0.f) {
             spagetti_code(); //mix lines
         }
     }
@@ -103,7 +102,7 @@ void fuku_obfuscator::spagetti_code() {
 
             while (lines_in_blocks < lines_total) {
 
-                if (FUKU_GET_CHANCE(settings.block_chance)) {
+                if (FUKU_GET_CHANCE(settings.get_block_chance())) {
 
                     block_lens.push_back(current_block_size);
                     current_block_size = 0;

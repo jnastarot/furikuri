@@ -1,6 +1,6 @@
 #pragma once
 
-void fuku_protect_mgr::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_ob_settings& settings) {
+void fuku_protect_mgr::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_settings_obfuscation& settings) {
     ob_profile.items.push_back({ fuku_code_analyzer() , settings, regions });
 }
 
@@ -142,7 +142,7 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
 
         
         fuku_obfuscator obfuscator;
-        obfuscator.set_settings({ 1, 1, 0, 5.f, 0 });
+        obfuscator.set_settings(fuku_settings_obfuscation(1, 1, 0, 5.f, 0 ,0));
 
         obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base() + dest_address_rva);
 

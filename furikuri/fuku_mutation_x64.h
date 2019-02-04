@@ -7,7 +7,7 @@ class fuku_mutation_x64 :
 
     csh cap_handle;
     fuku_assambler f_asm;
-    fuku_ob_settings settings;
+    fuku_settings_obfuscation settings;
 
 
     void fuku_mutation_x64::generate_junk(fuku_code_holder& code_holder,
@@ -20,7 +20,7 @@ class fuku_mutation_x64 :
     void fuku_mutation_x64::obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx);
 
 public:
-    fuku_mutation_x64::fuku_mutation_x64(const fuku_ob_settings& settings);
+    fuku_mutation_x64::fuku_mutation_x64(const fuku_settings_obfuscation& settings);
     fuku_mutation_x64::~fuku_mutation_x64();
 
     void fuku_mutation_x64::obfuscate(fuku_code_holder& code_holder);

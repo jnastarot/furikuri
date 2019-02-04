@@ -1,13 +1,13 @@
 #pragma once
 
 
-void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_vm_settings& settings) {
+void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_settings_virtualization& settings) {
 
-    fuku_vm_environment env(settings.vm_holder_module->get_module_position().get_address_offset() + settings.vm_entry_rva, settings.virtualizer);
+    fuku_virtualization_environment env(settings.get_vm_holder_module()->get_module_position().get_address_offset() + settings.get_vm_entry_rva(), settings.get_virtualizer());
     auto& vm_profile = vm_profiles.find(env);
 
     if (vm_profile != vm_profiles.end()) {
-        vm_profile->second.items.push_back({ fuku_code_analyzer() , settings.ob_settings, regions });
+        vm_profile->second.items.push_back({ fuku_code_analyzer() , settings.get_obfuscation_settings(), regions });
     }
     else {
         vm_profiles[env] = {
@@ -16,7 +16,7 @@ void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& 
             std::vector<fuku_code_association>(),
             std::vector<fuku_image_relocation>(),
 
-            std::vector<fuku_protection_item>(1,{ fuku_code_analyzer() , settings.ob_settings, regions })
+            std::vector<fuku_protection_item>(1,{ fuku_code_analyzer() , settings.get_obfuscation_settings(), regions })
         };
     }
 }
@@ -142,7 +142,7 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
             }
 
     
-            fuku_vm_result result = profile.first.virtualizer->build_bytecode(
+            fuku_vm_result result = profile.first.get_virtualizer()->build_bytecode(
                 anal_code.get_code(), profile.second.relocation_table, profile.second.association_table,
                 target_module.get_image().get_image_base() + image_io.get_image_offset()
             );
@@ -153,7 +153,7 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
                 return false;
             }
 
-            if (image_io.write(profile.first.virtualizer->get_bytecode()) != enma_io_success) {
+            if (image_io.write(profile.first.get_virtualizer()->get_bytecode()) != enma_io_success) {
 
                 FUKU_DEBUG;
                 return false;
@@ -185,8 +185,8 @@ bool    fuku_protect_mgr::postprocess_virtualization() {
                 fuku_code_association * dst_func_assoc = find_profile_association(profile.second, region.region_rva);   //set jumps to start of virtualized funcs
 
                 if (dst_func_assoc) {
-                    auto _jmp = profile.first.virtualizer->create_vm_jumpout((region.region_rva + base_address), dst_func_assoc->virtual_address, 
-                        profile.first.virtual_machine_entry + base_address, profile.second.relocation_table);
+                    auto _jmp = profile.first.get_virtualizer()->create_vm_jumpout((region.region_rva + base_address), dst_func_assoc->virtual_address, 
+                        profile.first.get_virtual_machine_entry() + base_address, profile.second.relocation_table);
 
                     if (image_io.set_image_offset(region.region_rva).write(_jmp) != enma_io_success) {
 

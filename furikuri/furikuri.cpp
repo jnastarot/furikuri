@@ -1,26 +1,6 @@
 #include "stdafx.h"
 #include "furikuri.h"
 
-bool fuku_ob_settings::operator==(const fuku_ob_settings& set) {
-    return (
-        this->complexity == set.complexity &&
-        this->number_of_passes == set.number_of_passes &&
-        this->junk_chance == set.junk_chance &&
-        this->block_chance == set.block_chance &&
-        this->mutate_chance == set.mutate_chance
-        );
-}
-
-bool fuku_ob_settings::is_null() const {
-    return (
-        this->complexity ||
-        this->number_of_passes ||
-        this->junk_chance ||
-        this->block_chance ||
-        this->mutate_chance
-        );
-}
-
 fuku_code_list& fuku_code_list::operator=(const fuku_code_list& set) {
 
     this->functions = set.functions;
@@ -104,7 +84,7 @@ bool furikuri::add_extended_module(shibari_module* module, std::string module_pa
 }
 
 
-bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, const fuku_ob_settings& settings) {
+bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, const fuku_settings_obfuscation& settings) {
 
     bool valid_module = false;
 
@@ -148,7 +128,7 @@ bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* ta
     }
 }
 
-bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, const fuku_vm_settings& settings) {
+bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, const fuku_settings_virtualization& settings) {
 
     bool valid_module = false;
 
@@ -169,10 +149,10 @@ bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* ta
             if (list.target_module == target_module) {
 
                 if (list.type == fuku_code_type::fuku_code_virtualization) {
-                    if (list.settings == settings.ob_settings &&
-                        list.vm_holder_module == settings.vm_holder_module &&
-                        list.vm_entry_rva == settings.vm_entry_rva &&
-                        list.virtualizer == settings.virtualizer) {
+                    if (list.settings == settings.get_obfuscation_settings() &&
+                        list.vm_holder_module == settings.get_vm_holder_module() &&
+                        list.vm_entry_rva == settings.get_vm_entry_rva() &&
+                        list.virtualizer == settings.get_virtualizer() ) {
 
                         list.functions.push_back(region);
                         return true;
@@ -184,12 +164,12 @@ bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* ta
         code_lists.push_back({
             fuku_code_type::fuku_code_virtualization,
             std::vector<fuku_protected_region>(1, region),
-            settings.ob_settings,
+            settings.get_obfuscation_settings(),
             target_module,
 
-            settings.vm_holder_module,
-            settings.vm_entry_rva,
-            settings.virtualizer
+            settings.get_vm_holder_module(),
+            settings.get_vm_entry_rva(),
+            settings.get_virtualizer()
             });
 
         return true;

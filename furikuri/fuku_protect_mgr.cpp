@@ -6,28 +6,7 @@
 #include "fuku_protect_virtualizer_mgr.h"
 
 
-fuku_vm_environment::fuku_vm_environment()
-:virtualizer(0), virtual_machine_entry(0){}
 
-fuku_vm_environment::fuku_vm_environment(uint32_t virtual_machine_entry, fuku_virtualizer *  virtualizer)
-:virtual_machine_entry(virtual_machine_entry), virtualizer(virtualizer){}
-
-fuku_vm_environment::fuku_vm_environment(const fuku_vm_environment& env) {
-    operator=(env);
-}
-fuku_vm_environment& fuku_vm_environment::operator=(const fuku_vm_environment& env) {
-    this->virtualizer = env.virtualizer;
-    this->virtual_machine_entry = env.virtual_machine_entry;
-
-    return *this;
-}
-bool fuku_vm_environment::operator==(const fuku_vm_environment& env) const {
-    return this->virtualizer == env.virtualizer && this->virtual_machine_entry == env.virtual_machine_entry;
-}
-
-bool fuku_vm_environment::operator<(const fuku_vm_environment& rhs) const {
-    return this->virtualizer < rhs.virtualizer && this->virtual_machine_entry < rhs.virtual_machine_entry;
-}
 
 fuku_protect_mgr::fuku_protect_mgr(const shibari_module& _module)
     :target_module(_module) {
