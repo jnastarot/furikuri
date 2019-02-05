@@ -72,6 +72,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x64">
       <UniqueIdentifier>{b7e713aa-eafd-43e6-9156-5ba1c1c70954}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code_profiler">
+      <UniqueIdentifier>{4da2b25c-e572-4be3-b815-22d4cbd10c3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -131,6 +134,9 @@
     <ClInclude Include="fuku_settings_virtualization.h">
       <Filter>Заголовочные файлы\furikuri\fuku_settings\virtualization</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_code_profiler.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_code_profiler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -177,6 +183,9 @@
     </ClCompile>
     <ClCompile Include="fuku_settings_virtualization.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_settings\virtualization</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_code_profiler.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_code_profiler</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

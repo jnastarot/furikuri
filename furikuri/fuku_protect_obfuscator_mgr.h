@@ -1,6 +1,6 @@
 #pragma once
 
-void fuku_protect_mgr::add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_settings_obfuscation& settings) {
+void fuku_protect_mgr::add_ob_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_obfuscation& settings) {
     ob_profile.items.push_back({ fuku_code_analyzer() , settings, regions });
 }
 
@@ -80,12 +80,20 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
 
             for (auto& code_region : code_regions) {
 
-                item.an_code.push_code(
-                    code_region.code_buffer.data(),
-                    code_region.code_buffer.size(),
-                    base_address + code_region.code_rva,
-                    &code_region.used_relocs
-                );
+                {
+                    fuku_code_holder code_holder;
+
+                    item.an_code.analyze_code(code_holder,
+                        code_region.code_buffer.data(),
+                        code_region.code_buffer.size(),
+                        base_address + code_region.code_rva,
+                        &code_region.used_relocs
+                    );
+
+                    fuku_code_profiler().profile_code(code_holder);
+
+                    item.an_code.push_code(code_holder);
+                }
 
                 auto& code = item.an_code.get_code();
 

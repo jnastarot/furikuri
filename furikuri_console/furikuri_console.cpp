@@ -106,9 +106,11 @@ int main() {
            //0x1000 , 0x6F0
 
 
+        fuku_settings_obfuscation ob_set( 4, 3, 40.f, 40.f, 40.f, 
+            FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
 
-        fuku_ob_settings ob_set = { 4,3,40.f,40.f,40.f };
-        fuku_ob_settings ob1_set = { 4,3,40.f,40.f,40.f };
+        fuku_settings_obfuscation ob1_set(4, 3, 40.f, 40.f, 40.f, 
+            FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
         fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
      //   fuku.add_ob_code_list({ 0x103A , 0x6B6 }, &_module, ob1_set);

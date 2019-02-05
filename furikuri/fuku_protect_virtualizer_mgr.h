@@ -1,7 +1,7 @@
 #pragma once
 
 
-void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_settings_virtualization& settings) {
+void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_virtualization& settings) {
 
     fuku_virtualization_environment env(settings.get_vm_holder_module()->get_module_position().get_address_offset() + settings.get_vm_entry_rva(), settings.get_virtualizer());
     auto& vm_profile = vm_profiles.find(env);
@@ -33,7 +33,7 @@ bool    fuku_protect_mgr::initialize_virtualization_profiles() {
 
         for (auto& item : profile.second.items) {
             item.an_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
-            
+
             std::sort(item.regions.begin(), item.regions.end(), [](fuku_protected_region& lhs, fuku_protected_region& rhs) {
                 return lhs.region_rva < rhs.region_rva;
             });
@@ -89,15 +89,47 @@ bool    fuku_protect_mgr::initialize_virtualization_profiles() {
                 image_io.set_image_offset(region.region_rva).memory_set(region.region_size, 0);
             }
 
+            {
+                fuku_assambler_ctx context;
+                fuku_instruction inst;
 
-            for (auto& code_region : code_regions) {
+                context.arch = is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64;
+                context.inst = &inst;
+                _jmp(context, imm(0));
 
-                item.an_code.push_code(
-                    code_region.code_buffer.data(),
-                    code_region.code_buffer.size(),
-                    base_address + code_region.code_rva,
-                    &code_region.used_relocs
-                );
+                for (auto& code_region : code_regions) {
+
+                    {
+                        fuku_code_holder code_holder;
+
+                        item.an_code.analyze_code(code_holder,
+                            code_region.code_buffer.data(),
+                            code_region.code_buffer.size(),
+                            base_address + code_region.code_rva,
+                            &code_region.used_relocs
+                        );
+
+                        fuku_code_profiler().profile_code(code_holder);
+
+                        item.an_code.push_code(code_holder);
+                    }
+
+                    auto& code = item.an_code.get_code();
+
+                    if (code.get_lines().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
+                        uint16_t id = code.get_lines().back().get_id();
+
+                        if (id != X86_INS_JMP && id != X86_INS_RET) {
+                            code.add_line() =
+                                inst.set_rip_relocation_idx(
+                                    code.create_rip_relocation(
+                                        context.immediate_offset,
+                                        code.get_lines().back().get_source_virtual_address() + code.get_lines().back().get_op_length()
+                                    )
+                                );
+                        }
+                    }
+                }
             }
         }
     }
@@ -142,7 +174,7 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
             }
 
     
-            fuku_vm_result result = profile.first.get_virtualizer()->build_bytecode(
+            fuku_vm_result result = ((fuku_virtualization_environment&)profile.first).get_virtualizer()->build_bytecode(
                 anal_code.get_code(), profile.second.relocation_table, profile.second.association_table,
                 target_module.get_image().get_image_base() + image_io.get_image_offset()
             );

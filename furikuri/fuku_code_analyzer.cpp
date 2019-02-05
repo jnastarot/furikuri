@@ -160,20 +160,14 @@ bool fuku_code_analyzer::analyze_code(
     return false;
 }
 
-bool fuku_code_analyzer::push_code(
+bool fuku_code_analyzer::analyze_code(fuku_code_holder& code_holder,
     const uint8_t * src, size_t src_len,
     uint64_t virtual_address,
     const std::vector<fuku_image_relocation>*	relocations) {
 
-
-    fuku_code_holder code_holder;
     code_holder.set_arch(code.get_arch());
 
-    if (analyze_code(src, src_len, virtual_address, relocations, code_holder)) {
-        return code.merge_code(code_holder);
-    }
-
-    return false;
+    return analyze_code(src, src_len, virtual_address, relocations, code_holder);
 }
 
 bool fuku_code_analyzer::push_code(const fuku_code_holder& code_holder) {

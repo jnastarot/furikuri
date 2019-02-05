@@ -10,10 +10,6 @@ enum fuku_protect_mgr_result {
     fuku_protect_err_module_processing,
 };
 
-enum fuku_code_type {
-    fuku_code_obfuscation,
-    fuku_code_virtualization,
-};
 
 struct fuku_protected_region {
     uint32_t region_rva;
@@ -65,8 +61,8 @@ public:
     fuku_protect_mgr_result protect_module();
 
 public:
-    void add_vm_profile(const std::vector<fuku_protected_region>& regions, const fuku_settings_virtualization& settings);
-    void add_ob_profile(const std::vector<fuku_protected_region>& regions, const fuku_settings_obfuscation& settings);
+    void add_vm_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_virtualization& settings);
+    void add_ob_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_obfuscation& settings);
 
     void clear_profiles();
 public:

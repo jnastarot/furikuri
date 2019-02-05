@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="fuku_code_analyzer.h" />
+    <ClInclude Include="fuku_code_profiler.h" />
     <ClInclude Include="fuku_mutation_imp.h" />
     <ClInclude Include="fuku_mutation_x64_junk.h" />
     <ClInclude Include="fuku_mutation_x64_rules.h" />
@@ -173,6 +174,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fuku_code_analyzer.cpp" />
+    <ClCompile Include="fuku_code_profiler.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />
     <ClCompile Include="fuku_mutation_x64_junk.cpp" />
     <ClCompile Include="fuku_mutation_x64_rules.cpp" />
