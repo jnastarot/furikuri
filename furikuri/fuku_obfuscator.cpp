@@ -145,7 +145,7 @@ void fuku_obfuscator::spagetti_code() {
                 auto& first_item_of_current_block = line_blocks[block_idx].begin();
 
                 prev_block_jmp.set_rip_relocation_idx(code->create_rip_relocation(1, &(*first_item_of_current_block)));
-                prev_block_jmp.set_custom_flags(first_item_of_current_block->get_custom_flags());
+                prev_block_jmp.set_eflags(first_item_of_current_block->get_eflags());
             }
 
         }

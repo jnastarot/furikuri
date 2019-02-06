@@ -10,6 +10,10 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
     bool     is32arch = target_module.get_image().is_x32_image();
     uint64_t base_address = target_module.get_image().get_image_base();
 
+    fuku_code_profiler code_profiler(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
+
+    target_module.get_image_relocations().sort();
+
     for (auto& item : ob_profile.items) {
         item.an_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
@@ -24,8 +28,6 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
         };
 
         std::vector<code_region_buffer> code_regions;
-
-        target_module.get_image_relocations().sort();
 
         size_t last_reloc_idx = 0;
 
@@ -90,7 +92,7 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
                         &code_region.used_relocs
                     );
 
-                    fuku_code_profiler().profile_code(code_holder);
+                    code_profiler.profile_code(code_holder);
 
                     item.an_code.push_code(code_holder);
                 }

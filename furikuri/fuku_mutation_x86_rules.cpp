@@ -21,18 +21,18 @@ bool fukutate_jcc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         //jmp jcc_dst
 
         fuku_condition cond = capstone_to_fuku_cond((x86_insn)instruction->id);
-        uint64_t custom_flags = lines_iter->get_custom_flags();
+        uint64_t custom_flags = lines_iter->get_eflags();
         size_t rel_idx = lines_iter->get_rip_relocation_idx();
 
         f_asm.jcc(fuku_condition(cond ^ 1), imm(-1));
         f_asm.get_context().inst->
-            set_custom_flags(custom_flags)
+            set_eflags(custom_flags)
             .set_rip_relocation_idx(code_holder.create_rip_relocation(f_asm.get_context().immediate_offset, &(*next_line)))
             .set_instruction_flags(FUKU_INST_NO_MUTATE | instruction_flags);
 
         f_asm.jmp(imm(-1));
         f_asm.get_context().inst->
-            set_custom_flags(custom_flags)
+            set_eflags(custom_flags)
             .set_rip_relocation_idx(rel_idx)
             .set_instruction_flags(FUKU_INST_NO_MUTATE | instruction_flags);
 
@@ -76,13 +76,13 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             //ret   
 
             if (IsAllowedStackOperations) {
-                uint64_t custom_flags = lines_iter->get_custom_flags();
+                uint64_t custom_flags = lines_iter->get_eflags();
                 size_t rip_label_orig = lines_iter->get_rip_relocation_idx();
                 size_t rip_label_idx = code_holder.get_rip_relocations()[rip_label_orig].label_idx;
 
                 f_asm.push(imm(0xFFFFFFFF));
                 f_asm.get_context().inst->
-                    set_custom_flags(custom_flags)
+                    set_eflags(custom_flags)
                     .set_relocation_first_idx(
                         code_holder.create_relocation_lb(
                             f_asm.get_context().immediate_offset, rip_label_idx, 0
@@ -91,7 +91,7 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
                 f_asm.ret(imm(0));
                 f_asm.get_context().inst->
-                    set_custom_flags(custom_flags);
+                    set_eflags(custom_flags);
 
                 code_holder.delete_rip_relocation(rip_label_orig);
             }
@@ -105,19 +105,19 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             return false;
             //flags can be checnged between jccs
             uint8_t cond = FUKU_GET_RAND(0, 15);
-            uint64_t custom_flags = lines_iter->get_custom_flags();
+            uint64_t custom_flags = lines_iter->get_eflags();
             size_t rip_label_orig = lines_iter->get_rip_relocation_idx();
             size_t rip_label_idx = code_holder.get_rip_relocations()[rip_label_orig].label_idx;
 
             f_asm.jcc(fuku_condition(cond), imm(-1));
             f_asm.get_context().inst->
-                set_custom_flags(custom_flags)
+                set_eflags(custom_flags)
                 .set_rip_relocation_idx(code_holder.create_rip_relocation_lb(f_asm.get_context().immediate_offset, rip_label_idx))
                 .set_instruction_flags(instruction_flags | FUKU_INST_NO_MUTATE);
 
             f_asm.jcc(fuku_condition(cond ^ 1), imm(-1));
             f_asm.get_context().inst->
-                set_custom_flags(custom_flags)
+                set_eflags(custom_flags)
                 .set_rip_relocation_idx(code_holder.create_rip_relocation_lb(f_asm.get_context().immediate_offset, rip_label_idx))
                 .set_instruction_flags(instruction_flags | FUKU_INST_NO_MUTATE);
 
@@ -178,12 +178,12 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
         auto next_line = lines_iter; next_line++;
         if (next_line != code_holder.get_lines().end()) { //if not last instruction
 
-            uint64_t custom_flags = lines_iter->get_custom_flags();
+            uint64_t custom_flags = lines_iter->get_eflags();
             size_t rip_label_orig = lines_iter->get_rip_relocation_idx();
 
             f_asm.push(imm(0xFFFFFFFF));
             f_asm.get_context().inst->
-                set_custom_flags(custom_flags)
+                set_eflags(custom_flags)
                 .set_relocation_first_idx(
                     code_holder.create_relocation(
                         f_asm.get_context().immediate_offset, &(*next_line), 0
@@ -192,7 +192,7 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
             f_asm.jmp(imm(0xFFFFFFFF));
             f_asm.get_context().inst->
-                set_custom_flags(custom_flags)
+                set_eflags(custom_flags)
                 .set_rip_relocation_idx(rip_label_orig);
 
             code_holder.get_rip_relocations()[rip_label_orig].offset = f_asm.get_context().immediate_offset;
@@ -227,15 +227,15 @@ bool fukutate_ret(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             ret_stack = (uint16_t)detail.operands[0].imm;
         }
 
-        uint64_t custom_flags = lines_iter->get_custom_flags();
+        uint64_t custom_flags = lines_iter->get_eflags();
 
         f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4 + ret_stack)));
         f_asm.get_context().inst->
-            set_custom_flags(custom_flags);
+            set_eflags(custom_flags);
 
         f_asm.jmp(dword_ptr(FUKU_REG_ESP, imm(-4 - ret_stack)));
         f_asm.get_context().inst->
-            set_custom_flags(custom_flags)
+            set_eflags(custom_flags)
             .set_instruction_flags(FUKU_INST_BAD_STACK);
 
         return true;
@@ -273,20 +273,20 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
                 uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
 
-                if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+                if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
                     f_asm.sub(reg_(FUKU_REG_ESP), imm(4));
                     f_asm.get_context().inst->
-                        set_custom_flags(lines_iter->get_custom_flags());
+                        set_eflags(lines_iter->get_eflags());
                 }
                 else {
                     f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
                     f_asm.get_context().inst->
-                        set_custom_flags(lines_iter->get_custom_flags());
+                        set_eflags(lines_iter->get_eflags());
                 }
 
                 f_asm.mov(dword_ptr(FUKU_REG_ESP), reg_(reg));
                 f_asm.get_context().inst->
-                    set_custom_flags(lines_iter->get_custom_flags())
+                    set_eflags(lines_iter->get_eflags())
                     .set_instruction_flags(FUKU_INST_BAD_STACK);
             }
             else {
@@ -312,7 +312,7 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
         //mov [esp],value
 
         if (IsAllowedStackOperations) {
-            uint64_t custom_flags = lines_iter->get_custom_flags();
+            uint64_t custom_flags = lines_iter->get_eflags();
             size_t reloc_idx = lines_iter->get_relocation_first_idx();
             uint32_t val = reloc_idx != -1 ? -1 : (uint32_t)detail.operands[0].imm;
 
@@ -321,17 +321,17 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
             if (HAS_FULL_MASK(custom_flags, needed)) {
                 f_asm.sub(reg_(FUKU_REG_ESP), imm(4));
                 f_asm.get_context().inst->
-                    set_custom_flags(custom_flags);
+                    set_eflags(custom_flags);
             }
             else {
                 f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
                 f_asm.get_context().inst->
-                    set_custom_flags(custom_flags);
+                    set_eflags(custom_flags);
             }
 
             f_asm.mov(dword_ptr(FUKU_REG_ESP), imm(val));
             f_asm.get_context().inst->
-                set_custom_flags(custom_flags)
+                set_eflags(custom_flags)
                 .set_instruction_flags(FUKU_INST_BAD_STACK);
 
 
@@ -378,7 +378,7 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
             if (IsAllowedStackOperations) {
                 fuku_register_enum reg = capstone_to_fuku_reg(detail.operands[0].reg);
-                uint64_t custom_flags = lines_iter->get_custom_flags();
+                uint64_t custom_flags = lines_iter->get_eflags();
                 uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
 
                 if (FUKU_GET_RAND(0, 10) < 5) {
@@ -387,18 +387,18 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             
                     f_asm.mov(reg_(reg), dword_ptr(FUKU_REG_ESP));
                     f_asm.get_context().inst->
-                        set_custom_flags(custom_flags);
+                        set_eflags(custom_flags);
 
-                    if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+                    if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
                         f_asm.add(reg_(FUKU_REG_ESP), imm(4));
                         f_asm.get_context().inst->
-                            set_custom_flags(custom_flags)
+                            set_eflags(custom_flags)
                             .set_instruction_flags(FUKU_INST_BAD_STACK);
                     }
                     else {
                         f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
                         f_asm.get_context().inst->
-                            set_custom_flags(custom_flags)
+                            set_eflags(custom_flags)
                             .set_instruction_flags(FUKU_INST_BAD_STACK);
                     }
                 }
@@ -406,20 +406,20 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
                     //add esp,4
                     //mov reg,[esp - 4]
 
-                    if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+                    if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
                         f_asm.add(reg_(FUKU_REG_ESP), imm(4));
                         f_asm.get_context().inst->
-                            set_custom_flags(custom_flags);
+                            set_eflags(custom_flags);
                     }
                     else {
                         f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
                         f_asm.get_context().inst->
-                            set_custom_flags(custom_flags);
+                            set_eflags(custom_flags);
                     }
 
                     f_asm.mov(reg_(reg), dword_ptr(FUKU_REG_ESP, imm(-4)));
                     f_asm.get_context().inst->
-                        set_custom_flags(custom_flags)
+                        set_eflags(custom_flags)
                         .set_instruction_flags(FUKU_INST_BAD_STACK);
                 }
             }

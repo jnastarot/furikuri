@@ -14,9 +14,9 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
     if (!HAS_FULL_MASK(instruction_flags, FUKU_INST_BAD_STACK)) {
 
         f_asm.push(reg_(FUKU_REG_EAX));
-        f_asm.get_context().inst->set_custom_flags(lines_iter->get_custom_flags());
+        f_asm.get_context().inst->set_eflags(lines_iter->get_eflags());
         f_asm.pop(reg_(FUKU_REG_EAX));
-        f_asm.get_context().inst->set_custom_flags(lines_iter->get_custom_flags());
+        f_asm.get_context().inst->set_eflags(lines_iter->get_eflags());
     }
     /*
     switch (FUKU_GET_RAND(0, 4)) {
@@ -26,7 +26,7 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
 
-        code_holder.get_lines().insert(lines_iter, f_asm.mov(reg1, reg1).set_custom_flags(lines_iter->get_custom_flags()));
+        code_holder.get_lines().insert(lines_iter, f_asm.mov(reg1, reg1).set_eflags(lines_iter->get_eflags()));
         break;
     }
     case 1: {
@@ -41,17 +41,17 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         fuku_instruction line[2];
 
         if (FUKU_GET_RAND(0, 1)) {
-            line[0] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.xchg(reg1, reg2).set_eflags(lines_iter->get_eflags());
         }
         else {
-            line[0] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.xchg(reg2, reg1).set_eflags(lines_iter->get_eflags());
         }
 
         if (FUKU_GET_RAND(0, 1)) {
-            line[1] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
+            line[1] = f_asm.xchg(reg1, reg2).set_eflags(lines_iter->get_eflags());
         }
         else {
-            line[1] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[1] = f_asm.xchg(reg2, reg1).set_eflags(lines_iter->get_eflags());
         }
 
         if (reg2 == fuku_reg86::r_ESP) {
@@ -73,15 +73,15 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
             fuku_instruction line[2];
 
-            line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-            line[1] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.push(reg1).set_eflags(lines_iter->get_eflags());
+            line[1] = f_asm.pop(reg1).set_eflags(lines_iter->get_eflags());
 
             code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
         }
         else {
             //lea reg1, [reg1]
 
-            code_holder.get_lines().insert(lines_iter, f_asm.lea(reg1, fuku_operand86(reg1, operand_scale::operand_scale_1, 0)).set_custom_flags(lines_iter->get_custom_flags()));
+            code_holder.get_lines().insert(lines_iter, f_asm.lea(reg1, fuku_operand86(reg1, operand_scale::operand_scale_1, 0)).set_eflags(lines_iter->get_eflags()));
         }
 
         break;
@@ -92,11 +92,11 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_AF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
             fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
             fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
 
-            code_holder.get_lines().insert(lines_iter, f_asm.cmp(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags()));
+            code_holder.get_lines().insert(lines_iter, f_asm.cmp(reg1, reg2).set_eflags(lines_iter->get_eflags()));
         }
         else {
             goto jk_2s;
@@ -109,11 +109,11 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_AF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
             fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
             fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
 
-            code_holder.get_lines().insert(lines_iter, f_asm.test(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags()));
+            code_holder.get_lines().insert(lines_iter, f_asm.test(reg1, reg2).set_eflags(lines_iter->get_eflags()));
         }
         else {
             goto jk_3s;
@@ -134,7 +134,7 @@ void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         //ror reg1, 0
 
         fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-        code_holder.get_lines().insert(lines_iter, f_asm.ror(reg1, 0).set_custom_flags(lines_iter->get_custom_flags()));
+        code_holder.get_lines().insert(lines_iter, f_asm.ror(reg1, 0).set_eflags(lines_iter->get_eflags()));
 
         break;
     }
@@ -142,7 +142,7 @@ void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         //rol reg1, 0
 
         fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-        code_holder.get_lines().insert(lines_iter, f_asm.rol(reg1, 0).set_custom_flags(lines_iter->get_custom_flags()));
+        code_holder.get_lines().insert(lines_iter, f_asm.rol(reg1, 0).set_eflags(lines_iter->get_eflags()));
 
         break;
     }
@@ -151,8 +151,8 @@ void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            code_holder.get_lines().insert(lines_iter, f_asm.sub(fuku_reg86::r_EAX, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
+            code_holder.get_lines().insert(lines_iter, f_asm.sub(fuku_reg86::r_EAX, fuku_immediate86(0)).set_eflags(lines_iter->get_eflags()));
         }
         else {
             generate_junk(f_asm, code_holder, lines_iter, 2, 3);
@@ -164,8 +164,8 @@ void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
-            code_holder.get_lines().insert(lines_iter, f_asm.add(fuku_reg86::r_EAX, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
+            code_holder.get_lines().insert(lines_iter, f_asm.add(fuku_reg86::r_EAX, fuku_immediate86(0)).set_eflags(lines_iter->get_eflags()));
         }
         else {
             generate_junk(f_asm, code_holder, lines_iter, 2, 3);
@@ -186,8 +186,8 @@ void fuku_junk_4b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         fuku_instruction line[2];
 
-        line[0] = f_asm.not(reg1).set_custom_flags(lines_iter->get_custom_flags());
-        line[1] = f_asm.not(reg1).set_custom_flags(lines_iter->get_custom_flags());
+        line[0] = f_asm.not(reg1).set_eflags(lines_iter->get_eflags());
+        line[1] = f_asm.not(reg1).set_eflags(lines_iter->get_eflags());
 
 
         if (reg1 == fuku_reg86::r_ESP) {
@@ -208,17 +208,17 @@ void fuku_junk_4b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         fuku_instruction line[2];
 
         if (FUKU_GET_RAND(0, 1)) {
-            line[0] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.xchg(reg1, reg2).set_eflags(lines_iter->get_eflags());
         }
         else {
-            line[0] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.xchg(reg2, reg1).set_eflags(lines_iter->get_eflags());
         }
 
         if (FUKU_GET_RAND(0, 1)) {
-            line[1] = f_asm.xchg(reg1, reg2).set_custom_flags(lines_iter->get_custom_flags());
+            line[1] = f_asm.xchg(reg1, reg2).set_eflags(lines_iter->get_eflags());
         }
         else {
-            line[1] = f_asm.xchg(reg2, reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[1] = f_asm.xchg(reg2, reg1).set_eflags(lines_iter->get_eflags());
         }
 
         if (reg1 == fuku_reg86::r_ESP || reg2 == fuku_reg86::r_ESP) {
@@ -244,7 +244,7 @@ void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed) &&
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed) &&
             !HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
 
             fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
@@ -252,9 +252,9 @@ void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
             fuku_instruction line[3];
 
-            line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-            line[1] = f_asm.ror(reg1, FUKU_GET_RAND(1, 31)).set_custom_flags(lines_iter->get_custom_flags());
-            line[2] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.push(reg1).set_eflags(lines_iter->get_eflags());
+            line[1] = f_asm.ror(reg1, FUKU_GET_RAND(1, 31)).set_eflags(lines_iter->get_eflags());
+            line[2] = f_asm.pop(reg1).set_eflags(lines_iter->get_eflags());
 
             code_holder.get_lines().insert(lines_iter, &line[0], &line[3]);
         }
@@ -270,7 +270,7 @@ void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed) &&
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed) &&
             !HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
 
             fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
@@ -279,9 +279,9 @@ void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
             fuku_instruction line[3];
 
-            line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-            line[1] = f_asm.rol(reg1, FUKU_GET_RAND(1, 31)).set_custom_flags(lines_iter->get_custom_flags());
-            line[2] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
+            line[0] = f_asm.push(reg1).set_eflags(lines_iter->get_eflags());
+            line[1] = f_asm.rol(reg1, FUKU_GET_RAND(1, 31)).set_eflags(lines_iter->get_eflags());
+            line[2] = f_asm.pop(reg1).set_eflags(lines_iter->get_eflags());
 
             code_holder.get_lines().insert(lines_iter, &line[0], &line[3]);
         }
@@ -302,10 +302,10 @@ void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
             fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_ECX, fuku_reg86::r_EDI));
 
-            code_holder.get_lines().insert(lines_iter, f_asm.sub(reg1, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
+            code_holder.get_lines().insert(lines_iter, f_asm.sub(reg1, fuku_immediate86(0)).set_eflags(lines_iter->get_eflags()));
         }
         else {
             generate_junk(f_asm, code_holder, lines_iter, 5, 6);
@@ -317,10 +317,10 @@ void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
         uint32_t needed = (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF);
 
-        if (HAS_FULL_MASK(lines_iter->get_custom_flags(), needed)) {
+        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
             fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_ECX, fuku_reg86::r_EDI));
 
-            code_holder.get_lines().insert(lines_iter, f_asm.add(reg1, fuku_immediate86(0)).set_custom_flags(lines_iter->get_custom_flags()));
+            code_holder.get_lines().insert(lines_iter, f_asm.add(reg1, fuku_immediate86(0)).set_eflags(lines_iter->get_eflags()));
         }
         else {
             generate_junk(f_asm, code_holder, lines_iter, 5, 6);
@@ -336,7 +336,7 @@ void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
             code_holder.get_lines().insert(lines_iter,
                 f_asm.jcc((fuku_condition)FUKU_GET_RAND(0, 15), 0)
-                .set_custom_flags(lines_iter->get_custom_flags())
+                .set_eflags(lines_iter->get_eflags())
             );
 
             auto jcc_iter = lines_iter; jcc_iter--;
@@ -371,9 +371,9 @@ void fuku_junk_7b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         fuku_immediate86 imm = fuku_immediate86(FUKU_GET_RAND(0x10000000, 0xFFFFFFFF));
 
         fuku_instruction line[3];
-        line[0] = f_asm.push(reg1).set_custom_flags(lines_iter->get_custom_flags());
-        line[1] = f_asm.mov(reg1, imm).set_custom_flags(lines_iter->get_custom_flags());
-        line[2] = f_asm.pop(reg1).set_custom_flags(lines_iter->get_custom_flags());
+        line[0] = f_asm.push(reg1).set_eflags(lines_iter->get_eflags());
+        line[1] = f_asm.mov(reg1, imm).set_eflags(lines_iter->get_eflags());
+        line[2] = f_asm.pop(reg1).set_eflags(lines_iter->get_eflags());
 
         if (FUKU_GET_RAND(0, 1)) {
             line[1].set_relocation_first_idx(code_holder.create_relocation(1, imm.get_imm(), 0));
