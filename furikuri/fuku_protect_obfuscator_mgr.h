@@ -92,25 +92,23 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
                         &code_region.used_relocs
                     );
 
+                    if (code_holder.get_lines().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
+                        uint16_t id = code_holder.get_lines().back().get_id();
+
+                        if (id != X86_INS_JMP && id != X86_INS_RET) {
+                            code_holder.add_line() =
+                                inst.set_rip_relocation_idx(
+                                    code_holder.create_rip_relocation(
+                                        context.immediate_offset,
+                                        code_holder.get_lines().back().get_source_virtual_address() + code_holder.get_lines().back().get_op_length()
+                                    )
+                                );
+                        }
+                    }
+
                     code_profiler.profile_code(code_holder);
 
                     item.an_code.push_code(code_holder);
-                }
-
-                auto& code = item.an_code.get_code();
-
-                if (code.get_lines().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
-                    uint16_t id = code.get_lines().back().get_id();
-
-                    if (id != X86_INS_JMP && id != X86_INS_RET) {
-                        code.add_line() =
-                            inst.set_rip_relocation_idx(
-                                code.create_rip_relocation(
-                                    context.immediate_offset,
-                                    code.get_lines().back().get_source_virtual_address() + code.get_lines().back().get_op_length()
-                                )
-                            );
-                    }
                 }
             }
         }

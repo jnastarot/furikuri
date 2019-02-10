@@ -10,10 +10,6 @@ class fuku_mutation_x64 :
     fuku_settings_obfuscation settings;
 
 
-    void fuku_mutation_x64::generate_junk(fuku_code_holder& code_holder,
-        linestorage::iterator lines_iter, uint32_t max_size, size_t junk_size);
-
-
     void fuku_mutation_x64::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
 
     void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
@@ -25,5 +21,6 @@ public:
 
     void fuku_mutation_x64::obfuscate(fuku_code_holder& code_holder);
 
-    void fuku_mutation_x64::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes);
+    void fuku_mutation_x64::get_junk(fuku_code_holder& code_holder, size_t junk_size, bool unstable_stack,
+        uint64_t eflags_changes, uint64_t regs_changes);
 };

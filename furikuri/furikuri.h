@@ -6,10 +6,10 @@
 using namespace fukutasm;
 
 class fuku_code_analyzer;
-class fuku_obfuscator;
-class fuku_instruction;
-class fuku_virtualizer;
+class fuku_code_profiler;
 class fuku_mutation;
+class fuku_virtualizer;
+class fuku_obfuscator;
 
 
 #include "fuku_settings_obfuscation.h"

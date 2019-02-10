@@ -39,59 +39,6 @@ void fuku_mutation_x86::obfuscate(fuku_code_holder& code_holder) {
     obfuscate_lines(code_holder, code_holder.get_lines().begin(), code_holder.get_lines().end(), -1);
 }
 
-void fuku_mutation_x86::get_junk(std::vector<uint8_t>& junk, size_t junk_size, bool unstable_stack, uint16_t allow_flags_changes) {
-
-    /*
-    size_t current_size = 0;
-    linestorage lines;
-
-    while (junk_size != current_size) {
-
-        switch (FUKU_GET_RAND(1, min(junk_size - current_size,7))) {
-        case 1: {
-            fuku_junk_1b(lines, 0, unstable_stack, allow_flags_changes); current_size += 1;
-            break;
-        }
-        case 2: {
-            fuku_junk_2b(lines, 0, unstable_stack, allow_flags_changes); current_size += 2;
-            break;
-        }
-        case 3: {
-            fuku_junk_3b(lines, 0, unstable_stack, allow_flags_changes); current_size += 3;
-            break;
-        }
-        case 4: {
-            fuku_junk_4b(lines, 0, unstable_stack, allow_flags_changes); current_size += 4;
-            break;
-        }
-        case 5: {
-            fuku_junk_5b(lines, 0, unstable_stack, allow_flags_changes); current_size += 5;
-            break;
-        }
-        case 6: {
-            fuku_junk_6b(lines, 0, unstable_stack, allow_flags_changes); current_size += 6;
-            break;
-        }
-        case 7: {
-            fuku_junk_7b(lines, 0, unstable_stack, allow_flags_changes); current_size += 7;
-            break;
-        }
-        }
-    }
-
-    junk.resize(current_size);
-    for (size_t line_idx = 0, caret_pos = 0; line_idx < lines.size(); line_idx++) {
-        auto& line = lines[line_idx];
-        memcpy(&junk[caret_pos], line.get_op_code(), line.get_op_length());
-        caret_pos += line.get_op_length();
-    }
-    */
-
-}
-
-
-
-
 void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
 
     cs_insn *instruction;
@@ -112,9 +59,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 
     if (!instruction) { FUKU_DEBUG; }
 
-    f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
-        .set_position(lines_iter)
-        .set_first_emit(true);
+    
 
 
     
@@ -380,82 +325,84 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
     }
 }
 
+void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+   
+    bool unstable_stack = HAS_FULL_MASK(lines_iter->get_instruction_flags(), FUKU_INST_BAD_STACK);
+    uint64_t eflags_changes = lines_iter->get_eflags();
+    uint64_t regs_changes = lines_iter->get_custom_flags();
 
-void fuku_mutation_x86::generate_junk(fuku_code_holder& code_holder,
-    linestorage::iterator lines_iter, uint32_t max_size, size_t junk_size) {
+    f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
+        .set_position(lines_iter)
+        .set_first_emit(true);
 
-    return;
+    fuku_junk_generic(f_asm, code_holder, lines_iter, unstable_stack, eflags_changes, regs_changes);
+}
+
+void fuku_mutation_x86::get_junk(
+    fuku_code_holder& code_holder, size_t junk_size, bool unstable_stack,
+    uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+    f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
+        .set_position(code_holder.get_lines().end())
+        .set_first_emit(true);
+
 
     size_t current_size = 0;
-    
-    while (junk_size != current_size) {
 
-        switch (FUKU_GET_RAND(1, min(min(junk_size - current_size, max_size),7))) {
+    while (junk_size != current_size) {
+        linestorage::iterator& lines_iter = code_holder.get_lines().end();
+
+        switch (FUKU_GET_RAND(0, junk_size - current_size - 1)) {
+        case 0: {
+            fuku_junk_1b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 1;
+            break;
+        }
         case 1: {
-        //    fuku_junk_1b(f_asm, code_holder, lines_iter); current_size += 1;
+            fuku_junk_2b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 2;
             break;
         }
         case 2: {
-        //    fuku_junk_2b(f_asm, code_holder, lines_iter); current_size += 2;
+            fuku_junk_3b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 3;
             break;
         }
         case 3: {
-        //    fuku_junk_3b(f_asm, code_holder, lines_iter); current_size += 3;
+            fuku_junk_4b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 4;
             break;
         }
         case 4: {
-        //    fuku_junk_4b(f_asm, code_holder, lines_iter); current_size += 4;
+            fuku_junk_5b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 5;
             break;
         }
         case 5: {
-         //   fuku_junk_5b(f_asm, code_holder, lines_iter); current_size += 5;
+            fuku_junk_6b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 6;
             break;
         }
         case 6: {
-        //    fuku_junk_6b(f_asm, code_holder, lines_iter); current_size += 6;
+            fuku_junk_7b(f_asm, code_holder, lines_iter,
+                unstable_stack, eflags_changes, regs_changes);
+
+            current_size += 7;
             break;
         }
-        case 7: {
-        //    fuku_junk_7b(f_asm, code_holder, lines_iter); current_size += 7;
-            break;
         }
-        }
-    }
-}
-
-void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
-
-    fuku_junk_2b(f_asm, code_holder, lines_iter);
-    return ;
-
-    switch (FUKU_GET_RAND(0, 6)) {
-    case 0: {
-     //   fuku_junk_1b(f_asm, code_holder, lines_iter);
-        break;
-    }
-    case 1: {
-        fuku_junk_2b(f_asm, code_holder, lines_iter);
-        break;
-    }
-    case 2: {
-    //    fuku_junk_3b(f_asm, code_holder, lines_iter);
-        break;
-    }
-    case 3: {
-    //    fuku_junk_4b(f_asm, code_holder, lines_iter);
-        break;
-    }
-    case 4: {
-     //   fuku_junk_5b(f_asm, code_holder, lines_iter);
-        break;
-    }
-    case 5: {
-    //    fuku_junk_6b(f_asm, code_holder, lines_iter);
-        break;
-    }
-    case 6: {
-    //   fuku_junk_7b(f_asm, code_holder, lines_iter);
-        break;
-    }
     }
 }

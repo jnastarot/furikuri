@@ -121,6 +121,8 @@ void fuku_obfuscator::spagetti_code() {
 
             size_t block_len = block_lens[block_idx];
             uint32_t inst_flags = 0;
+            uint64_t inst_eflags = 0;
+            uint64_t inst_customflags = 0;
 
             if (block_len) {
                 auto start = code->get_lines().begin();
@@ -133,10 +135,16 @@ void fuku_obfuscator::spagetti_code() {
 
             if (code->get_lines().size()) {
                 inst_flags = (code->get_lines().begin()->get_instruction_flags()) & FUKU_INST_BAD_STACK;
+                inst_eflags = code->get_lines().begin()->get_eflags();
+                inst_customflags = code->get_lines().begin()->get_custom_flags();
             }
 
             if (block_idx + 1 != block_lens.size()) { //insert jmp to next block
-                line_blocks[block_idx].push_back(inst.set_instruction_flags(inst_flags));
+                line_blocks[block_idx].push_back(
+                    inst.set_instruction_flags(inst_flags)
+                    .set_eflags(inst_eflags)
+                    .set_custom_flags(inst_customflags)
+                );
             }
 
             if (block_idx) {

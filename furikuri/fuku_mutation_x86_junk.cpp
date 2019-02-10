@@ -2,15 +2,57 @@
 #include "fuku_mutation_x86_junk.h"
 
 
+//mov reg,reg
+void junk_pattern_1(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+    
+}
+
+//inc reg
+//neg reg
+//inc reg
+//neg reg
+void junk_pattern_2(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+}
+
+
+void junk_pattern_3(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+}
+
+
+void fuku_junk_generic(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+    fuku_junk_2b(f_asm, code_holder, lines_iter, unstable_stack, eflags_changes, regs_changes);
+
+    switch (FUKU_GET_RAND(0, 7)) {
 
 
 
-void fuku_junk_1b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
+    }
+
+
+}
+
+void fuku_junk_1b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
     f_asm.nop(1);
 }
 
-void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
+void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
     uint32_t instruction_flags = lines_iter->get_instruction_flags();
+
     if (!HAS_FULL_MASK(instruction_flags, FUKU_INST_BAD_STACK)) {
 
         f_asm.push(reg_(FUKU_REG_EAX));
@@ -18,6 +60,7 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         f_asm.pop(reg_(FUKU_REG_EAX));
         f_asm.get_context().inst->set_eflags(lines_iter->get_eflags());
     }
+
     /*
     switch (FUKU_GET_RAND(0, 4)) {
 
@@ -124,6 +167,33 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
     }
     */
+}
+
+void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+}
+
+void fuku_junk_4b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+}
+
+void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+}
+
+void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+
+}
+
+void fuku_junk_7b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
 }
 
 /*
