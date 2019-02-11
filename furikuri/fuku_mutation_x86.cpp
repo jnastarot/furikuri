@@ -342,7 +342,7 @@ void fuku_mutation_x86::get_junk(
     fuku_code_holder& code_holder, size_t junk_size, bool unstable_stack,
     uint64_t eflags_changes, uint64_t regs_changes) {
 
-
+    f_asm.get_context().short_cfg = 0xFF;
     f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
         .set_position(code_holder.get_lines().end())
         .set_first_emit(true);

@@ -33,8 +33,8 @@ using namespace std;
 
 #define FUKU_GET_CHANCE(x) (FUKU_GET_RAND(1,1000) <= (10*(x))) //0.f - 100.f in
 
-#define GET_BITES(src, mask) (src & mask)
-#define HAS_FULL_MASK(src, mask) ( (src & mask) == mask )
+#define GET_BITES(src, mask) ( (src) & (mask) )
+#define HAS_FULL_MASK(src, mask) ( ( (src) & (mask) ) == (mask) )
 
 
 #ifdef _DEBUG

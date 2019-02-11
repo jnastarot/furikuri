@@ -31,14 +31,54 @@ void fuku_junk_generic(fuku_assambler& f_asm, fuku_code_holder& code_holder, lin
     bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
 
 
-    fuku_junk_2b(f_asm, code_holder, lines_iter, unstable_stack, eflags_changes, regs_changes);
-
     switch (FUKU_GET_RAND(0, 7)) {
+    case 0: {
+        fuku_junk_1b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
 
+        return;
+    }
+    case 1: {
+        fuku_junk_2b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
+
+        return;
+    }
+    case 2: {
+        fuku_junk_3b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
+
+        return;
+    }
+    case 3: {
+        fuku_junk_4b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
+
+        return;
+    }
+    case 4: {
+        fuku_junk_5b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
+
+        return;
+    }
+    case 5: {
+        fuku_junk_6b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
+
+        return;
+    }
+    case 6: {
+        fuku_junk_7b(f_asm, code_holder, lines_iter,
+            unstable_stack, eflags_changes, regs_changes);
+
+        return;
+    }
+    case 7: {
 
 
     }
-
+    }
 
 }
 
@@ -165,8 +205,7 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         break;
     }
 
-    }
-    */
+    }*/
 }
 
 void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
@@ -193,6 +232,7 @@ void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
 
 void fuku_junk_7b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
     bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
 
 }
 

@@ -34,6 +34,77 @@ uint64_t EXCLUDED_FLAGS_TABLE[] = {
 };
 
 
+
+x86_reg CONVERT_REGISTER_TO_CAP[] = {
+    X86_REG_AL,
+    X86_REG_CL,
+    X86_REG_DL,
+    X86_REG_BL,
+    X86_REG_SPL,
+    X86_REG_BPL,
+    X86_REG_SIL,
+    X86_REG_DIL,
+    X86_REG_R8B ,
+    X86_REG_R9B ,
+    X86_REG_R10B,
+    X86_REG_R11B,
+    X86_REG_R12B,
+    X86_REG_R13B,
+    X86_REG_R14B,
+    X86_REG_R15B,
+    //word
+    X86_REG_AX,
+    X86_REG_CX,
+    X86_REG_DX,
+    X86_REG_BX,
+    X86_REG_SP,
+    X86_REG_BP,
+    X86_REG_SI,
+    X86_REG_DI,
+    X86_REG_R8W ,
+    X86_REG_R9W ,
+    X86_REG_R10W,
+    X86_REG_R11W,
+    X86_REG_R12W,
+    X86_REG_R13W,
+    X86_REG_R14W,
+    X86_REG_R15W,
+    //dword
+    X86_REG_EAX,
+    X86_REG_ECX,
+    X86_REG_EDX,
+    X86_REG_EBX,
+    X86_REG_ESP,
+    X86_REG_EBP,
+    X86_REG_ESI,
+    X86_REG_EDI,
+    X86_REG_R8D ,
+    X86_REG_R9D ,
+    X86_REG_R10D,
+    X86_REG_R11D,
+    X86_REG_R12D,
+    X86_REG_R13D,
+    X86_REG_R14D,
+    X86_REG_R15D,
+    //qword
+    X86_REG_RAX,
+    X86_REG_RCX,
+    X86_REG_RDX,
+    X86_REG_RBX,
+    X86_REG_RSP,
+    X86_REG_RBP,
+    X86_REG_RSI,
+    X86_REG_RDI,
+    X86_REG_R8 ,
+    X86_REG_R9 ,
+    X86_REG_R10,
+    X86_REG_R11,
+    X86_REG_R12,
+    X86_REG_R13,
+    X86_REG_R14,
+    X86_REG_R15
+};
+
 uint64_t CONVERT_REGISTER_TABLE[] = {
     -2,
     X86_REGISTER_AX, X86_REGISTER_AL, X86_REGISTER_AX, X86_REGISTER_BX, X86_REGISTER_BL,
@@ -935,4 +1006,200 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
     }
 
     return handled;
+}
+
+
+bool has_inst_free_register(fuku_instruction& inst, x86_reg reg) {
+    
+    if (CONVERT_REGISTER_TABLE[reg] != -2) {
+        return GET_BITES(inst.get_custom_flags(), CONVERT_REGISTER_TABLE[reg]) == CONVERT_REGISTER_TABLE[reg];
+    }
+
+    return false;
+}
+
+
+bool has_inst_free_eflags(uint64_t inst_eflags, uint64_t flags) {
+
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_CF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_CF)) {
+            return false;
+        }
+    }
+
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_OF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_OF)) {
+            return false;
+        }
+    }
+
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_ZF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_ZF)) {
+            return false;
+        }
+    }
+
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_DF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_DF)) {
+            return false;
+        }
+    }
+
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_SF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_SF)) {
+            return false;
+        }
+    }
+
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_PF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_PF)) {
+            return false;
+        }
+    }
+    if (GET_BITES(flags, X86_EFLAGS_MODIFY_AF)) {
+        if (!GET_BITES(inst_eflags, X86_EFLAGS_MOD_AF)) {
+            return false;
+        }
+    }
+
+
+    return true;
+}
+
+
+uint64_t convert_cap_reg_to_inst_reg(x86_reg reg) {
+    return CONVERT_REGISTER_TABLE[reg];
+}
+
+
+
+inline bool bit_scan_forward(uint32_t& index, uint64_t mask) {
+    for (; index < 64; index++) {
+        if (mask & ((uint64_t)1 << index)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline bool bit_scan_backward(uint32_t& index, uint64_t mask) {
+    for (; index != -1; index--) {
+        if (mask & ((uint64_t)1 << index)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+x86_reg  convert_inst_reg_to_cap_reg(uint64_t reg) {
+    
+    uint32_t index = 0;
+    if (bit_scan_forward(index, reg)) {
+        return CONVERT_REGISTER_TO_CAP[index];
+    }
+    else {
+        return x86_reg::X86_REG_INVALID;
+    }
+}
+
+
+
+x86_reg get_rand_free_reg_(uint64_t inst_regs, uint32_t min_idx , uint32_t max_idx) {
+
+    uint32_t index = min_idx;
+    if (bit_scan_forward(index, inst_regs)) {
+        if (index > max_idx) {
+            return x86_reg::X86_REG_INVALID;
+        }
+
+        uint32_t rand_idx = FUKU_GET_RAND(min_idx, max_idx);
+
+        index = rand_idx;
+        if (rand_idx == min_idx) {
+            bit_scan_forward(index, inst_regs);
+            return CONVERT_REGISTER_TO_CAP[index];
+        }
+        else if (rand_idx == max_idx) {
+            bit_scan_backward(index, inst_regs);
+            return CONVERT_REGISTER_TO_CAP[index];
+        }
+        else {
+            if (!bit_scan_forward(index, inst_regs)) {
+                index = rand_idx;
+                bit_scan_backward(index, inst_regs);
+            }
+        }
+
+        return CONVERT_REGISTER_TO_CAP[index];
+    }
+
+    return x86_reg::X86_REG_INVALID;
+}
+
+x86_reg get_inst_random_free_register(fuku_instruction& inst, uint32_t reg_size, bool x86_only, x86_reg exclude_reg) {
+
+    uint64_t inst_regs = inst.get_custom_flags();
+
+    if (exclude_reg != X86_REG_INVALID) {
+        uint64_t ex_inst_reg = convert_cap_reg_to_inst_reg(exclude_reg);
+        if (ex_inst_reg != -2) {
+            inst_regs &= (~ex_inst_reg);
+        }
+    }
+
+    if (inst_regs) {
+
+        switch (reg_size) {
+
+        case 1: {
+
+            if (x86_only) {
+                return get_rand_free_reg_(inst_regs, 0, 3);
+            }
+            else {
+                return get_rand_free_reg_(inst_regs, 0, 15);
+            }
+
+            
+            break;
+        }
+        case 2: {
+
+            if (x86_only) {
+                return get_rand_free_reg_(inst_regs, 16, 23);
+            }
+            else {
+                return get_rand_free_reg_(inst_regs, 16, 31);
+            }
+
+
+            break;
+        }
+        case 4: {
+
+            if (x86_only) {
+                return get_rand_free_reg_(inst_regs, 32, 39);
+            }
+            else {
+                return get_rand_free_reg_(inst_regs, 32, 47);
+            }
+
+
+            break;
+        }
+        case 8: {
+
+            if (x86_only) {
+                return get_rand_free_reg_(inst_regs, 48, 55);
+            }
+            else {
+                return get_rand_free_reg_(inst_regs, 48, 63);
+            }
+
+            break;
+        }
+        }
+    }
+
+    return x86_reg::X86_REG_INVALID;
 }
