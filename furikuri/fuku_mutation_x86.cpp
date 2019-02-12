@@ -61,6 +61,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 
     
 
+    f_asm.get_context().short_cfg = this->settings.get_asm_cfg() & FUKU_GET_RAND(0, 0xFF);
 
     
     if (FUKU_GET_CHANCE(settings.get_junk_chance())) {
@@ -88,8 +89,6 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         first_line_iter--;
     }
     
-
-    f_asm.get_context().short_cfg = this->settings.get_asm_cfg() & FUKU_GET_RAND(0,0xFF);
 
     f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_FIRST_OVERWRITE)
         .set_position(lines_iter)
@@ -333,7 +332,7 @@ void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::it
 
     f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
         .set_position(lines_iter)
-        .set_first_emit(true);
+        .set_first_emit(false);
 
     fuku_junk_generic(f_asm, code_holder, lines_iter, unstable_stack, eflags_changes, regs_changes);
 }

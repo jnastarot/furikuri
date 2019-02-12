@@ -2,7 +2,7 @@
 #include "fuku_code_profiler.h"
 
 
-#define GET_BITES_INCLUDED(src, include_mask, exclude_mask) ((src & include_mask) & (~exclude_mask))
+#define GET_BITES_INCLUDED(src, include_mask, exclude_mask) (( (src) & (include_mask) ) & (~(exclude_mask)))
 
 #define CF_EXCLUDE (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_UNDEFINED_CF | X86_EFLAGS_RESET_CF | X86_EFLAGS_SET_CF)
 #define DF_EXCLUDE (X86_EFLAGS_MODIFY_DF | X86_EFLAGS_RESET_DF     | X86_EFLAGS_SET_DF)
@@ -307,13 +307,15 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
         return false;
     }
 
+    memcpy(registers_table, CONVERT_REGISTER_TABLE, sizeof(CONVERT_REGISTER_TABLE));
+
     for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
 
         (*line_iter).set_eflags(profile_graph_eflags(code, line_iter));
         (*line_iter).set_custom_flags(profile_graph_registers(code, line_iter));
     }
 
-
+    
     for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
      
 
@@ -360,7 +362,7 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
         }
         }
     }
-
+    
   
     cs_insn *instruction;
     for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
@@ -502,7 +504,8 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
         handled = true;
 
         if (instruction->detail->x86.operands[0].type == CS_OP_REG &&
-            instruction->detail->x86.operands[1].type == CS_OP_REG) {
+            instruction->detail->x86.operands[1].type == CS_OP_REG &&
+            instruction->detail->x86.operands[0].reg == instruction->detail->x86.operands[1].reg) {
 
             get_operand_access(reg_idx, instruction, 0, op_access, registers_table, REGISTER_ACCESS_WRITE);
         }

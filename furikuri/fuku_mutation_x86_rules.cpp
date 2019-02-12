@@ -3,6 +3,18 @@
 
 #define IsAllowedStackOperations (!HAS_FULL_MASK(instruction_flags, FUKU_INST_BAD_STACK))
 
+static uint64_t di_fl_jcc[] = {
+    X86_EFLAGS_MOD_OF , X86_EFLAGS_MOD_OF, //jo   / jno
+    X86_EFLAGS_MOD_CF , X86_EFLAGS_MOD_CF, //jb   / jae
+    X86_EFLAGS_MOD_ZF , X86_EFLAGS_MOD_ZF, //je   / jne
+    X86_EFLAGS_MOD_ZF | X86_EFLAGS_MOD_CF, X86_EFLAGS_MOD_ZF | X86_EFLAGS_MOD_CF, //jbe / jnbe
+    X86_EFLAGS_MOD_SF , X86_EFLAGS_MOD_SF, //js   / jns
+    X86_EFLAGS_MOD_PF , X86_EFLAGS_MOD_PF, //jp   / jnp
+    X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF, X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF, //jnge / jge
+    X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF | X86_EFLAGS_MOD_ZF, X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF | X86_EFLAGS_MOD_ZF //jng / jnle
+};
+
+
 /*
 JCC MUTATE RULES
 
@@ -54,6 +66,10 @@ JMP MUTATE RULES
 2:
     je  jmpdst
     jne jmpdst
+
+3:
+    mov randreg, dst
+    jmp randreg
 
 */
 bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
@@ -108,6 +124,8 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
 
         case 1: {
+            //je  dst
+            //jne dst
 
             uint8_t cond = FUKU_GET_RAND(0, 15);
 
@@ -120,7 +138,7 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
             f_asm.jcc(fuku_condition(cond ^ 1), imm(-1));
             f_asm.get_context().inst->
-                set_eflags(0)
+                set_eflags(custom_eflags & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
                 .set_custom_flags(custom_regs)
                 .set_rip_relocation_idx(code_holder.create_rip_relocation_lb(f_asm.get_context().immediate_offset, rip_label_idx))
                 .set_instruction_flags(instruction_flags | FUKU_INST_NO_MUTATE);
@@ -130,6 +148,8 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             break;
         }
         case 2: {
+            //mov randreg, dst
+            //jmp randreg
 
             x86_reg rand_reg = get_inst_random_free_register(*lines_iter, 4, true);
 
