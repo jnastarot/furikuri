@@ -113,7 +113,7 @@ int main() {
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
 
-     //  fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
+       fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
      //   fuku.add_ob_code_list({ 0x103A , 0x6B6 }, &_module, ob1_set);
         fuku.add_ob_code_list({ 0x16F0 , 0x1A6 }, &_module, ob1_set);
         /*

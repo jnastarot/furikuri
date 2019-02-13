@@ -151,11 +151,11 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             //mov randreg, dst
             //jmp randreg
 
-            x86_reg rand_reg = get_inst_random_free_register(*lines_iter, 4, true);
+            fuku_register rand_reg = get_random_free_flag_reg(*lines_iter, 4, true);
 
-            if (rand_reg != X86_REG_INVALID) {
+            if (rand_reg.get_reg() != X86_REG_INVALID) {
 
-                f_asm.mov(reg_(capstone_to_fuku_reg(rand_reg)), imm(0xFFFFFFFF));
+                f_asm.mov(rand_reg, imm(0xFFFFFFFF));
                 f_asm.get_context().inst->
                     set_eflags(custom_eflags)
                     .set_custom_flags(custom_regs)
@@ -165,7 +165,7 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
                         )
                     );
 
-                f_asm.jmp(reg_(capstone_to_fuku_reg(rand_reg)));
+                f_asm.jmp(rand_reg);
                 f_asm.get_context().inst->
                     set_eflags(custom_eflags);
 

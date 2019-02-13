@@ -114,11 +114,3 @@ public:
     bool profile_code(fuku_code_holder& code);
 
 };
-
-
-bool has_inst_free_register(fuku_instruction& inst, x86_reg reg);
-bool has_inst_free_eflags(uint64_t inst_eflags, uint64_t flags); //used only with MODIFY prefix
-
-uint64_t convert_cap_reg_to_inst_reg(x86_reg reg);
-x86_reg  convert_inst_reg_to_cap_reg(uint64_t reg);
-x86_reg get_inst_random_free_register(fuku_instruction& inst, uint32_t reg_size, bool x86_only, x86_reg exclude_reg = X86_REG_INVALID);

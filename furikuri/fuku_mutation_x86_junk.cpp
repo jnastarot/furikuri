@@ -1,26 +1,293 @@
 #include "stdafx.h"
 #include "fuku_mutation_x86_junk.h"
 
+uint32_t reg_sizes[] = {
+    1,
+    2,
+    4
+};
 
-//mov reg,reg
-void junk_pattern_1(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
+
+//transfer reg1,reg2
+bool junk_pattern_1(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
     bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
 
+    uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
+
+    fuku_register reg1_ = get_random_free_flag_reg(regs_changes, reg_size, true, FUKU_REG_ESP);
+
+    if (reg1_.get_reg() == FUKU_REG_NONE) {
+        return false;
+    }
     
+
+    switch (FUKU_GET_RAND(0, 1)) {
+        case 0: {
+            fuku_register reg2_ = get_random_reg(reg_size, true);
+
+            f_asm.mov(reg1_, reg2_);
+            f_asm.get_context().inst->
+                set_eflags(eflags_changes)
+                .set_custom_flags(regs_changes);
+
+
+            break;
+        }
+        case 1: {
+            fuku_register reg2_ = get_random_free_flag_reg(regs_changes, reg_size, true, FUKU_REG_ESP);
+
+            f_asm.xchg(reg1_, reg2_);
+            f_asm.get_context().inst->
+                set_eflags(eflags_changes)
+                .set_custom_flags(regs_changes);
+
+
+            break;
+        }
+    }
+    return true;
 }
 
-//inc reg
-//neg reg
-//inc reg
-//neg reg
-void junk_pattern_2(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
+
+//logical reg1,reg2
+bool junk_pattern_2(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
     bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
 
 
+    if (!has_inst_free_eflags(eflags_changes,
+        X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
+
+        return false;
+    }
+
+    uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
+
+
+    fuku_register reg1_ = get_random_free_flag_reg(regs_changes, reg_size, true, FUKU_REG_ESP);
+
+    if (reg1_.get_reg() == FUKU_REG_NONE) {
+        return false;
+    }
+    fuku_register reg2_ = get_random_reg(reg_size, true);
+
+
+    switch (FUKU_GET_RAND(0, 3)) {
+
+    case 0: {
+        f_asm.xor_(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+
+    case 1: {
+        f_asm.and_(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 2: {
+        f_asm.or_(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 3: {
+        f_asm.test(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    }
+
+    return true;
 }
 
 
-void junk_pattern_3(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+//arithmetic reg1,reg2
+bool junk_pattern_3(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+    if (!has_inst_free_eflags(eflags_changes,
+        X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
+
+        return false;
+    }
+
+    uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
+
+    fuku_register reg1_ = get_random_free_flag_reg(regs_changes, reg_size, true, FUKU_REG_ESP);
+
+    if (reg1_.get_reg() == FUKU_REG_NONE) {
+        return false;
+    }
+    fuku_register reg2_ = get_random_reg(reg_size, true);
+
+
+    switch (FUKU_GET_RAND(0, 4)) {
+
+    case 0: {
+        f_asm.add(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+
+    case 1: {
+        f_asm.adc(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 2: {
+        f_asm.sub(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 3: {
+        f_asm.sbb(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 4: {
+        f_asm.cmp(reg1_, reg2_);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    }
+
+    return true;
+}
+
+
+//shift reg1,val
+bool junk_pattern_4(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+
+    if (!has_inst_free_eflags(eflags_changes,
+        X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF)) {
+
+        return false;
+    }
+
+    uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
+
+    fuku_register reg1_ = get_random_free_flag_reg(regs_changes, reg_size, true, FUKU_REG_ESP);
+
+    if (reg1_.get_reg() == FUKU_REG_NONE) {
+        return false;
+    }
+
+
+    fuku_immediate shift_8 = FUKU_GET_RAND(1, 64);
+
+    switch (FUKU_GET_RAND(0, 4)) {
+
+    case 0: {
+        f_asm.rol(reg1_, shift_8);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+
+    case 1: {
+        f_asm.ror(reg1_, shift_8);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 2: {
+        f_asm.rcl(reg1_, shift_8);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+    case 3: {
+        f_asm.rcr(reg1_, shift_8);
+        f_asm.get_context().inst->
+            set_eflags(eflags_changes)
+            .set_custom_flags(regs_changes);
+
+        break;
+    }
+
+    }
+
+    return true;
+}
+
+//inc reg
+//neg reg
+//inc reg
+//neg reg
+bool junk_pattern_5(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter, 
+    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
+
+    if (!has_inst_free_eflags(eflags_changes,
+        X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
+
+        return false;
+    }
+
+    fuku_register reg1_ = get_random_free_flag_reg(regs_changes, 4, true, FUKU_REG_ESP);
+
+    if (reg1_.get_reg() == FUKU_REG_NONE) {
+        return false;
+    }
+
+    f_asm.inc(reg1_);
+    f_asm.get_context().inst->
+        set_eflags(eflags_changes)
+        .set_custom_flags(regs_changes);
+    f_asm.neg(reg1_);
+    f_asm.get_context().inst->
+        set_eflags(eflags_changes)
+        .set_custom_flags(regs_changes);
+    f_asm.inc(reg1_);
+    f_asm.get_context().inst->
+        set_eflags(eflags_changes)
+        .set_custom_flags(regs_changes);
+    f_asm.neg(reg1_);
+    f_asm.get_context().inst->
+        set_eflags(eflags_changes)
+        .set_custom_flags(regs_changes);
+
+    return true;
+}
+
+//push reg
+//
+//pop reg
+void junk_pattern__5(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
     bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
 
 
@@ -31,52 +298,36 @@ void fuku_junk_generic(fuku_assambler& f_asm, fuku_code_holder& code_holder, lin
     bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
 
 
-    switch (FUKU_GET_RAND(0, 7)) {
+    switch (FUKU_GET_RAND(0, 4)) {
     case 0: {
-        fuku_junk_1b(f_asm, code_holder, lines_iter,
+        junk_pattern_1(f_asm, code_holder, lines_iter,
             unstable_stack, eflags_changes, regs_changes);
 
         return;
     }
     case 1: {
-        fuku_junk_2b(f_asm, code_holder, lines_iter,
+        junk_pattern_2(f_asm, code_holder, lines_iter,
             unstable_stack, eflags_changes, regs_changes);
 
         return;
     }
     case 2: {
-        fuku_junk_3b(f_asm, code_holder, lines_iter,
+        junk_pattern_3(f_asm, code_holder, lines_iter,
             unstable_stack, eflags_changes, regs_changes);
 
         return;
     }
     case 3: {
-        fuku_junk_4b(f_asm, code_holder, lines_iter,
+        junk_pattern_4(f_asm, code_holder, lines_iter,
             unstable_stack, eflags_changes, regs_changes);
 
         return;
     }
     case 4: {
-        fuku_junk_5b(f_asm, code_holder, lines_iter,
+        junk_pattern_5(f_asm, code_holder, lines_iter,
             unstable_stack, eflags_changes, regs_changes);
 
         return;
-    }
-    case 5: {
-        fuku_junk_6b(f_asm, code_holder, lines_iter,
-            unstable_stack, eflags_changes, regs_changes);
-
-        return;
-    }
-    case 6: {
-        fuku_junk_7b(f_asm, code_holder, lines_iter,
-            unstable_stack, eflags_changes, regs_changes);
-
-        return;
-    }
-    case 7: {
-
-
     }
     }
 
@@ -101,139 +352,7 @@ void fuku_junk_2b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestor
         f_asm.get_context().inst->set_eflags(lines_iter->get_eflags());
     }
 
-    /*
-    switch (FUKU_GET_RAND(0, 4)) {
-
-    case 0: {
-        //mov reg1, reg1
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-
-        code_holder.get_lines().insert(lines_iter, f_asm.mov(reg1, reg1).set_eflags(lines_iter->get_eflags()));
-        break;
-    }
-    case 1: {
-        //xchg eax, reg2
-        //xchg reg2, eax
-
-    jk_2s:
-
-        fuku_reg86 reg1 = fuku_reg86::r_EAX;
-        fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-
-        fuku_instruction line[2];
-
-        if (FUKU_GET_RAND(0, 1)) {
-            line[0] = f_asm.xchg(reg1, reg2).set_eflags(lines_iter->get_eflags());
-        }
-        else {
-            line[0] = f_asm.xchg(reg2, reg1).set_eflags(lines_iter->get_eflags());
-        }
-
-        if (FUKU_GET_RAND(0, 1)) {
-            line[1] = f_asm.xchg(reg1, reg2).set_eflags(lines_iter->get_eflags());
-        }
-        else {
-            line[1] = f_asm.xchg(reg2, reg1).set_eflags(lines_iter->get_eflags());
-        }
-
-        if (reg2 == fuku_reg86::r_ESP) {
-            line[1].set_instruction_flags(fuku_instruction_bad_stack_pointer);
-        }
-
-        code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
-
-        break;
-    }
-    case 2: {
-    jk_3s:
-        //push reg1
-        //pop reg1
-
-        fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EBX));
-
-        if (!HAS_FULL_MASK(lines_iter->get_instruction_flags(), fuku_instruction_bad_stack_pointer)) {
-
-            fuku_instruction line[2];
-
-            line[0] = f_asm.push(reg1).set_eflags(lines_iter->get_eflags());
-            line[1] = f_asm.pop(reg1).set_eflags(lines_iter->get_eflags());
-
-            code_holder.get_lines().insert(lines_iter, &line[0], &line[2]);
-        }
-        else {
-            //lea reg1, [reg1]
-
-            code_holder.get_lines().insert(lines_iter, f_asm.lea(reg1, fuku_operand86(reg1, operand_scale::operand_scale_1, 0)).set_eflags(lines_iter->get_eflags()));
-        }
-
-        break;
-    }
-
-    case 3: {
-        //cmp reg1, reg2
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_AF);
-
-        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-            fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-
-            code_holder.get_lines().insert(lines_iter, f_asm.cmp(reg1, reg2).set_eflags(lines_iter->get_eflags()));
-        }
-        else {
-            goto jk_2s;
-        }
-
-        break;
-    }
-    case 4: {
-        //test reg1, reg2
-
-        uint32_t needed = (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_AF);
-
-        if (HAS_FULL_MASK(lines_iter->get_eflags(), needed)) {
-            fuku_reg86 reg1 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-            fuku_reg86 reg2 = fuku_reg86(FUKU_GET_RAND(fuku_reg86::r_EAX, fuku_reg86::r_EDI));
-
-            code_holder.get_lines().insert(lines_iter, f_asm.test(reg1, reg2).set_eflags(lines_iter->get_eflags()));
-        }
-        else {
-            goto jk_3s;
-        }
-
-        break;
-    }
-
-    }*/
-}
-
-void fuku_junk_3b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
-    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
-
-}
-
-void fuku_junk_4b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
-    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
-
-}
-
-void fuku_junk_5b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
-    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
-
-}
-
-void fuku_junk_6b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
-    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
-
-
-
-}
-
-void fuku_junk_7b(fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter,
-    bool unstable_stack, uint64_t eflags_changes, uint64_t regs_changes) {
-
-
+ 
 }
 
 /*

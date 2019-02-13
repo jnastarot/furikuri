@@ -75,6 +75,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_code_profiler">
       <UniqueIdentifier>{4da2b25c-e572-4be3-b815-22d4cbd10c3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_code_utilits">
+      <UniqueIdentifier>{78cc723c-173b-4458-a2ed-0c3d93507808}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -137,6 +140,9 @@
     <ClInclude Include="fuku_code_profiler.h">
       <Filter>Заголовочные файлы\furikuri\fuku_code_profiler</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_code_utilits.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_code_utilits</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -186,6 +192,9 @@
     </ClCompile>
     <ClCompile Include="fuku_code_profiler.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_code_profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_code_utilits.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_code_utilits</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
