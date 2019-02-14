@@ -48,12 +48,15 @@ unsigned char lzo_depack_32[] = {//0xCC,
     0x5E, 0x5B, 0x5D, 0xC3
 };
 
+
+void test_on_shellcode();
+
 int main() {
 
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(3);
-
+    test_on_shellcode();
 
     shibari_module _module(
         std::string("..\\..\\app for test\\vm_test.exe")//std::string("..\\..\\app for test\\swhtest.exe")
@@ -92,6 +95,7 @@ int main() {
         std::string("..\\Release\\vm_fuku_x86.dll")
     );
     */
+    
     furikuri fuku;
 
     if (fuku.set_main_module(&_module)) {
@@ -109,11 +113,11 @@ int main() {
         fuku_settings_obfuscation ob_set( 4, 3, 40.f, 40.f, 40.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
 
-        fuku_settings_obfuscation ob1_set(4, 3, 40.f, 40.f, 40.f, 
+        fuku_settings_obfuscation ob1_set(5,5, 40.f, 20.f, 60.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
 
-       fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
+     //  fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
      //   fuku.add_ob_code_list({ 0x103A , 0x6B6 }, &_module, ob1_set);
         fuku.add_ob_code_list({ 0x16F0 , 0x1A6 }, &_module, ob1_set);
         /*
@@ -175,85 +179,89 @@ int main() {
 
 
 
-      /*
-      uint8_t * data_ = new uint8_t[0x1000];
-      uint8_t * data_1 = new uint8_t[0x1000];
-      for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {
-          (*(uint32_t*)&data_[i]) = rand();
-      }
-
-      uint8_t * compressed_buf = new uint8_t[0x1000 + (0x1000 / 16) + 64 + 3];
-      void * work_mem = new uint8_t[LZO1Z_999_MEM_COMPRESS];
-
-      lzo_uint packed_size = 0;
-
-      if (lzo1z_999_compress(data_, 0x1000, compressed_buf, &packed_size, work_mem) != LZO_E_OK) {
-          delete[] work_mem;
-          delete[] compressed_buf;
-          return 0;
-      }
-
-      delete[] work_mem;
-
-      fuku_code_analyzer anal_code;
-      anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
-      anal_code.push_code(lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
-
-      typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
-      for (unsigned int i = 0; i < 10000; i++) {
-
-          fuku_code_analyzer ob_anal_code = anal_code;
-
-          fuku_obfuscator obfuscator;
-
-
-
-          obfuscator.set_destination_virtual_address(0);
-         // obfuscator.set_settings({ 1,1,00.f,00.f,30.f });
-          obfuscator.set_settings({ 3,3,50.f,40.f,30.f });
-          obfuscator.set_code(&ob_anal_code.get_code());
-
-          unsigned int s_time = GetTickCount();
-
-          obfuscator.obfuscate_code();
-          std::vector<fuku_code_association> associations;
-          std::vector<fuku_image_relocation> relocations;
-          std::vector<uint8_t> __obf_unpacker = finalize_code(ob_anal_code.get_code(), &associations, &relocations);
-
-          printf("%d obfuscated in %.4f sec | size scale %.2f |", i,(GetTickCount() - s_time) / 1000.f, (float)__obf_unpacker.size() / sizeof(lzo_depack_32));
-
-          uint8_t * __obf_unpacker_ = __obf_unpacker.data();
-
-          DWORD old_p;
-          VirtualProtect(__obf_unpacker_, __obf_unpacker.size(), PAGE_EXECUTE_READWRITE, &old_p);
-          VirtualProtect(lzo_depack_32, sizeof(lzo_depack_32), PAGE_EXECUTE_READWRITE, &old_p);
-
-          _depack_algo depack = (_depack_algo)(__obf_unpacker_ + associations[0].virtual_address);
-
-          unsigned long unpack_size = 0x1000;
-
-          for (auto &rel : relocations) { //fix reloc
-              *(DWORD*)&__obf_unpacker_[rel.virtual_address] += (uint32_t)__obf_unpacker_;
-          }
-
-          unsigned int n_time = GetTickCount();
-
-         // __try {
-              depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
-         // }
-         // __except (1) {
-           //   system("PAUSE");
-         // }
-          
-          printf(" called in %.4f sec | ", (GetTickCount() - n_time) / 1000.f);
-          for (unsigned int i = 0; i < 0x1000; i++) {
-              if (data_[i] != data_1[i]) { printf("error!"); Sleep(100000); }
-          }
-
-
-          printf("good!\n");
-      }
+      
+ 
       //*/
     return 0;
 }
 
+void test_on_shellcode() {
+    uint8_t * data_ = new uint8_t[0x1000];
+    uint8_t * data_1 = new uint8_t[0x1000];
+    for (unsigned int i = 0; i < 0x1000 / 4; i += 4) {
+        (*(uint32_t*)&data_[i]) = rand();
+    }
+
+    uint8_t * compressed_buf = new uint8_t[0x1000 + (0x1000 / 16) + 64 + 3];
+    void * work_mem = new uint8_t[LZO1Z_999_MEM_COMPRESS];
+
+    lzo_uint packed_size = 0;
+
+    if (lzo1z_999_compress(data_, 0x1000, compressed_buf, &packed_size, work_mem) != LZO_E_OK) {
+        delete[] work_mem;
+        delete[] compressed_buf;
+        return;
+    }
+
+    delete[] work_mem;
+    fuku_code_holder code_holder;
+    fuku_code_analyzer anal_code;
+    anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
+    anal_code.analyze_code(code_holder, lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
+
+    typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
+    for (unsigned int i = 0; i < 10000; i++) {
+
+        fuku_code_analyzer ob_anal_code = code_holder;
+
+        fuku_obfuscator obfuscator;
+
+
+        fuku_settings_obfuscation ob_set(3, 3, 40.f, 40.f, 40.f,
+            FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
+        obfuscator.set_destination_virtual_address(0);
+        // obfuscator.set_settings({ 1,1,00.f,00.f,30.f });
+        obfuscator.set_settings(ob_set);
+        obfuscator.set_code(&ob_anal_code.get_code());
+
+        unsigned int s_time = GetTickCount();
+
+        obfuscator.obfuscate_code();
+        std::vector<fuku_code_association> associations;
+        std::vector<fuku_image_relocation> relocations;
+        std::vector<uint8_t> __obf_unpacker = finalize_code(ob_anal_code.get_code(), &associations, &relocations);
+
+        printf("%d obfuscated in %.4f sec | size scale %.2f |", i, (GetTickCount() - s_time) / 1000.f, (float)__obf_unpacker.size() / sizeof(lzo_depack_32));
+
+        uint8_t * __obf_unpacker_ = __obf_unpacker.data();
+
+        DWORD old_p;
+        VirtualProtect(__obf_unpacker_, __obf_unpacker.size(), PAGE_EXECUTE_READWRITE, &old_p);
+        VirtualProtect(lzo_depack_32, sizeof(lzo_depack_32), PAGE_EXECUTE_READWRITE, &old_p);
+
+        _depack_algo depack = (_depack_algo)(__obf_unpacker_ + associations[0].virtual_address);
+
+        unsigned long unpack_size = 0x1000;
+
+        for (auto &rel : relocations) { //fix reloc
+            *(DWORD*)&__obf_unpacker_[rel.virtual_address] += (uint32_t)__obf_unpacker_;
+        }
+
+        unsigned int n_time = GetTickCount();
+
+        // __try {
+        depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
+        // }
+        // __except (1) {
+          //   system("PAUSE");
+        // }
+
+        printf(" called in %.4f sec | ", (GetTickCount() - n_time) / 1000.f);
+        for (unsigned int i = 0; i < 0x1000; i++) {
+            if (data_[i] != data_1[i]) { printf("error!"); Sleep(100000); }
+        }
+
+
+        printf("good!\n");
+    }
+}

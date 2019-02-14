@@ -350,14 +350,16 @@ uint32_t get_rand_free_reg_(uint64_t inst_regs, uint32_t min_idx, uint32_t max_i
         index = rand_idx;
         if (rand_idx == min_idx) {
             bit_scan_forward(index, inst_regs);
+            
             return index;
         }
         else if (rand_idx == max_idx) {
             bit_scan_backward(index, inst_regs);
+
             return index;
         }
         else {
-            if (!bit_scan_forward(index, inst_regs)) {
+            if (!bit_scan_forward(index, inst_regs) || index > max_idx) {
                 index = rand_idx;
                 bit_scan_backward(index, inst_regs);
             }
@@ -376,7 +378,7 @@ void exclude_reg_flag(uint64_t& reg_flags, uint32_t reg_flag_idx) {
     }
 }
 
-fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, fuku_register_enum exclude_reg) {
+fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, uint64_t exclude_reg) {
 
     switch (reg_size) {
 
@@ -397,22 +399,14 @@ fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, fuku_registe
     return FUKU_REG_NONE;
 }
 
-fuku_register_enum get_random_free_flag_reg(fuku_instruction& inst, uint32_t reg_size, bool x86_only, fuku_register_enum exclude_reg) {
+fuku_register_enum get_random_free_flag_reg(fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_reg) {
     return get_random_free_flag_reg(inst.get_custom_flags(), reg_size, x86_only, exclude_reg);
 }
 
-fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_size, bool x86_only, fuku_register_enum exclude_reg) {
+fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_size, bool x86_only, uint64_t exclude_reg) {
 
-    if (exclude_reg != FUKU_REG_NONE) {
-        uint64_t ex_inst_reg = convert_fuku_reg_to_flag_reg(exclude_reg);
-        if (ex_inst_reg != -2) {
 
-            uint32_t index = 0;
-            if (bit_scan_forward(index, ex_inst_reg)) {
-                exclude_reg_flag(reg_flags, index);
-            }
-        }
-    }
+    reg_flags &= ~(exclude_reg);
 
     uint32_t returned_idx = -1;
 
