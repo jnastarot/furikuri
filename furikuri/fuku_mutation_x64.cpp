@@ -16,7 +16,7 @@ fuku_mutation_x64::~fuku_mutation_x64() {
 
 void fuku_mutation_x64::obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx) {
 
-    for (linestorage::iterator lines_iter = lines_iter_begin; lines_iter != lines_iter_end; lines_iter++) {
+    for (linestorage::iterator lines_iter = lines_iter_begin; lines_iter != lines_iter_end; ++lines_iter) {
 
         fukutation(code_holder, lines_iter);
 
@@ -29,7 +29,7 @@ void fuku_mutation_x64::obfuscate_lines(fuku_code_holder& code_holder, linestora
         }
 
         if (recurse_idx_up) {
-            auto next_iter = lines_iter; next_iter++;
+            auto next_iter = lines_iter; ++next_iter;
             obfuscate_lines(code_holder, lines_iter, next_iter, recurse_idx_up);
         }
     }
@@ -44,7 +44,7 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
     cs_insn *instruction;
     linestorage::iterator first_junk_line_iter = lines_iter;
     linestorage::iterator first_line_iter = lines_iter;
-    linestorage::iterator next_line_iter = lines_iter; next_line_iter++;
+    linestorage::iterator next_line_iter = lines_iter; ++next_line_iter;
 
     bool has_unstable_stack = lines_iter->get_instruction_flags() & FUKU_INST_BAD_STACK;
     bool is_first_line_begin = lines_iter == code_holder.get_lines().begin();
@@ -70,13 +70,13 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
     if (FUKU_GET_CHANCE(settings.get_junk_chance())) {
 
         if (!is_first_line_begin) {
-            first_junk_line_iter--;
+            --first_junk_line_iter;
         }
 
         fuku_junk(code_holder, lines_iter); was_junked = true;
 
         if (!is_first_line_begin) {
-            first_junk_line_iter++;
+            ++first_junk_line_iter;
         }
         else {
             first_junk_line_iter = code_holder.get_lines().begin();
@@ -89,7 +89,7 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
             first_line_iter = next_line_iter;
         }
 
-        first_line_iter--;
+        --first_line_iter;
     }
 
 
@@ -315,7 +315,7 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
 
         auto& start_line = (was_junked == true ? first_junk_line_iter : first_line_iter);
 
-        for (auto current_line = start_line; current_line != next_line_iter; current_line++) {
+        for (auto current_line = start_line; current_line != next_line_iter; ++current_line) {
 
             if (has_unstable_stack) {
                 current_line->set_instruction_flags(current_line->get_instruction_flags() | FUKU_INST_BAD_STACK);

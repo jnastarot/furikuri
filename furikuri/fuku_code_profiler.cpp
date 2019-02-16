@@ -117,7 +117,7 @@ uint64_t fuku_code_profiler::profile_graph_registers(fuku_code_holder& code, lin
         this->dirty_registers_table = false;
     }
 
-    for (; lines_iter != code.get_lines().end(); lines_iter++) {
+    for (; lines_iter != code.get_lines().end(); ++lines_iter) {
         auto& current_inst = *lines_iter;
 
 
@@ -186,7 +186,7 @@ uint64_t fuku_code_profiler::profile_graph_eflags(fuku_code_holder& code, linest
     uint64_t excluded_flags = 0;
 
 
-    for (; lines_iter != code.get_lines().end(); lines_iter++) {
+    for (; lines_iter != code.get_lines().end(); ++lines_iter) {
         auto& current_inst = *lines_iter;
 
         uint16_t current_id = current_inst.get_id();
@@ -238,16 +238,16 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
         return false;
     }
 
-    memcpy(registers_table, CONVERT_CAPSTONE_REGISTER_TO_FLAG, sizeof(CONVERT_CAPSTONE_REGISTER_TO_FLAG));
+    memcpy(registers_table, CONVERT_CAPSTONE_REGISTER_TO_FLAG, sizeof(registers_table));
 
-    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
+    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
 
         (*line_iter).set_eflags(profile_graph_eflags(code, line_iter));
         (*line_iter).set_custom_flags(profile_graph_registers(code, line_iter));
     }
 
     
-    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
+    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
      
 
         switch (line_iter->get_id()) {
@@ -278,7 +278,7 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
 
                 if (label.has_linked_instruction) {
                     auto next_line = line_iter;
-                    next_line++;
+                    ++next_line;
 
                     if (next_line != code.get_lines().end()) {
                         line_iter->set_custom_flags(label.instruction->get_custom_flags() & next_line->get_custom_flags());
@@ -296,7 +296,7 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
     
   
     cs_insn *instruction;
-    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); line_iter++) {
+    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
         cs_disasm(cap_handle, line_iter->get_op_code(), line_iter->get_op_length(), 0, 1, &instruction);
         printf("%016I64x   %s %s | ", line_iter->get_virtual_address(), instruction->mnemonic, instruction->op_str);
 
@@ -394,7 +394,7 @@ void get_operand_access(uint8_t& reg_idx, cs_insn *instruction, uint8_t op_num, 
     
     auto& op = instruction->detail->x86.operands[op_num];
 
-    if (op.type == CS_OP_MEM) {
+    if (op.type == X86_OP_MEM) {
         if (op.mem.base != X86_REG_INVALID) {
             push_access(reg_idx, { table[op.mem.base] , REGISTER_ACCESS_READ }, op_access);
         }
@@ -403,7 +403,7 @@ void get_operand_access(uint8_t& reg_idx, cs_insn *instruction, uint8_t op_num, 
             push_access(reg_idx, { table[op.mem.index] , REGISTER_ACCESS_READ }, op_access);
         }
     }
-    else if (op.type == CS_OP_REG) {
+    else if (op.type == X86_OP_REG) {
         push_access(reg_idx, { table[op.reg] , default_access }, op_access);
     }
 }
@@ -434,8 +434,8 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
     case X86_INS_XOR: {
         handled = true;
 
-        if (instruction->detail->x86.operands[0].type == CS_OP_REG &&
-            instruction->detail->x86.operands[1].type == CS_OP_REG &&
+        if (instruction->detail->x86.operands[0].type == X86_OP_REG &&
+            instruction->detail->x86.operands[1].type == X86_OP_REG &&
             instruction->detail->x86.operands[0].reg == instruction->detail->x86.operands[1].reg) {
 
             get_operand_access(reg_idx, instruction, 0, op_access, registers_table, REGISTER_ACCESS_WRITE);
@@ -512,8 +512,8 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
 
     case X86_INS_XCHG: { 
         handled = true;
-        if (instruction->detail->x86.operands[0].type == CS_OP_REG &&
-            instruction->detail->x86.operands[1].type == CS_OP_REG) {
+        if (instruction->detail->x86.operands[0].type == X86_OP_REG &&
+            instruction->detail->x86.operands[1].type == X86_OP_REG) {
 
             std::swap(registers_table[instruction->detail->x86.operands[0].reg], registers_table[instruction->detail->x86.operands[1].reg]);
             dirty_registers_table = true;

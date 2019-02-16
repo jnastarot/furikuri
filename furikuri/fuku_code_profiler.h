@@ -16,73 +16,143 @@
 
 
 //byte
-#define X86_REGISTER_AL ((uint64_t)1 << 0)
-#define X86_REGISTER_CL ((uint64_t)1 << 1)
-#define X86_REGISTER_DL ((uint64_t)1 << 2)
-#define X86_REGISTER_BL ((uint64_t)1 << 3)
-#define X86_REGISTER_SPL ((uint64_t)1 << 4)
-#define X86_REGISTER_BPL ((uint64_t)1 << 5)
-#define X86_REGISTER_SIL ((uint64_t)1 << 6)
-#define X86_REGISTER_DIL ((uint64_t)1 << 7)
-#define X86_REGISTER_R8B  ((uint64_t)1 << 8)
-#define X86_REGISTER_R9B  ((uint64_t)1 << 9)
-#define X86_REGISTER_R10B ((uint64_t)1 << 10)
-#define X86_REGISTER_R11B ((uint64_t)1 << 11)
-#define X86_REGISTER_R12B ((uint64_t)1 << 12)
-#define X86_REGISTER_R13B ((uint64_t)1 << 13)
-#define X86_REGISTER_R14B ((uint64_t)1 << 14)
-#define X86_REGISTER_R15B ((uint64_t)1 << 15)
+#define X86_REGISTER_IDX_AL 0
+#define X86_REGISTER_IDX_CL 1
+#define X86_REGISTER_IDX_DL 2
+#define X86_REGISTER_IDX_BL 3
+#define X86_REGISTER_IDX_SPL 4
+#define X86_REGISTER_IDX_BPL 5
+#define X86_REGISTER_IDX_SIL 6
+#define X86_REGISTER_IDX_DIL 7
+#define X86_REGISTER_IDX_R8B  8
+#define X86_REGISTER_IDX_R9B  9
+#define X86_REGISTER_IDX_R10B 10
+#define X86_REGISTER_IDX_R11B 11
+#define X86_REGISTER_IDX_R12B 12
+#define X86_REGISTER_IDX_R13B 13
+#define X86_REGISTER_IDX_R14B 14
+#define X86_REGISTER_IDX_R15B 15
 //word
-#define X86_REGISTER_AX ((uint64_t)1 << 16)
-#define X86_REGISTER_CX ((uint64_t)1 << 17)
-#define X86_REGISTER_DX ((uint64_t)1 << 18)
-#define X86_REGISTER_BX ((uint64_t)1 << 19)
-#define X86_REGISTER_SP ((uint64_t)1 << 20)
-#define X86_REGISTER_BP ((uint64_t)1 << 21)
-#define X86_REGISTER_SI ((uint64_t)1 << 22)
-#define X86_REGISTER_DI ((uint64_t)1 << 23)
-#define X86_REGISTER_R8W  ((uint64_t)1 << 24)
-#define X86_REGISTER_R9W  ((uint64_t)1 << 25)
-#define X86_REGISTER_R10W ((uint64_t)1 << 26)
-#define X86_REGISTER_R11W ((uint64_t)1 << 27)
-#define X86_REGISTER_R12W ((uint64_t)1 << 28)
-#define X86_REGISTER_R13W ((uint64_t)1 << 29)
-#define X86_REGISTER_R14W ((uint64_t)1 << 30)
-#define X86_REGISTER_R15W ((uint64_t)1 << 31)
+#define X86_REGISTER_IDX_AX 16
+#define X86_REGISTER_IDX_CX 17
+#define X86_REGISTER_IDX_DX 18
+#define X86_REGISTER_IDX_BX 19
+#define X86_REGISTER_IDX_SP 20
+#define X86_REGISTER_IDX_BP 21
+#define X86_REGISTER_IDX_SI 22
+#define X86_REGISTER_IDX_DI 23
+#define X86_REGISTER_IDX_R8W  24
+#define X86_REGISTER_IDX_R9W  25
+#define X86_REGISTER_IDX_R10W 26
+#define X86_REGISTER_IDX_R11W 27
+#define X86_REGISTER_IDX_R12W 28
+#define X86_REGISTER_IDX_R13W 29
+#define X86_REGISTER_IDX_R14W 30
+#define X86_REGISTER_IDX_R15W 31
 //dword
-#define X86_REGISTER_EAX ((uint64_t)1 << 32)
-#define X86_REGISTER_ECX ((uint64_t)1 << 33)
-#define X86_REGISTER_EDX ((uint64_t)1 << 34)
-#define X86_REGISTER_EBX ((uint64_t)1 << 35)
-#define X86_REGISTER_ESP ((uint64_t)1 << 36)
-#define X86_REGISTER_EBP ((uint64_t)1 << 37)
-#define X86_REGISTER_ESI ((uint64_t)1 << 38)
-#define X86_REGISTER_EDI ((uint64_t)1 << 39)
-#define X86_REGISTER_R8D  ((uint64_t)1 << 40)
-#define X86_REGISTER_R9D  ((uint64_t)1 << 41)
-#define X86_REGISTER_R10D ((uint64_t)1 << 42)
-#define X86_REGISTER_R11D ((uint64_t)1 << 43)
-#define X86_REGISTER_R12D ((uint64_t)1 << 44)
-#define X86_REGISTER_R13D ((uint64_t)1 << 45)
-#define X86_REGISTER_R14D ((uint64_t)1 << 46)
-#define X86_REGISTER_R15D ((uint64_t)1 << 47)
+#define X86_REGISTER_IDX_EAX 32
+#define X86_REGISTER_IDX_ECX 33
+#define X86_REGISTER_IDX_EDX 34
+#define X86_REGISTER_IDX_EBX 35
+#define X86_REGISTER_IDX_ESP 36
+#define X86_REGISTER_IDX_EBP 37
+#define X86_REGISTER_IDX_ESI 38
+#define X86_REGISTER_IDX_EDI 39
+#define X86_REGISTER_IDX_R8D  40
+#define X86_REGISTER_IDX_R9D  41
+#define X86_REGISTER_IDX_R10D 42
+#define X86_REGISTER_IDX_R11D 43
+#define X86_REGISTER_IDX_R12D 44
+#define X86_REGISTER_IDX_R13D 45
+#define X86_REGISTER_IDX_R14D 46
+#define X86_REGISTER_IDX_R15D 47
 //qword
-#define X86_REGISTER_RAX ((uint64_t)1 << 48)
-#define X86_REGISTER_RCX ((uint64_t)1 << 49)
-#define X86_REGISTER_RDX ((uint64_t)1 << 50)
-#define X86_REGISTER_RBX ((uint64_t)1 << 51)
-#define X86_REGISTER_RSP ((uint64_t)1 << 52)
-#define X86_REGISTER_RBP ((uint64_t)1 << 53)
-#define X86_REGISTER_RSI ((uint64_t)1 << 54)
-#define X86_REGISTER_RDI ((uint64_t)1 << 55)
-#define X86_REGISTER_R8  ((uint64_t)1 << 56)
-#define X86_REGISTER_R9  ((uint64_t)1 << 57)
-#define X86_REGISTER_R10 ((uint64_t)1 << 58)
-#define X86_REGISTER_R11 ((uint64_t)1 << 59)
-#define X86_REGISTER_R12 ((uint64_t)1 << 60)
-#define X86_REGISTER_R13 ((uint64_t)1 << 61)
-#define X86_REGISTER_R14 ((uint64_t)1 << 62)
-#define X86_REGISTER_R15 ((uint64_t)1 << 63)
+#define X86_REGISTER_IDX_RAX 48
+#define X86_REGISTER_IDX_RCX 49
+#define X86_REGISTER_IDX_RDX 50
+#define X86_REGISTER_IDX_RBX 51
+#define X86_REGISTER_IDX_RSP 52
+#define X86_REGISTER_IDX_RBP 53
+#define X86_REGISTER_IDX_RSI 54
+#define X86_REGISTER_IDX_RDI 55
+#define X86_REGISTER_IDX_R8  56
+#define X86_REGISTER_IDX_R9  57
+#define X86_REGISTER_IDX_R10 58
+#define X86_REGISTER_IDX_R11 59
+#define X86_REGISTER_IDX_R12 60
+#define X86_REGISTER_IDX_R13 61
+#define X86_REGISTER_IDX_R14 62
+#define X86_REGISTER_IDX_R15 63
+
+
+//byte
+#define X86_REGISTER_AL ((uint64_t)1 << X86_REGISTER_IDX_AL)
+#define X86_REGISTER_CL ((uint64_t)1 << X86_REGISTER_IDX_CL)
+#define X86_REGISTER_DL ((uint64_t)1 << X86_REGISTER_IDX_DL)
+#define X86_REGISTER_BL ((uint64_t)1 << X86_REGISTER_IDX_BL)
+#define X86_REGISTER_SPL ((uint64_t)1 << X86_REGISTER_IDX_SPL)
+#define X86_REGISTER_BPL ((uint64_t)1 << X86_REGISTER_IDX_BPL)
+#define X86_REGISTER_SIL ((uint64_t)1 << X86_REGISTER_IDX_SIL)
+#define X86_REGISTER_DIL ((uint64_t)1 << X86_REGISTER_IDX_DIL)
+#define X86_REGISTER_R8B  ((uint64_t)1 << X86_REGISTER_IDX_R8B)
+#define X86_REGISTER_R9B  ((uint64_t)1 << X86_REGISTER_IDX_R9B)
+#define X86_REGISTER_R10B ((uint64_t)1 << X86_REGISTER_IDX_R10B)
+#define X86_REGISTER_R11B ((uint64_t)1 << X86_REGISTER_IDX_R11B)
+#define X86_REGISTER_R12B ((uint64_t)1 << X86_REGISTER_IDX_R12B)
+#define X86_REGISTER_R13B ((uint64_t)1 << X86_REGISTER_IDX_R13B)
+#define X86_REGISTER_R14B ((uint64_t)1 << X86_REGISTER_IDX_R14B)
+#define X86_REGISTER_R15B ((uint64_t)1 << X86_REGISTER_IDX_R15B)
+//word
+#define X86_REGISTER_AX ((uint64_t)1 << X86_REGISTER_IDX_AX)
+#define X86_REGISTER_CX ((uint64_t)1 << X86_REGISTER_IDX_CX)
+#define X86_REGISTER_DX ((uint64_t)1 << X86_REGISTER_IDX_DX)
+#define X86_REGISTER_BX ((uint64_t)1 << X86_REGISTER_IDX_BX)
+#define X86_REGISTER_SP ((uint64_t)1 << X86_REGISTER_IDX_SP)
+#define X86_REGISTER_BP ((uint64_t)1 << X86_REGISTER_IDX_BP)
+#define X86_REGISTER_SI ((uint64_t)1 << X86_REGISTER_IDX_SI)
+#define X86_REGISTER_DI ((uint64_t)1 << X86_REGISTER_IDX_DI)
+#define X86_REGISTER_R8W  ((uint64_t)1 << X86_REGISTER_IDX_R8W)
+#define X86_REGISTER_R9W  ((uint64_t)1 << X86_REGISTER_IDX_R9W)
+#define X86_REGISTER_R10W ((uint64_t)1 << X86_REGISTER_IDX_R10W)
+#define X86_REGISTER_R11W ((uint64_t)1 << X86_REGISTER_IDX_R11W)
+#define X86_REGISTER_R12W ((uint64_t)1 << X86_REGISTER_IDX_R12W)
+#define X86_REGISTER_R13W ((uint64_t)1 << X86_REGISTER_IDX_R13W)
+#define X86_REGISTER_R14W ((uint64_t)1 << X86_REGISTER_IDX_R14W)
+#define X86_REGISTER_R15W ((uint64_t)1 << X86_REGISTER_IDX_R15W)
+//dword
+#define X86_REGISTER_EAX ((uint64_t)1 << X86_REGISTER_IDX_EAX)
+#define X86_REGISTER_ECX ((uint64_t)1 << X86_REGISTER_IDX_ECX)
+#define X86_REGISTER_EDX ((uint64_t)1 << X86_REGISTER_IDX_EDX)
+#define X86_REGISTER_EBX ((uint64_t)1 << X86_REGISTER_IDX_EBX)
+#define X86_REGISTER_ESP ((uint64_t)1 << X86_REGISTER_IDX_ESP)
+#define X86_REGISTER_EBP ((uint64_t)1 << X86_REGISTER_IDX_EBP)
+#define X86_REGISTER_ESI ((uint64_t)1 << X86_REGISTER_IDX_ESI)
+#define X86_REGISTER_EDI ((uint64_t)1 << X86_REGISTER_IDX_EDI)
+#define X86_REGISTER_R8D  ((uint64_t)1 << X86_REGISTER_IDX_R8D)
+#define X86_REGISTER_R9D  ((uint64_t)1 << X86_REGISTER_IDX_R9D)
+#define X86_REGISTER_R10D ((uint64_t)1 << X86_REGISTER_IDX_R10D)
+#define X86_REGISTER_R11D ((uint64_t)1 << X86_REGISTER_IDX_R11D)
+#define X86_REGISTER_R12D ((uint64_t)1 << X86_REGISTER_IDX_R12D)
+#define X86_REGISTER_R13D ((uint64_t)1 << X86_REGISTER_IDX_R13D)
+#define X86_REGISTER_R14D ((uint64_t)1 << X86_REGISTER_IDX_R14D)
+#define X86_REGISTER_R15D ((uint64_t)1 << X86_REGISTER_IDX_R15D)
+//qword
+#define X86_REGISTER_RAX ((uint64_t)1 << X86_REGISTER_IDX_RAX)
+#define X86_REGISTER_RCX ((uint64_t)1 << X86_REGISTER_IDX_RCX)
+#define X86_REGISTER_RDX ((uint64_t)1 << X86_REGISTER_IDX_RDX)
+#define X86_REGISTER_RBX ((uint64_t)1 << X86_REGISTER_IDX_RBX)
+#define X86_REGISTER_RSP ((uint64_t)1 << X86_REGISTER_IDX_RSP)
+#define X86_REGISTER_RBP ((uint64_t)1 << X86_REGISTER_IDX_RBP)
+#define X86_REGISTER_RSI ((uint64_t)1 << X86_REGISTER_IDX_RSI)
+#define X86_REGISTER_RDI ((uint64_t)1 << X86_REGISTER_IDX_RDI)
+#define X86_REGISTER_R8  ((uint64_t)1 << X86_REGISTER_IDX_R8)
+#define X86_REGISTER_R9  ((uint64_t)1 << X86_REGISTER_IDX_R9)
+#define X86_REGISTER_R10 ((uint64_t)1 << X86_REGISTER_IDX_R10)
+#define X86_REGISTER_R11 ((uint64_t)1 << X86_REGISTER_IDX_R11)
+#define X86_REGISTER_R12 ((uint64_t)1 << X86_REGISTER_IDX_R12)
+#define X86_REGISTER_R13 ((uint64_t)1 << X86_REGISTER_IDX_R13)
+#define X86_REGISTER_R14 ((uint64_t)1 << X86_REGISTER_IDX_R14)
+#define X86_REGISTER_R15 ((uint64_t)1 << X86_REGISTER_IDX_R15)
 
 
 #define REGISTER_ACCESS_READ  (1 << 0)

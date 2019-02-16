@@ -55,8 +55,8 @@ int main() {
 
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
-    srand(3);
-    test_on_shellcode();
+    srand(6);
+   // test_on_shellcode();
 
     shibari_module _module(
         std::string("..\\..\\app for test\\vm_test.exe")//std::string("..\\..\\app for test\\swhtest.exe")
@@ -113,11 +113,11 @@ int main() {
         fuku_settings_obfuscation ob_set( 4, 3, 40.f, 40.f, 40.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
 
-        fuku_settings_obfuscation ob1_set(5,5, 40.f, 20.f, 60.f, 
+        fuku_settings_obfuscation ob1_set(6,4, 40.f, 40.f, 60.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
 
-     //  fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
+       fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
      //   fuku.add_ob_code_list({ 0x103A , 0x6B6 }, &_module, ob1_set);
         fuku.add_ob_code_list({ 0x16F0 , 0x1A6 }, &_module, ob1_set);
         /*

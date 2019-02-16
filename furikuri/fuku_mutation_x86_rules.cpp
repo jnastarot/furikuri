@@ -153,7 +153,9 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
             fuku_register rand_reg = get_random_free_flag_reg(*lines_iter, 4, true);
 
-            if (rand_reg.get_reg() != X86_REG_INVALID) {
+            if (rand_reg.get_reg() != FUKU_REG_NONE) {
+
+                uint64_t flag_reg = convert_fuku_reg_to_complex_flag_reg(rand_reg);
 
                 f_asm.mov(rand_reg, imm(0xFFFFFFFF));
                 f_asm.get_context().inst->
@@ -167,7 +169,8 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
                 f_asm.jmp(rand_reg);
                 f_asm.get_context().inst->
-                    set_eflags(custom_eflags);
+                    set_eflags(custom_eflags )
+                    .set_custom_flags(custom_regs & (~flag_reg));
 
                 code_holder.delete_rip_relocation(rip_label_orig);
             }

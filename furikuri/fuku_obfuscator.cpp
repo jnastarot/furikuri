@@ -134,7 +134,7 @@ void fuku_obfuscator::spagetti_code() {
             }
 
             if (code->get_lines().size()) {
-                inst_flags = (code->get_lines().begin()->get_instruction_flags()) & FUKU_INST_BAD_STACK;
+                inst_flags = (code->get_lines().begin()->get_instruction_flags());
                 inst_eflags = code->get_lines().begin()->get_eflags();
                 inst_customflags = code->get_lines().begin()->get_custom_flags();
             }
@@ -192,7 +192,7 @@ void fuku_obfuscator::handle_jmps() {
     fuku_assambler fuku_asm(code->get_arch());
     fuku_asm.set_holder(code, ASSAMBLER_HOLD_TYPE_FIRST_OVERWRITE);
 
-    for (auto& line_iter = code->get_lines().begin(); line_iter != code->get_lines().end(); line_iter++) {
+    for (auto& line_iter = code->get_lines().begin(); line_iter != code->get_lines().end(); ++line_iter) {
 
         fuku_instruction& line = *line_iter;
 
@@ -262,7 +262,7 @@ void fuku_obfuscator::handle_jmps() {
             fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            line_iter++;
+            ++line_iter;
             break;
         }
 
@@ -280,7 +280,7 @@ void fuku_obfuscator::handle_jmps() {
             fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            line_iter++;
+            ++line_iter;
             break;
         }
 
@@ -297,7 +297,7 @@ void fuku_obfuscator::handle_jmps() {
             fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            line_iter++;
+            ++line_iter;
             break;
         }
 
@@ -314,7 +314,7 @@ void fuku_obfuscator::handle_jmps() {
             fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
             code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
 
-            line_iter++;
+            ++line_iter;
             break;
         }
 
