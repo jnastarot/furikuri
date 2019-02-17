@@ -15,9 +15,9 @@ class fuku_obfuscator;
 #include "fuku_settings_obfuscation.h"
 #include "fuku_settings_virtualization.h"
 
-#include "fuku_code_analyzer.h"
-#include "fuku_code_profiler.h"
 #include "fuku_code_utilits.h"
+#include "fuku_code_profiler.h"
+#include "fuku_code_analyzer.h"
 #include "fuku_obfuscator.h"
 #include "fuku_virtualizer_imp.h"
 #include "fuku_protect_mgr.h"

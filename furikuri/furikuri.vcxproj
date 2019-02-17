@@ -154,6 +154,7 @@
     <ClInclude Include="fuku_code_analyzer.h" />
     <ClInclude Include="fuku_code_profiler.h" />
     <ClInclude Include="fuku_code_utilits.h" />
+    <ClInclude Include="fuku_code_utilits_conv_tables.h" />
     <ClInclude Include="fuku_mutation_imp.h" />
     <ClInclude Include="fuku_mutation_x64_junk.h" />
     <ClInclude Include="fuku_mutation_x64_rules.h" />

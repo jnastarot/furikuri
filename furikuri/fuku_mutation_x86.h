@@ -8,7 +8,7 @@ class fuku_mutation_x86 :
     fuku_assambler f_asm;
     fuku_settings_obfuscation settings;
 
-    void fuku_mutation_x86::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+    void fuku_mutation_x86::fuku_junk(mutation_context& ctx);
 
     void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::iterator lines_iter);
     void fuku_mutation_x86::obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx);

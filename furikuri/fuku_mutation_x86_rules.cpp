@@ -1,17 +1,17 @@
 #include "stdafx.h"
 #include "fuku_mutation_x86_rules.h"
 
-#define IsAllowedStackOperations (!HAS_FULL_MASK(instruction_flags, FUKU_INST_BAD_STACK))
+#define IsAllowedStackOperations (!HAS_FULL_MASK(ctx.instruction_flags, FUKU_INST_BAD_STACK))
 
 static uint64_t di_fl_jcc[] = {
-    X86_EFLAGS_MOD_OF , X86_EFLAGS_MOD_OF, //jo   / jno
-    X86_EFLAGS_MOD_CF , X86_EFLAGS_MOD_CF, //jb   / jae
-    X86_EFLAGS_MOD_ZF , X86_EFLAGS_MOD_ZF, //je   / jne
-    X86_EFLAGS_MOD_ZF | X86_EFLAGS_MOD_CF, X86_EFLAGS_MOD_ZF | X86_EFLAGS_MOD_CF, //jbe / jnbe
-    X86_EFLAGS_MOD_SF , X86_EFLAGS_MOD_SF, //js   / jns
-    X86_EFLAGS_MOD_PF , X86_EFLAGS_MOD_PF, //jp   / jnp
-    X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF, X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF, //jnge / jge
-    X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF | X86_EFLAGS_MOD_ZF, X86_EFLAGS_MOD_OF | X86_EFLAGS_MOD_SF | X86_EFLAGS_MOD_ZF //jng / jnle
+    EFLAGS_MOD_OF , EFLAGS_MOD_OF, //jo   / jno
+    EFLAGS_MOD_CF , EFLAGS_MOD_CF, //jb   / jae
+    EFLAGS_MOD_ZF , EFLAGS_MOD_ZF, //je   / jne
+    EFLAGS_MOD_ZF | EFLAGS_MOD_CF, EFLAGS_MOD_ZF | EFLAGS_MOD_CF, //jbe / jnbe
+    EFLAGS_MOD_SF , EFLAGS_MOD_SF, //js   / jns
+    EFLAGS_MOD_PF , EFLAGS_MOD_PF, //jp   / jnp
+    EFLAGS_MOD_OF | EFLAGS_MOD_SF, EFLAGS_MOD_OF | EFLAGS_MOD_SF, //jnge / jge
+    EFLAGS_MOD_OF | EFLAGS_MOD_SF | EFLAGS_MOD_ZF, EFLAGS_MOD_OF | EFLAGS_MOD_SF | EFLAGS_MOD_ZF //jng / jnle
 };
 
 
@@ -23,37 +23,39 @@ JCC MUTATE RULES
     jmp jccdst
 
 */
-bool fukutate_jcc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter) {
+void fukutate_86_jcc(mutation_context& ctx) {
 
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
-
-    auto next_line = lines_iter; next_line++;
-    if (next_line != code_holder.get_lines().end()) { //if not last instruction
+    if (!ctx.is_next_line_end) { //if not last instruction
         //inverted jcc to next_inst_after real jcc
         //jmp jcc_dst
 
-        fuku_condition cond = capstone_to_fuku_cond((x86_insn)instruction->id);
-        uint64_t custom_eflags = lines_iter->get_eflags();
-        size_t rel_idx = lines_iter->get_rip_relocation_idx();
+        fuku_condition cond = capstone_to_fuku_cond((x86_insn)ctx.instruction->id);
+        size_t rel_idx = ctx.current_line_iter->get_rip_relocation_idx();
 
-        f_asm.jcc(fuku_condition(cond ^ 1), imm(-1));
-        f_asm.get_context().inst->
-            set_eflags(custom_eflags)
-            .set_rip_relocation_idx(code_holder.create_rip_relocation(f_asm.get_context().immediate_offset, &(*next_line)))
-            .set_instruction_flags(FUKU_INST_NO_MUTATE | instruction_flags);
+        ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(-1));
+        ctx.f_asm->get_context().inst->
+            set_eflags(ctx.eflags_changes)
+            .set_rip_relocation_idx(
+                ctx.code_holder->create_rip_relocation(
+                    ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter)
+                )
+            )
+            .set_instruction_flags(FUKU_INST_NO_MUTATE | ctx.instruction_flags);
 
-        f_asm.jmp(imm(-1));
-        f_asm.get_context().inst->
-            set_eflags(custom_eflags)
+        ctx.f_asm->jmp(imm(-1));
+        ctx.f_asm->get_context().inst->
+            set_eflags(ctx.eflags_changes)
             .set_rip_relocation_idx(rel_idx)
-            .set_instruction_flags(FUKU_INST_NO_MUTATE | instruction_flags);
+            .set_instruction_flags(FUKU_INST_NO_MUTATE | ctx.instruction_flags);
 
-        code_holder.get_rip_relocations()[rel_idx].offset = f_asm.get_context().immediate_offset;
+        ctx.code_holder->get_rip_relocations()[rel_idx].offset = ctx.f_asm->get_context().immediate_offset;
 
-        return true;
+        ctx.was_mutated = true;
+        return;
     }
 
-    return false;
+    ctx.was_mutated = false;
+    return;
 }
 
 /*
@@ -72,10 +74,9 @@ JMP MUTATE RULES
     jmp randreg
 
 */
-bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_jmp(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) { //jmp reg32
 
@@ -87,10 +88,8 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     }
     else if (detail.operands[0].type == X86_OP_IMM) { //jmp imm
 
-        uint64_t custom_regs = lines_iter->get_custom_flags();
-        uint64_t custom_eflags = lines_iter->get_eflags();
-        size_t rip_label_orig = lines_iter->get_rip_relocation_idx();
-        size_t rip_label_idx = code_holder.get_rip_relocations()[rip_label_orig].label_idx;
+        size_t rip_label_orig = ctx.current_line_iter->get_rip_relocation_idx();
+        size_t rip_label_idx = ctx.code_holder->get_rip_relocations()[rip_label_orig].label_idx;
 
         switch (FUKU_GET_RAND(0, 2)) {
             //push jmpdst
@@ -99,26 +98,27 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
             if (IsAllowedStackOperations) {
                 
-
-                f_asm.push(imm(0xFFFFFFFF));
-                f_asm.get_context().inst->
-                    set_eflags(custom_eflags)
-                    .set_custom_flags(custom_regs)
+                
+                ctx.f_asm->push(imm(0xFFFFFFFF));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
+                    .set_custom_flags(ctx.regs_changes)
                     .set_relocation_first_idx(
-                        code_holder.create_relocation_lb(
-                            f_asm.get_context().immediate_offset, rip_label_idx, 0
+                        ctx.code_holder->create_relocation_lb(
+                            ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
                         )
                     );
 
-                f_asm.ret(imm(0));
-                f_asm.get_context().inst->
-                    set_eflags(custom_eflags)
-                    .set_custom_flags(custom_regs);
+                ctx.f_asm->ret(imm(0));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
+                    .set_custom_flags(ctx.regs_changes);
 
-                code_holder.delete_rip_relocation(rip_label_orig);
+                ctx.code_holder->delete_rip_relocation(rip_label_orig);
             }
             else {
-                return false;
+                ctx.was_mutated = false;
+                return;
             }
             break;
         }
@@ -129,21 +129,21 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
             uint8_t cond = FUKU_GET_RAND(0, 15);
 
-            f_asm.jcc(fuku_condition(cond), imm(-1));
-            f_asm.get_context().inst->
-                set_eflags(custom_eflags)
-                .set_custom_flags(custom_regs)
-                .set_rip_relocation_idx(code_holder.create_rip_relocation_lb(f_asm.get_context().immediate_offset, rip_label_idx))
-                .set_instruction_flags(instruction_flags | FUKU_INST_NO_MUTATE);
+            ctx.f_asm->jcc(fuku_condition(cond), imm(-1));
+            ctx.f_asm->get_context().inst->
+                set_eflags(ctx.eflags_changes)
+                .set_custom_flags(ctx.regs_changes)
+                .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
+                .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
 
-            f_asm.jcc(fuku_condition(cond ^ 1), imm(-1));
-            f_asm.get_context().inst->
-                set_eflags(custom_eflags & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
-                .set_custom_flags(custom_regs)
-                .set_rip_relocation_idx(code_holder.create_rip_relocation_lb(f_asm.get_context().immediate_offset, rip_label_idx))
-                .set_instruction_flags(instruction_flags | FUKU_INST_NO_MUTATE);
+            ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(-1));
+            ctx.f_asm->get_context().inst->
+                set_eflags(ctx.eflags_changes & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
+                .set_custom_flags(ctx.regs_changes)
+                .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
+                .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
 
-            code_holder.delete_rip_relocation(rip_label_orig);
+            ctx.code_holder->delete_rip_relocation(rip_label_orig);
 
             break;
         }
@@ -151,31 +151,32 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             //mov randreg, dst
             //jmp randreg
 
-            fuku_register rand_reg = get_random_free_flag_reg(*lines_iter, 4, true);
+            fuku_register rand_reg = get_random_free_flag_reg(ctx.regs_changes, 4, true);
 
             if (rand_reg.get_reg() != FUKU_REG_NONE) {
 
-                uint64_t flag_reg = convert_fuku_reg_to_complex_flag_reg(rand_reg);
+                uint64_t flag_reg = fuku_reg_to_complex_flag_reg(rand_reg);
 
-                f_asm.mov(rand_reg, imm(0xFFFFFFFF));
-                f_asm.get_context().inst->
-                    set_eflags(custom_eflags)
-                    .set_custom_flags(custom_regs)
+                ctx.f_asm->mov(rand_reg, imm(0xFFFFFFFF));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
+                    .set_custom_flags(ctx.regs_changes)
                     .set_relocation_first_idx(
-                        code_holder.create_relocation_lb(
-                            f_asm.get_context().immediate_offset, rip_label_idx, 0
+                        ctx.code_holder->create_relocation_lb(
+                            ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
                         )
                     );
 
-                f_asm.jmp(rand_reg);
-                f_asm.get_context().inst->
-                    set_eflags(custom_eflags )
-                    .set_custom_flags(custom_regs & (~flag_reg));
+                ctx.f_asm->jmp(rand_reg);
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
+                    .set_custom_flags(ctx.regs_changes & (~flag_reg));
 
-                code_holder.delete_rip_relocation(rip_label_orig);
+                ctx.code_holder->delete_rip_relocation(rip_label_orig);
             }
             else {
-                return false;
+                ctx.was_mutated = false;
+                return;
             }
 
             break;
@@ -183,10 +184,12 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
         }
 
-        return true;
+        ctx.was_mutated = true;
+        return;
     }
 
-    return false;
+    ctx.was_mutated = false;
+    return;
 }
 
 
@@ -194,10 +197,9 @@ bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 CALL MUTATE RULES
 
 */
-bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_call(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //call [op]
 
@@ -234,33 +236,33 @@ bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
     }
     else if (detail.operands[0].type == X86_OP_IMM) {
 
-        auto next_line = lines_iter; next_line++;
-        if (next_line != code_holder.get_lines().end()) { //if not last instruction
+        if (!ctx.is_next_line_end) { //if not last instruction
 
-            uint64_t custom_eflags = lines_iter->get_eflags();
-            size_t rip_label_orig = lines_iter->get_rip_relocation_idx();
+            size_t rip_label_orig = ctx.current_line_iter->get_rip_relocation_idx();
 
-            f_asm.push(imm(0xFFFFFFFF));
-            f_asm.get_context().inst->
-                set_eflags(custom_eflags)
+            ctx.f_asm->push(imm(0xFFFFFFFF));
+            ctx.f_asm->get_context().inst->
+                set_eflags(ctx.eflags_changes)
                 .set_relocation_first_idx(
-                    code_holder.create_relocation(
-                        f_asm.get_context().immediate_offset, &(*next_line), 0
+                    ctx.code_holder->create_relocation(
+                        ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter), 0
                     )
                 );
 
-            f_asm.jmp(imm(0xFFFFFFFF));
-            f_asm.get_context().inst->
-                set_eflags(custom_eflags)
+            ctx.f_asm->jmp(imm(0xFFFFFFFF));
+            ctx.f_asm->get_context().inst->
+                set_eflags(ctx.eflags_changes)
                 .set_rip_relocation_idx(rip_label_orig);
 
-            code_holder.get_rip_relocations()[rip_label_orig].offset = f_asm.get_context().immediate_offset;
+            ctx.code_holder->get_rip_relocations()[rip_label_orig].offset = ctx.f_asm->get_context().immediate_offset;
 
-            return true;
+            ctx.was_mutated = true;
+            return;
         }
     }
 
-    return false;
+    ctx.was_mutated = false;
+    return;
 }
 
 
@@ -272,10 +274,10 @@ RET MUTATE RULES
     jmp [esp - 4 - stack_offset] <- bad esp here
 
 */
-bool fukutate_ret(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_ret(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
+
     if (IsAllowedStackOperations) {
 
         //lea esp,[esp + (4 + stack_offset)]
@@ -286,21 +288,21 @@ bool fukutate_ret(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
             ret_stack = (uint16_t)detail.operands[0].imm;
         }
 
-        uint64_t custom_eflags = lines_iter->get_eflags();
+        uint64_t custom_eflags = ctx.current_line_iter->get_eflags();
 
-        f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4 + ret_stack)));
-        f_asm.get_context().inst->
+        ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4 + ret_stack)));
+        ctx.f_asm->get_context().inst->
             set_eflags(custom_eflags);
 
-        f_asm.jmp(dword_ptr(FUKU_REG_ESP, imm(-4 - ret_stack)));
-        f_asm.get_context().inst->
+        ctx.f_asm->jmp(dword_ptr(FUKU_REG_ESP, imm(-4 - ret_stack)));
+        ctx.f_asm->get_context().inst->
             set_eflags(custom_eflags)
             .set_instruction_flags(FUKU_INST_BAD_STACK);
 
-        return true;
+        ctx.was_mutated = true; return;
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 /*
@@ -316,10 +318,9 @@ imm
     mov [esp], value <- bad esp here
     
 */
-bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_push(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
 
@@ -329,31 +330,30 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
             if (IsAllowedStackOperations) {
                 fuku_register_enum reg = capstone_to_fuku_reg(detail.operands[0].reg);
-                uint64_t custom_eflags = lines_iter->get_eflags();
 
-                if (has_inst_free_eflags(custom_eflags,
+                if (has_inst_free_eflags(ctx.eflags_changes,
                     X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
-                    f_asm.sub(reg_(FUKU_REG_ESP), imm(4));
-                    f_asm.get_context().inst->
-                        set_eflags(lines_iter->get_eflags());
+                    ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(4));
+                    ctx.f_asm->get_context().inst->
+                        set_eflags(ctx.eflags_changes);
                 }
                 else {
-                    f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                    f_asm.get_context().inst->
-                        set_eflags(lines_iter->get_eflags());
+                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
+                    ctx.f_asm->get_context().inst->
+                        set_eflags(ctx.eflags_changes);
                 }
 
-                f_asm.mov(dword_ptr(FUKU_REG_ESP), reg_(reg));
-                f_asm.get_context().inst->
-                    set_eflags(lines_iter->get_eflags())
+                ctx.f_asm->mov(dword_ptr(FUKU_REG_ESP), reg_(reg));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
                     .set_instruction_flags(FUKU_INST_BAD_STACK);
             }
             else {
-                return false;
+                ctx.was_mutated = false; return;
             }
 
-            return true;
+            ctx.was_mutated = true; return;
         }
         else if (detail.operands[0].size == 2) { //push reg16
 
@@ -372,45 +372,44 @@ bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
         //mov [esp],value
 
         if (IsAllowedStackOperations) {
-            uint64_t custom_eflags = lines_iter->get_eflags();
-            size_t reloc_idx = lines_iter->get_relocation_first_idx();
+            size_t reloc_idx = ctx.current_line_iter->get_relocation_first_idx();
             uint32_t val = reloc_idx != -1 ? -1 : (uint32_t)detail.operands[0].imm;
 
 
-            if (has_inst_free_eflags(custom_eflags, 
+            if (has_inst_free_eflags(ctx.eflags_changes,
                 X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
-                f_asm.sub(reg_(FUKU_REG_ESP), imm(4));
-                f_asm.get_context().inst->
-                    set_eflags(custom_eflags);
+                ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(4));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes);
             }
             else {
-                f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                f_asm.get_context().inst->
-                    set_eflags(custom_eflags);
+                ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes);
             }
 
-            f_asm.mov(dword_ptr(FUKU_REG_ESP), imm(val));
-            f_asm.get_context().inst->
-                set_eflags(custom_eflags)
+            ctx.f_asm->mov(dword_ptr(FUKU_REG_ESP), imm(val));
+            ctx.f_asm->get_context().inst->
+                set_eflags(ctx.eflags_changes)
                 .set_instruction_flags(FUKU_INST_BAD_STACK);
 
 
             if (reloc_idx != -1) {
-                f_asm.get_context().inst->
+                ctx.f_asm->get_context().inst->
                     set_relocation_first_idx(reloc_idx);
 
-                code_holder.get_relocations()[reloc_idx].offset = f_asm.get_context().immediate_offset;
+                ctx.code_holder->get_relocations()[reloc_idx].offset = ctx.f_asm->get_context().immediate_offset;
             }
         }
         else {
-            return false;
+            ctx.was_mutated = false; return;
         }
 
-        return true;
+        ctx.was_mutated = true; return;
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
@@ -427,10 +426,10 @@ reg
     (add esp,4) or (lea esp,[esp - 4])   <- bad esp here
 
 */
-bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_pop(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
+    uint32_t instruction_flags = ctx.current_line_iter->get_instruction_flags();
 
     if (detail.operands[0].type == X86_OP_REG) { //pop reg
 
@@ -439,27 +438,27 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
             if (IsAllowedStackOperations) {
                 fuku_register_enum reg = capstone_to_fuku_reg(detail.operands[0].reg);
-                uint64_t custom_eflags = lines_iter->get_eflags();
+                uint64_t custom_eflags = ctx.current_line_iter->get_eflags();
 
                 if (FUKU_GET_RAND(0, 10) < 5) {
                     //mov reg,[esp]
                     //add esp,4
             
-                    f_asm.mov(reg_(reg), dword_ptr(FUKU_REG_ESP));
-                    f_asm.get_context().inst->
+                    ctx.f_asm->mov(reg_(reg), dword_ptr(FUKU_REG_ESP));
+                    ctx.f_asm->get_context().inst->
                         set_eflags(custom_eflags);
 
                     if (has_inst_free_eflags(custom_eflags, 
                         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
-                        f_asm.add(reg_(FUKU_REG_ESP), imm(4));
-                        f_asm.get_context().inst->
+                        ctx.f_asm->add(reg_(FUKU_REG_ESP), imm(4));
+                        ctx.f_asm->get_context().inst->
                             set_eflags(custom_eflags)
                             .set_instruction_flags(FUKU_INST_BAD_STACK);
                     }
                     else {
-                        f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
-                        f_asm.get_context().inst->
+                        ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
+                        ctx.f_asm->get_context().inst->
                             set_eflags(custom_eflags)
                             .set_instruction_flags(FUKU_INST_BAD_STACK);
                     }
@@ -471,27 +470,27 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
                     if (has_inst_free_eflags(custom_eflags, 
                         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
-                        f_asm.add(reg_(FUKU_REG_ESP), imm(4));
-                        f_asm.get_context().inst->
+                        ctx.f_asm->add(reg_(FUKU_REG_ESP), imm(4));
+                        ctx.f_asm->get_context().inst->
                             set_eflags(custom_eflags);
                     }
                     else {
-                        f_asm.lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
-                        f_asm.get_context().inst->
+                        ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
+                        ctx.f_asm->get_context().inst->
                             set_eflags(custom_eflags);
                     }
 
-                    f_asm.mov(reg_(reg), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                    f_asm.get_context().inst->
+                    ctx.f_asm->mov(reg_(reg), dword_ptr(FUKU_REG_ESP, imm(-4)));
+                    ctx.f_asm->get_context().inst->
                         set_eflags(custom_eflags)
                         .set_instruction_flags(FUKU_INST_BAD_STACK);
                 }
             }
             else {
-                return false;
+                ctx.was_mutated = false; return;
             }
 
-            return true;
+            ctx.was_mutated = true; return;
         }
         else if (detail.operands[0].size == 2) { //pop reg16
 
@@ -507,27 +506,26 @@ bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
     }
 
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_mov(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_mov(mutation_context& ctx) {
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_xchg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_xchg(mutation_context& ctx) {
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_lea(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_lea(mutation_context& ctx) {
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_add(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //add [op],imm
 
@@ -595,12 +593,11 @@ bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_or(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //or [op],imm
 
@@ -668,12 +665,11 @@ bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& 
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_adc(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //adc [op],imm
 
@@ -741,12 +737,11 @@ bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_sbb(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //sbb [op],imm
 
@@ -814,12 +809,11 @@ bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_and(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //and [op],imm
 
@@ -887,13 +881,12 @@ bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_sub(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //sub [op],imm
 
@@ -961,12 +954,11 @@ bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_xor(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //xor [op],imm
 
@@ -1034,12 +1026,11 @@ bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_cmp(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //cmp [op],imm
 
@@ -1107,13 +1098,12 @@ bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_test(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM && detail.operands[1].type == X86_OP_IMM) { //test [op],imm
 
@@ -1181,14 +1171,13 @@ bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_inc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_inc(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //inc [op]
 
@@ -1224,13 +1213,12 @@ bool fukutate_inc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_dec(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_dec(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //dec [op]
 
@@ -1266,13 +1254,12 @@ bool fukutate_dec(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_not(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_not(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //not [op]
 
@@ -1308,12 +1295,11 @@ bool fukutate_not(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_neg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_neg(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //neg [op]
 
@@ -1349,12 +1335,11 @@ bool fukutate_neg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_mul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_mul(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //mul [op]
 
@@ -1390,17 +1375,16 @@ bool fukutate_mul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_imul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_imul(mutation_context& ctx) {
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_div(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_div(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //div [op]
 
@@ -1436,12 +1420,11 @@ bool fukutate_div(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
-bool fukutate_idiv(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_idiv(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_MEM) { //idiv [op]
 
@@ -1477,14 +1460,13 @@ bool fukutate_idiv(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_rol(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_rol(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1546,13 +1528,12 @@ bool fukutate_rol(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_ror(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_ror(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1614,14 +1595,13 @@ bool fukutate_ror(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_rcl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_rcl(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1683,14 +1663,13 @@ bool fukutate_rcl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_rcr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_rcr(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1752,14 +1731,13 @@ bool fukutate_rcr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_shl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_shl(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1821,14 +1799,13 @@ bool fukutate_shl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_shr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_shr(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1890,14 +1867,13 @@ bool fukutate_shr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_sar(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_sar(mutation_context& ctx) {
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -1959,15 +1935,14 @@ bool fukutate_sar(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
         }
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
 
-bool fukutate_bt(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_bt(mutation_context& ctx) {
 
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[1].type == X86_OP_REG) { 
         cs_x86_op * reg_op = &detail.operands[0];
@@ -2027,14 +2002,13 @@ bool fukutate_bt(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& 
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_bts(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_bts(mutation_context& ctx) {
 
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[1].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -2097,14 +2071,13 @@ bool fukutate_bts(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_btr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_btr(mutation_context& ctx) {
 
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[1].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -2167,14 +2140,13 @@ bool fukutate_btr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_btc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_btc(mutation_context& ctx) {
 
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[1].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -2237,14 +2209,13 @@ bool fukutate_btc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_bsf(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_bsf(mutation_context& ctx) {
 
 
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -2276,14 +2247,12 @@ bool fukutate_bsf(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 
-bool fukutate_bsr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fukutate_86_bsr(mutation_context& ctx) {
 
-
-    auto detail = instruction->detail->x86;
-    uint32_t instruction_flags = lines_iter->get_instruction_flags();
+    auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
         cs_x86_op * reg_op = &detail.operands[0];
@@ -2315,6 +2284,6 @@ bool fukutate_bsr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder&
 
     }
 
-    return false;
+    ctx.was_mutated = false; return;
 }
 

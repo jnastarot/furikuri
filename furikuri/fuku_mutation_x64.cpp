@@ -41,59 +41,64 @@ void fuku_mutation_x64::obfuscate(fuku_code_holder& code_holder) {
 
 void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
-    cs_insn *instruction;
-    linestorage::iterator first_junk_line_iter = lines_iter;
-    linestorage::iterator first_line_iter = lines_iter;
-    linestorage::iterator next_line_iter = lines_iter; ++next_line_iter;
 
-    bool has_unstable_stack = lines_iter->get_instruction_flags() & FUKU_INST_BAD_STACK;
-    bool is_first_line_begin = lines_iter == code_holder.get_lines().begin();
-    bool is_next_line_end = next_line_iter == code_holder.get_lines().end();
-    bool was_mutated = false;
-    bool was_junked = false;
+    mutation_context ctx;
+    ctx.f_asm = &this->f_asm;
+    ctx.code_holder = &code_holder;
 
-    size_t   label_idx = lines_iter->get_label_idx();
-    uint64_t source_virtual_address = lines_iter->get_source_virtual_address();
+    ctx.first_junk_line_iter = lines_iter;
+    ctx.first_line_iter = lines_iter;
+    ctx.current_line_iter = lines_iter;
+    ctx.next_line_iter = lines_iter; ++ctx.next_line_iter;
 
-    cs_disasm(cap_handle, lines_iter->get_op_code(), lines_iter->get_op_length(), 0, 1, &instruction);
+    ctx.has_unstable_stack = lines_iter->get_instruction_flags() & FUKU_INST_BAD_STACK;
+    ctx.is_first_line_begin = lines_iter == code_holder.get_lines().begin();
+    ctx.is_next_line_end = ctx.next_line_iter == code_holder.get_lines().end();
+    ctx.was_mutated = false;
+    ctx.was_junked = false;
 
-    if (!instruction) { FUKU_DEBUG; }
+    ctx.label_idx = lines_iter->get_label_idx();
+    ctx.source_virtual_address = lines_iter->get_source_virtual_address();
+
+    ctx.instruction_flags = lines_iter->get_instruction_flags();
+    ctx.eflags_changes = lines_iter->get_eflags();
+    ctx.regs_changes = lines_iter->get_custom_flags();
+
+    ctx.swap_junk_label = false;
+
+    cs_disasm(cap_handle, lines_iter->get_op_code(), lines_iter->get_op_length(), 0, 1, &ctx.instruction);
+
+    if (!ctx.instruction) { FUKU_DEBUG; }
 
     f_asm.get_context().short_cfg = this->settings.get_asm_cfg() & FUKU_GET_RAND(0, 0xFF);
 
-    f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
-        .set_position(lines_iter)
-        .set_first_emit(true);
-
-
-
+    
     if (FUKU_GET_CHANCE(settings.get_junk_chance())) {
 
-        if (!is_first_line_begin) {
-            --first_junk_line_iter;
+        if (!ctx.is_first_line_begin) {
+            --ctx.first_junk_line_iter;
         }
 
-        fuku_junk(code_holder, lines_iter); was_junked = true;
+        fuku_junk(ctx);
 
-        if (!is_first_line_begin) {
-            ++first_junk_line_iter;
+        if (!ctx.is_first_line_begin) {
+            ++ctx.first_junk_line_iter;
         }
         else {
-            first_junk_line_iter = code_holder.get_lines().begin();
+            ctx.first_junk_line_iter = code_holder.get_lines().begin();
         }
 
-        if (is_next_line_end) {
-            first_line_iter = code_holder.get_lines().end();
+        if (ctx.is_next_line_end) {
+            ctx.first_line_iter = code_holder.get_lines().end();
         }
         else {
-            first_line_iter = next_line_iter;
+            ctx.first_line_iter = ctx.next_line_iter;
         }
 
-        --first_line_iter;
+        --ctx.first_line_iter;
     }
 
 
-    f_asm.get_context().short_cfg = 0;
     f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_FIRST_OVERWRITE)
         .set_position(lines_iter)
         .set_first_emit(true);
@@ -106,11 +111,11 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
 
 //CONTROL GRAPH
         case X86_INS_JMP: {
-            was_mutated = fukutate_jmp(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_jmp(ctx);
             break;
         }
         case X86_INS_CALL: {
-            was_mutated = fukutate_call(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_call(ctx);
             break;
         }
         case  X86_INS_JO: case  X86_INS_JNO:
@@ -120,169 +125,167 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
         case  X86_INS_JS: case  X86_INS_JNS:
         case  X86_INS_JP: case  X86_INS_JNP:
         case  X86_INS_JL: case  X86_INS_JGE:
-        case  X86_INS_JLE:case  X86_INS_JG: {
-            if (!is_next_line_end) { //idk but it check dont works in fukutate_jcc \_(._.)/
-                was_mutated = fukutate_jcc(instruction, f_asm, code_holder, lines_iter);
-            }
+        case  X86_INS_JLE:case  X86_INS_JG: { 
+            fukutate_64_jcc(ctx);
             break;
         }
         case X86_INS_RET: {
-            was_mutated = fukutate_ret(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_ret(ctx);
             break;
         }
 
         case X86_INS_MOV: {
-            was_mutated = fukutate_mov(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_mov(ctx);
             break;
         }
 
         case X86_INS_XCHG: {
-            was_mutated = fukutate_xchg(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_xchg(ctx);
             break;
         }
 
         case X86_INS_LEA: {
-            was_mutated = fukutate_lea(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_lea(ctx);
             break;
         }
 
 //STACK CONTROL
         case X86_INS_PUSH: {
-            was_mutated = fukutate_push(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_push(ctx);
             break;
         }
 
         case X86_INS_POP: {
-            was_mutated = fukutate_pop(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_pop(ctx);
             break;
         }
 
 //ARITHMETIC
         case X86_INS_ADD: {
-            was_mutated = fukutate_add(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_add(ctx);
             break;
         }
         case X86_INS_OR: {
-            was_mutated = fukutate_or(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_or(ctx);
             break;
         }
         case X86_INS_ADC: {
-            was_mutated = fukutate_adc(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_adc(ctx);
             break;
         }
         case X86_INS_SBB: {
-            was_mutated = fukutate_sbb(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_sbb(ctx);
             break;
         }
         case X86_INS_AND: {
-            was_mutated = fukutate_and(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_and(ctx);
             break;
         }
         case X86_INS_SUB: {
-            was_mutated = fukutate_sub(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_sub(ctx);
             break;
         }
         case X86_INS_XOR: {
-            was_mutated = fukutate_xor(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_xor(ctx);
             break;
         }
         case X86_INS_CMP: {
-            was_mutated = fukutate_cmp(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_cmp(ctx);
             break;
         }
         case X86_INS_INC: {
-            was_mutated = fukutate_inc(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_inc(ctx);
             break;
         }
         case X86_INS_DEC: {
-            was_mutated = fukutate_dec(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_dec(ctx);
             break;
         }
         case X86_INS_TEST: {
-            was_mutated = fukutate_test(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_test(ctx);
             break;
         }
 
         case X86_INS_NOT: {
-            was_mutated = fukutate_not(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_not(ctx);
             break;
         }
         case X86_INS_NEG: {
-            was_mutated = fukutate_neg(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_neg(ctx);
             break;
         }
         case X86_INS_MUL: {
-            was_mutated = fukutate_mul(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_mul(ctx);
             break;
         }
         case X86_INS_IMUL: {
-            was_mutated = fukutate_imul(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_imul(ctx);
             break;
         }
         case X86_INS_DIV: {
-            was_mutated = fukutate_div(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_div(ctx);
             break;
         }
         case X86_INS_IDIV: {
-            was_mutated = fukutate_idiv(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_idiv(ctx);
             break;
         }
 
 //SHIFT
         case X86_INS_ROL: {
-            was_mutated = fukutate_rol(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_rol(ctx);
             break;
         }
 
         case X86_INS_ROR: {
-            was_mutated = fukutate_ror(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_ror(ctx);
             break;
         }
         case X86_INS_RCL: {
-            was_mutated = fukutate_rcl(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_rcl(ctx);
             break;
         }
         case X86_INS_RCR: {
-            was_mutated = fukutate_rcr(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_rcr(ctx);
             break;
         }
         case X86_INS_SAL: //SAL is too SHL
         case X86_INS_SHL: {
-            was_mutated = fukutate_shl(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_shl(ctx);
             break;
         }
         case X86_INS_SHR: {
-            was_mutated = fukutate_shr(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_shr(ctx);
             break;
         }
         case X86_INS_SAR: {
-            was_mutated = fukutate_sar(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_sar(ctx);
             break;
         }
 
 //BITTEST
         case X86_INS_BT: {
-            was_mutated = fukutate_bt(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_bt(ctx);
             break;
         }
         case X86_INS_BTS: {
-            was_mutated = fukutate_bts(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_bts(ctx);
             break;
         }
         case X86_INS_BTR: {
-            was_mutated = fukutate_btr(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_btr(ctx);
             break;
         }
         case X86_INS_BTC: {
-            was_mutated = fukutate_btc(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_btc(ctx);
             break;
         }
         case X86_INS_BSF: {
-            was_mutated = fukutate_bsf(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_bsf(ctx);
             break;
         }
         case X86_INS_BSR: {
-            was_mutated = fukutate_bsr(instruction, f_asm, code_holder, lines_iter);
+            fukutate_64_bsr(ctx);
             break;
         }
 
@@ -290,34 +293,49 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
 
         }
     }
+    
+    cs_free(ctx.instruction, 1);
 
-    cs_free(instruction, 1);
+    if (ctx.was_junked || ctx.was_mutated) { //move label_idx and source_address to start of instruction's array 
 
-    if (was_junked || was_mutated) { //move label_idx and source_address to start of instruction's array 
+       // bool replace_labels = (label_idx != -1) && (label_idx == );
 
-        if (!was_mutated) {
-            first_line_iter->set_label_idx(-1);
+        if (!ctx.was_mutated) {
+            ctx.first_line_iter->set_label_idx(-1);
         }
 
-        if (was_junked) {
-            first_junk_line_iter->set_label_idx(label_idx);
-            first_junk_line_iter->set_source_virtual_address(source_virtual_address);
+        if (ctx.was_junked) {
+
+            ctx.first_junk_line_iter->set_label_idx(ctx.label_idx);
+
+            if (ctx.swap_junk_label) {
+
+                ctx.first_line_iter->set_label_idx(ctx.junk_label_idx);
+
+                code_holder.get_labels()[ctx.junk_label_idx].instruction = &(*ctx.first_line_iter);
+
+                if (ctx.label_idx != -1) {
+                    code_holder.get_labels()[ctx.label_idx].instruction = &(*ctx.first_junk_line_iter);
+                }
+            }
+
+            ctx.first_junk_line_iter->set_source_virtual_address(ctx.source_virtual_address);
         }
         else {
-            first_line_iter->set_label_idx(label_idx);
-            first_line_iter->set_source_virtual_address(source_virtual_address);
+            ctx.first_line_iter->set_label_idx(ctx.label_idx);
+            ctx.first_line_iter->set_source_virtual_address(ctx.source_virtual_address);
         }
 
 
-        if (is_next_line_end) {
-            next_line_iter = code_holder.get_lines().end();
+        if (ctx.is_next_line_end) {
+            ctx.next_line_iter = code_holder.get_lines().end();
         }
 
-        auto& start_line = (was_junked == true ? first_junk_line_iter : first_line_iter);
+        auto& start_line = (ctx.was_junked == true ? ctx.first_junk_line_iter : ctx.first_line_iter);
 
-        for (auto current_line = start_line; current_line != next_line_iter; ++current_line) {
+        for (auto current_line = start_line; current_line != ctx.next_line_iter; ++current_line) {
 
-            if (has_unstable_stack) {
+            if (ctx.has_unstable_stack) {
                 current_line->set_instruction_flags(current_line->get_instruction_flags() | FUKU_INST_BAD_STACK);
             }
             if (current_line != start_line) {
@@ -327,17 +345,13 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
     }
 }
 
-void fuku_mutation_x64::fuku_junk(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
+void fuku_mutation_x64::fuku_junk(mutation_context& ctx) {
 
-    bool unstable_stack = HAS_FULL_MASK(lines_iter->get_instruction_flags(), FUKU_INST_BAD_STACK);
-    uint64_t eflags_changes = lines_iter->get_eflags();
-    uint64_t regs_changes = lines_iter->get_custom_flags();
+    f_asm.set_holder(ctx.code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
+        .set_position(ctx.current_line_iter)
+        .set_first_emit(false);
 
-    f_asm.set_holder(&code_holder, ASSAMBLER_HOLD_TYPE_NOOVERWRITE)
-        .set_position(lines_iter)
-        .set_first_emit(true);
-
-    fuku_junk_generic(f_asm, code_holder, lines_iter, unstable_stack, eflags_changes, regs_changes);
+    fuku_junk_64_generic(ctx);
 }
 
 void fuku_mutation_x64::get_junk(

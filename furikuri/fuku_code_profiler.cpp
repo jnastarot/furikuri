@@ -4,14 +4,6 @@
 
 #define GET_BITES_INCLUDED(src, include_mask, exclude_mask) (( (src) & (include_mask) ) & (~(exclude_mask)))
 
-#define CF_EXCLUDE (X86_EFLAGS_MODIFY_CF | X86_EFLAGS_UNDEFINED_CF | X86_EFLAGS_RESET_CF | X86_EFLAGS_SET_CF)
-#define DF_EXCLUDE (X86_EFLAGS_MODIFY_DF | X86_EFLAGS_RESET_DF     | X86_EFLAGS_SET_DF)
-#define OF_EXCLUDE (X86_EFLAGS_MODIFY_OF | X86_EFLAGS_UNDEFINED_OF | X86_EFLAGS_RESET_OF | X86_EFLAGS_SET_OF)
-#define SF_EXCLUDE (X86_EFLAGS_MODIFY_SF | X86_EFLAGS_UNDEFINED_SF | X86_EFLAGS_RESET_SF | X86_EFLAGS_SET_SF)
-#define ZF_EXCLUDE (X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_UNDEFINED_ZF | X86_EFLAGS_RESET_ZF | X86_EFLAGS_SET_ZF)
-#define AF_EXCLUDE (X86_EFLAGS_MODIFY_AF | X86_EFLAGS_UNDEFINED_AF | X86_EFLAGS_RESET_AF | X86_EFLAGS_SET_AF)
-#define PF_EXCLUDE (X86_EFLAGS_MODIFY_PF | X86_EFLAGS_UNDEFINED_PF | X86_EFLAGS_RESET_PF | X86_EFLAGS_SET_PF)
-
 
 uint64_t TESTED_FLAGS_TABLE[] = {
     X86_EFLAGS_TEST_OF,
@@ -24,71 +16,17 @@ uint64_t TESTED_FLAGS_TABLE[] = {
 };
 
 uint64_t EXCLUDED_FLAGS_TABLE[] = {
-    OF_EXCLUDE,
-    SF_EXCLUDE,
-    ZF_EXCLUDE,
-    PF_EXCLUDE,
-    CF_EXCLUDE,
-    DF_EXCLUDE,
-    AF_EXCLUDE
+    EFLAGS_MOD_OF,
+    EFLAGS_MOD_SF,
+    EFLAGS_MOD_ZF,
+    EFLAGS_MOD_PF,
+    EFLAGS_MOD_CF,
+    EFLAGS_MOD_DF,
+    EFLAGS_MOD_AF
 };
 
 
-
-
-uint64_t CONVERT_CAPSTONE_REGISTER_TO_FLAG[] = {
-    -2,
-    X86_REGISTER_AX, X86_REGISTER_AL, X86_REGISTER_AX, X86_REGISTER_BX, X86_REGISTER_BL,
-    X86_REGISTER_BP, X86_REGISTER_BPL, X86_REGISTER_BX, X86_REGISTER_CX, X86_REGISTER_CL,
-    -2, X86_REGISTER_CX, X86_REGISTER_DX, X86_REGISTER_DI, X86_REGISTER_DIL,
-    X86_REGISTER_DL, -2, X86_REGISTER_DX, X86_REGISTER_EAX, X86_REGISTER_EBP,
-    X86_REGISTER_EBX, X86_REGISTER_ECX, X86_REGISTER_EDI, X86_REGISTER_EDX, 0,
-    -2, -2, -2, X86_REGISTER_ESI, X86_REGISTER_ESP,
-    -2, -2, -2, -2, X86_REGISTER_RAX,
-    X86_REGISTER_RBP, X86_REGISTER_RBX, X86_REGISTER_RCX, X86_REGISTER_RDI, X86_REGISTER_RDX,
-    -2, -2, X86_REGISTER_RSI, X86_REGISTER_RSP, X86_REGISTER_SI,
-    X86_REGISTER_SIL, X86_REGISTER_SP, X86_REGISTER_SPL, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, X86_REGISTER_R8, X86_REGISTER_R9, X86_REGISTER_R10, X86_REGISTER_R11,
-    X86_REGISTER_R12, X86_REGISTER_R13, X86_REGISTER_R14, X86_REGISTER_R15,
-    -2, -2, -2, -2,
-    -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, -2, -2, -2, -2,
-    -2, X86_REGISTER_R8B, X86_REGISTER_R9B, X86_REGISTER_R10B, X86_REGISTER_R11B,
-    X86_REGISTER_R12B, X86_REGISTER_R13B, X86_REGISTER_R14B, X86_REGISTER_R15B, X86_REGISTER_R8D,
-    X86_REGISTER_R9D, X86_REGISTER_R10D, X86_REGISTER_R11D, X86_REGISTER_R12D, X86_REGISTER_R13D,
-    X86_REGISTER_R14D, X86_REGISTER_R15D, X86_REGISTER_R8W, X86_REGISTER_R9W, X86_REGISTER_R10W,
-    X86_REGISTER_R11W, X86_REGISTER_R12W, X86_REGISTER_R13W, X86_REGISTER_R14W, X86_REGISTER_R15W,
-    -2
-};
+extern uint64_t CONVERT_CAPSTONE_REGISTER_TO_FLAG[];
 
 
 fuku_code_profiler::fuku_code_profiler(fuku_assambler_arch arch)
@@ -193,7 +131,7 @@ uint64_t fuku_code_profiler::profile_graph_eflags(fuku_code_holder& code, linest
         uint64_t current_eflags = current_inst.get_eflags();
 
 
-        if (current_eflags & X86_EFLAGS_GROUP_TEST) {
+        if (current_eflags & EFLAGS_GROUP_TEST) {
             
             for (uint8_t flag_idx = 0; flag_idx < (sizeof(TESTED_FLAGS_TABLE) / sizeof(TESTED_FLAGS_TABLE[0])); flag_idx++) {
                 if (current_eflags & TESTED_FLAGS_TABLE[flag_idx]) {
@@ -202,7 +140,7 @@ uint64_t fuku_code_profiler::profile_graph_eflags(fuku_code_holder& code, linest
             }
         }
 
-        if (excluded_flags == (X86_EFLAGS_GROUP_MODIFY | X86_EFLAGS_GROUP_SET | X86_EFLAGS_GROUP_RESET | X86_EFLAGS_GROUP_UNDEFINED)) {
+        if (excluded_flags == (EFLAGS_GROUP_MODIFY | EFLAGS_GROUP_SET | EFLAGS_GROUP_RESET | EFLAGS_GROUP_UNDEFINED)) {
             return included_flags;
         }      
 
@@ -220,11 +158,11 @@ uint64_t fuku_code_profiler::profile_graph_eflags(fuku_code_holder& code, linest
         included_flags |=
             GET_BITES_INCLUDED(
                 current_eflags,
-                X86_EFLAGS_GROUP_MODIFY | X86_EFLAGS_GROUP_SET | X86_EFLAGS_GROUP_RESET | X86_EFLAGS_GROUP_UNDEFINED,
+                EFLAGS_GROUP_MODIFY | EFLAGS_GROUP_SET | EFLAGS_GROUP_RESET | EFLAGS_GROUP_UNDEFINED,
                 excluded_flags
             );
 
-        if (included_flags == (X86_EFLAGS_GROUP_MODIFY | X86_EFLAGS_GROUP_SET | X86_EFLAGS_GROUP_RESET | X86_EFLAGS_GROUP_UNDEFINED)) {
+        if (included_flags == (EFLAGS_GROUP_MODIFY | EFLAGS_GROUP_SET | EFLAGS_GROUP_RESET | EFLAGS_GROUP_UNDEFINED)) {
             return included_flags;
         }
     }
@@ -306,70 +244,70 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
 
                 switch (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
 
-                   case X86_REGISTER_AX: {printf("AX "); break; }
-                   case X86_REGISTER_AL: {printf("AL "); break; }
-                   case X86_REGISTER_BX: {printf("BX "); break; }
-                   case X86_REGISTER_BL: {printf("BL "); break; }
-                   case X86_REGISTER_BP: {printf("BP "); break; } 
-                   case X86_REGISTER_BPL: {printf("BPL "); break; }
-                   case X86_REGISTER_CX: {printf("CX "); break; }
-                   case X86_REGISTER_CL: {printf("CL "); break; }
-                   case X86_REGISTER_DX: {printf("Dx "); break; }
-                   case X86_REGISTER_DI: {printf("DI "); break; }
-                   case X86_REGISTER_DIL: {printf("DIL "); break; }
-                   case X86_REGISTER_DL: {printf("DL "); break; }
-                   case X86_REGISTER_EAX: {printf("EAX "); break; }
-                   case X86_REGISTER_EBP: {printf("EBP "); break; }
-                   case X86_REGISTER_EBX: {printf("EBX "); break; }
-                   case X86_REGISTER_ECX: {printf("ECX "); break; }
-                   case X86_REGISTER_EDI: {printf("EDI "); break; }
-                   case X86_REGISTER_EDX: {printf("EDX "); break; } 
-                   case X86_REGISTER_ESI: {printf("ESI "); break; } 
-                   case X86_REGISTER_ESP: {printf("ESP "); break; } 
-                   case X86_REGISTER_RAX: {printf("RAX "); break; } 
-                   case X86_REGISTER_RBP: {printf("RBP "); break; } 
-                   case X86_REGISTER_RBX: {printf("RBX "); break; } 
-                   case X86_REGISTER_RCX: {printf("RCX "); break; } 
-                   case X86_REGISTER_RDI: {printf("RDI "); break; } 
-                   case X86_REGISTER_RDX: {printf("RDX "); break; } 
-                   case X86_REGISTER_RSI: {printf("RSI "); break; }
-                   case X86_REGISTER_RSP: {printf("RSP "); break; } 
-                   case X86_REGISTER_SI: {printf("SI "); break; } 
-                   case X86_REGISTER_SIL: {printf("SIL "); break; }
-                   case X86_REGISTER_SP: {printf("SP "); break; }
-                   case X86_REGISTER_SPL: {printf("SPL "); break; }
-                   case X86_REGISTER_R8: {printf("R8 "); break; } 
-                   case X86_REGISTER_R9: {printf("R9 "); break; } 
-                   case X86_REGISTER_R10: {printf("R10 "); break; }
-                   case X86_REGISTER_R11: {printf("R11 "); break; }
-                   case X86_REGISTER_R12: {printf("R12 "); break; }
-                   case X86_REGISTER_R13: {printf("R13 "); break; }
-                   case X86_REGISTER_R14: {printf("R14 "); break; }
-                   case X86_REGISTER_R15: {printf("R15 "); break; }
-                   case X86_REGISTER_R8B: {printf("R8B "); break; }
-                   case X86_REGISTER_R9B: {printf("R9B "); break; }
-                   case X86_REGISTER_R10B: {printf("R10B "); break; }
-                   case X86_REGISTER_R11B: {printf("R11B "); break; }
-                   case X86_REGISTER_R12B: {printf("R12B "); break; }
-                   case X86_REGISTER_R13B: {printf("R13B "); break; } 
-                   case X86_REGISTER_R14B: {printf("R14B "); break; } 
-                   case X86_REGISTER_R15B: {printf("R15B "); break; } 
-                   case X86_REGISTER_R8D: {printf("R8D "); break; } 
-                   case X86_REGISTER_R9D: {printf("R9D "); break; } 
-                   case X86_REGISTER_R10D: {printf("R10D "); break; }
-                   case X86_REGISTER_R11D: {printf("R11D "); break; }
-                   case X86_REGISTER_R12D: {printf("R12D "); break; }
-                   case X86_REGISTER_R13D: {printf("R13D "); break; }
-                   case X86_REGISTER_R14D: {printf("R14D "); break; } 
-                   case X86_REGISTER_R15D: {printf("R15D "); break; } 
-                   case X86_REGISTER_R8W: {printf("R8W "); break; } 
-                   case X86_REGISTER_R9W: {printf("R9W "); break; }
-                   case X86_REGISTER_R10W: {printf("R10W "); break; } 
-                   case X86_REGISTER_R11W: {printf("R11W "); break; } 
-                   case X86_REGISTER_R12W: {printf("R12W "); break; } 
-                   case X86_REGISTER_R13W: {printf("R13W "); break; } 
-                   case X86_REGISTER_R14W: {printf("R14W "); break; }
-                   case X86_REGISTER_R15W: {printf("R15W "); break; } 
+                   case FLAG_REGISTER_AX: {printf("AX "); break; }
+                   case FLAG_REGISTER_AL: {printf("AL "); break; }
+                   case FLAG_REGISTER_BX: {printf("BX "); break; }
+                   case FLAG_REGISTER_BL: {printf("BL "); break; }
+                   case FLAG_REGISTER_BP: {printf("BP "); break; } 
+                   case FLAG_REGISTER_BPL: {printf("BPL "); break; }
+                   case FLAG_REGISTER_CX: {printf("CX "); break; }
+                   case FLAG_REGISTER_CL: {printf("CL "); break; }
+                   case FLAG_REGISTER_DX: {printf("Dx "); break; }
+                   case FLAG_REGISTER_DI: {printf("DI "); break; }
+                   case FLAG_REGISTER_DIL: {printf("DIL "); break; }
+                   case FLAG_REGISTER_DL: {printf("DL "); break; }
+                   case FLAG_REGISTER_EAX: {printf("EAX "); break; }
+                   case FLAG_REGISTER_EBP: {printf("EBP "); break; }
+                   case FLAG_REGISTER_EBX: {printf("EBX "); break; }
+                   case FLAG_REGISTER_ECX: {printf("ECX "); break; }
+                   case FLAG_REGISTER_EDI: {printf("EDI "); break; }
+                   case FLAG_REGISTER_EDX: {printf("EDX "); break; } 
+                   case FLAG_REGISTER_ESI: {printf("ESI "); break; } 
+                   case FLAG_REGISTER_ESP: {printf("ESP "); break; } 
+                   case FLAG_REGISTER_RAX: {printf("RAX "); break; } 
+                   case FLAG_REGISTER_RBP: {printf("RBP "); break; } 
+                   case FLAG_REGISTER_RBX: {printf("RBX "); break; } 
+                   case FLAG_REGISTER_RCX: {printf("RCX "); break; } 
+                   case FLAG_REGISTER_RDI: {printf("RDI "); break; } 
+                   case FLAG_REGISTER_RDX: {printf("RDX "); break; } 
+                   case FLAG_REGISTER_RSI: {printf("RSI "); break; }
+                   case FLAG_REGISTER_RSP: {printf("RSP "); break; } 
+                   case FLAG_REGISTER_SI: {printf("SI "); break; } 
+                   case FLAG_REGISTER_SIL: {printf("SIL "); break; }
+                   case FLAG_REGISTER_SP: {printf("SP "); break; }
+                   case FLAG_REGISTER_SPL: {printf("SPL "); break; }
+                   case FLAG_REGISTER_R8: {printf("R8 "); break; } 
+                   case FLAG_REGISTER_R9: {printf("R9 "); break; } 
+                   case FLAG_REGISTER_R10: {printf("R10 "); break; }
+                   case FLAG_REGISTER_R11: {printf("R11 "); break; }
+                   case FLAG_REGISTER_R12: {printf("R12 "); break; }
+                   case FLAG_REGISTER_R13: {printf("R13 "); break; }
+                   case FLAG_REGISTER_R14: {printf("R14 "); break; }
+                   case FLAG_REGISTER_R15: {printf("R15 "); break; }
+                   case FLAG_REGISTER_R8B: {printf("R8B "); break; }
+                   case FLAG_REGISTER_R9B: {printf("R9B "); break; }
+                   case FLAG_REGISTER_R10B: {printf("R10B "); break; }
+                   case FLAG_REGISTER_R11B: {printf("R11B "); break; }
+                   case FLAG_REGISTER_R12B: {printf("R12B "); break; }
+                   case FLAG_REGISTER_R13B: {printf("R13B "); break; } 
+                   case FLAG_REGISTER_R14B: {printf("R14B "); break; } 
+                   case FLAG_REGISTER_R15B: {printf("R15B "); break; } 
+                   case FLAG_REGISTER_R8D: {printf("R8D "); break; } 
+                   case FLAG_REGISTER_R9D: {printf("R9D "); break; } 
+                   case FLAG_REGISTER_R10D: {printf("R10D "); break; }
+                   case FLAG_REGISTER_R11D: {printf("R11D "); break; }
+                   case FLAG_REGISTER_R12D: {printf("R12D "); break; }
+                   case FLAG_REGISTER_R13D: {printf("R13D "); break; }
+                   case FLAG_REGISTER_R14D: {printf("R14D "); break; } 
+                   case FLAG_REGISTER_R15D: {printf("R15D "); break; } 
+                   case FLAG_REGISTER_R8W: {printf("R8W "); break; } 
+                   case FLAG_REGISTER_R9W: {printf("R9W "); break; }
+                   case FLAG_REGISTER_R10W: {printf("R10W "); break; } 
+                   case FLAG_REGISTER_R11W: {printf("R11W "); break; } 
+                   case FLAG_REGISTER_R12W: {printf("R12W "); break; } 
+                   case FLAG_REGISTER_R13W: {printf("R13W "); break; } 
+                   case FLAG_REGISTER_R14W: {printf("R14W "); break; }
+                   case FLAG_REGISTER_R15W: {printf("R15W "); break; } 
                 }
 
             }
@@ -416,8 +354,8 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
     reg_idx = 0;
     uint8_t default_reg_mode = 0;
 
-    uint64_t default_stack_pointer = this->arch == FUKU_ASSAMBLER_ARCH_X86 ? X86_REGISTER_ESP : X86_REGISTER_RSP;
-    uint64_t default_frame_pointer = this->arch == FUKU_ASSAMBLER_ARCH_X86 ? X86_REGISTER_EBP : X86_REGISTER_RBP;
+    uint64_t default_stack_pointer = this->arch == FUKU_ASSAMBLER_ARCH_X86 ? FLAG_REGISTER_ESP : FLAG_REGISTER_RSP;
+    uint64_t default_frame_pointer = this->arch == FUKU_ASSAMBLER_ARCH_X86 ? FLAG_REGISTER_EBP : FLAG_REGISTER_RBP;
 
     switch (instruction->id) {
 
@@ -549,53 +487,53 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
 
     case X86_INS_PUSHAW: { 
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_CX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_DX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_BX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_SP, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_BP, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_SI, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_DI, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_CX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_DX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_BX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_SP, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_BP, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_SI, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_DI, REGISTER_ACCESS_READ }, op_access);
         push_access(reg_idx, { default_stack_pointer, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
         break; 
     }
     case X86_INS_PUSHAL: { 
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_ECX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EDX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EBX, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_ESP, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EBP, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_ESI, REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EDI, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_ECX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EDX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EBX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_ESP, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EBP, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_ESI, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EDI, REGISTER_ACCESS_READ }, op_access);
         push_access(reg_idx, { default_stack_pointer, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
         break; 
     }
     case X86_INS_POPAW: {
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_CX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_BX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_SP, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_BP, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_SI, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_DI, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_CX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_BX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_SP, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_BP, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_SI, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_DI, REGISTER_ACCESS_WRITE }, op_access);
         push_access(reg_idx, { default_stack_pointer, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
         break;
     }
     case X86_INS_POPAL: {
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_ECX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EBX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_ESP, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EBP, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_ESI, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EDI, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_ECX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EBX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_ESP, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EBP, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_ESI, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EDI, REGISTER_ACCESS_WRITE }, op_access);
         push_access(reg_idx, { default_stack_pointer, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
         break;
     }
@@ -635,22 +573,22 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
         switch (instruction->detail->x86.operands[0].size) {
         
         case 1: {
-            push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
             break;
         }
         case 2: {
-            push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-            push_access(reg_idx, { X86_REGISTER_DX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_DX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
             break;
         }
         case 4: {
-            push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-            push_access(reg_idx, { X86_REGISTER_EDX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_EDX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
             break;
         }
         case 8: {
-            push_access(reg_idx, { X86_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-            push_access(reg_idx, { X86_REGISTER_RDX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_RDX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
             break;
         }
 
@@ -666,22 +604,22 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
         switch (instruction->detail->x86.operands[0].size) {
 
         case 1: {
-            push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
             break;
         }
         case 2: {
-            push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-            push_access(reg_idx, { X86_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
             break;
         }
         case 4: {
-            push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-            push_access(reg_idx, { X86_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
             break;
         }
         case 8: {
-            push_access(reg_idx, { X86_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-            push_access(reg_idx, { X86_REGISTER_RDX, REGISTER_ACCESS_WRITE }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+            push_access(reg_idx, { FLAG_REGISTER_RDX, REGISTER_ACCESS_WRITE }, op_access);
             break;
         }
 
@@ -699,22 +637,22 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
             switch (instruction->detail->x86.operands[0].size) {
 
             case 1: {
-                push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
                 break;
             }
             case 2: {
-                push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-                push_access(reg_idx, { X86_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
                 break;
             }
             case 4: {
-                push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-                push_access(reg_idx, { X86_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
                 break;
             }
             case 8: {
-                push_access(reg_idx, { X86_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-                push_access(reg_idx, { X86_REGISTER_RDX, REGISTER_ACCESS_WRITE }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+                push_access(reg_idx, { FLAG_REGISTER_RDX, REGISTER_ACCESS_WRITE }, op_access);
                 break;
             }
 
@@ -848,39 +786,39 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
 
     case X86_INS_CWD: { 
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_DX, REGISTER_ACCESS_WRITE }, op_access);
         break; 
     }
     case X86_INS_CDQ: {
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EDX, REGISTER_ACCESS_WRITE }, op_access);
         break; 
     }
     case X86_INS_CQO: { 
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
-        push_access(reg_idx, { X86_REGISTER_RDX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_RAX, REGISTER_ACCESS_WRITE | REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_RDX, REGISTER_ACCESS_WRITE }, op_access);
         break; 
     }
 
     case X86_INS_CBW: {
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_AL, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_AL, REGISTER_ACCESS_READ }, op_access);
         break;
     }
     case X86_INS_CWDE: {
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_AX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_AX, REGISTER_ACCESS_READ }, op_access);
         break;
     }
     case X86_INS_CDQE: {
         handled = true;
-        push_access(reg_idx, { X86_REGISTER_RAX, REGISTER_ACCESS_WRITE }, op_access);
-        push_access(reg_idx, { X86_REGISTER_EAX, REGISTER_ACCESS_READ }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_RAX, REGISTER_ACCESS_WRITE }, op_access);
+        push_access(reg_idx, { FLAG_REGISTER_EAX, REGISTER_ACCESS_READ }, op_access);
         break;
     }
 

@@ -2,52 +2,52 @@
 
 
 //graph
-bool fukutate_jcc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator lines_iter);
-bool fukutate_jmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_call(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_ret(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+void fukutate_64_jcc(mutation_context & ctx);
+void fukutate_64_jmp(mutation_context & ctx);
+void fukutate_64_call(mutation_context & ctx);
+void fukutate_64_ret(mutation_context & ctx);
 
 //stack
-bool fukutate_push(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_pop(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+void fukutate_64_push(mutation_context & ctx);
+void fukutate_64_pop(mutation_context & ctx);
 
 //data transfer
-bool fukutate_mov(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_xchg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_lea(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+void fukutate_64_mov(mutation_context & ctx);
+void fukutate_64_xchg(mutation_context & ctx);
+void fukutate_64_lea(mutation_context & ctx);
 
 //aritch
-bool fukutate_add(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_or(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_adc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_sbb(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_and(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_sub(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_xor(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_cmp(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_inc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_dec(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_test(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_not(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_neg(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_mul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_imul(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_div(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_idiv(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+void fukutate_64_add(mutation_context & ctx);
+void fukutate_64_or(mutation_context & ctx);
+void fukutate_64_adc(mutation_context & ctx);
+void fukutate_64_sbb(mutation_context & ctx);
+void fukutate_64_and(mutation_context & ctx);
+void fukutate_64_sub(mutation_context & ctx);
+void fukutate_64_xor(mutation_context & ctx);
+void fukutate_64_cmp(mutation_context & ctx);
+void fukutate_64_inc(mutation_context & ctx);
+void fukutate_64_dec(mutation_context & ctx);
+void fukutate_64_test(mutation_context & ctx);
+void fukutate_64_not(mutation_context & ctx);
+void fukutate_64_neg(mutation_context & ctx);
+void fukutate_64_mul(mutation_context & ctx);
+void fukutate_64_imul(mutation_context & ctx);
+void fukutate_64_div(mutation_context & ctx);
+void fukutate_64_idiv(mutation_context & ctx);
 
 //shift
-bool fukutate_rol(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_ror(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_rcl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_rcr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_shl(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_shr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_sar(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+void fukutate_64_rol(mutation_context & ctx);
+void fukutate_64_ror(mutation_context & ctx);
+void fukutate_64_rcl(mutation_context & ctx);
+void fukutate_64_rcr(mutation_context & ctx);
+void fukutate_64_shl(mutation_context & ctx);
+void fukutate_64_shr(mutation_context & ctx);
+void fukutate_64_sar(mutation_context & ctx);
 
 //bittest
-bool fukutate_bt(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_bts(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_btr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_btc(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_bsf(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-bool fukutate_bsr(cs_insn *instruction, fuku_assambler& f_asm, fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
+void fukutate_64_bt(mutation_context & ctx);
+void fukutate_64_bts(mutation_context & ctx);
+void fukutate_64_btr(mutation_context & ctx);
+void fukutate_64_btc(mutation_context & ctx);
+void fukutate_64_bsf(mutation_context & ctx);
+void fukutate_64_bsr(mutation_context & ctx);
