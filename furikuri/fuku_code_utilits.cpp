@@ -40,7 +40,7 @@ inline bool bit_scan_backward(uint32_t& index, uint64_t mask) {
     return false;
 }
 
-bool has_inst_free_register(fuku_instruction& inst, x86_reg reg) {
+bool has_inst_free_register(const fuku_instruction& inst, x86_reg reg) {
 
     if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg] != -2) {
         return GET_BITES(inst.get_custom_flags(), CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg]) == CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg];
@@ -101,7 +101,7 @@ uint64_t fuku_reg_to_flag_reg(fuku_register_enum reg) {
    return (uint64_t)1 << CONVERT_FUKU_REGISTER_TO_FLAG[reg];
 }
 
-uint64_t fuku_reg_to_complex_flag_reg(fuku_register reg, uint8_t size) {
+uint64_t fuku_reg_to_complex_flag_reg(const fuku_register& reg, uint8_t size) {
 
     switch (size) {
 
@@ -114,10 +114,41 @@ uint64_t fuku_reg_to_complex_flag_reg(fuku_register reg, uint8_t size) {
     case 4: {
         return FULL_INCLUDE_FLAGS_TABLE[reg.get_index() + (reg.is_ext64() ? 8 : 0)] & 0xFFFFFFFFFFFF;
     }
-
+    case 8: {
+        return FULL_INCLUDE_FLAGS_TABLE[reg.get_index() + (reg.is_ext64() ? 8 : 0)] & 0xFFFFFFFFFFFFFFFF;
+    }
     }
 
     return FULL_INCLUDE_FLAGS_TABLE[reg.get_index() + (reg.is_ext64() ? 8 : 0) ];
+}
+
+uint64_t flag_reg_to_complex_flag_reg(uint64_t flag_reg) {
+
+    uint32_t index = 0;
+    if (!bit_scan_forward(index, flag_reg)) {
+        return 0;
+    }
+
+    uint8_t size = ((index) / 16)+1;
+    uint8_t reg_index = (index) % 16;
+
+    switch (size) {
+
+    case 1: {
+        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFF;
+    }
+    case 2: {
+        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFFFFFF;
+    }
+    case 3: {
+        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFFFFFFFFFF;
+    }
+    case 4: {
+        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFFFFFFFFFFFFFF;
+    }
+    }
+
+    return FULL_INCLUDE_FLAGS_TABLE[reg_index];
 }
 
 fuku_register_enum flag_reg_to_fuku_reg(uint64_t reg) {
@@ -207,7 +238,7 @@ fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, uint64_t exc
     return FUKU_REG_NONE;
 }
 
-fuku_register_enum get_random_free_flag_reg(fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs) {
+fuku_register_enum get_random_free_flag_reg(const fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs) {
     return get_random_free_flag_reg(inst.get_custom_flags(), reg_size, x86_only, exclude_regs);
 }
 

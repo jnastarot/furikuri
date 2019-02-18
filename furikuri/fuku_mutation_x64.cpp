@@ -5,7 +5,7 @@
 
 fuku_mutation_x64::fuku_mutation_x64(const fuku_settings_obfuscation& settings)
 : settings(settings){
-
+    f_asm.get_context().arch = FUKU_ASSAMBLER_ARCH_X64;
     cs_open(CS_ARCH_X86, CS_MODE_64, &cap_handle);
     cs_option(cap_handle, CS_OPT_DETAIL, CS_OPT_ON);
 }
@@ -41,6 +41,9 @@ void fuku_mutation_x64::obfuscate(fuku_code_holder& code_holder) {
 
 void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter) {
 
+    if (lines_iter->get_instruction_flags() & FUKU_INST_JUNK_CODE) {
+        return;
+    }
 
     mutation_context ctx;
     ctx.f_asm = &this->f_asm;
@@ -297,8 +300,6 @@ void fuku_mutation_x64::fukutation(fuku_code_holder& code_holder, linestorage::i
     cs_free(ctx.instruction, 1);
 
     if (ctx.was_junked || ctx.was_mutated) { //move label_idx and source_address to start of instruction's array 
-
-       // bool replace_labels = (label_idx != -1) && (label_idx == );
 
         if (!ctx.was_mutated) {
             ctx.first_line_iter->set_label_idx(-1);

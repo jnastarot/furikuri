@@ -302,8 +302,6 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 
     if(ctx.was_junked || ctx.was_mutated) { //move label_idx and source_address to start of instruction's array 
 
-       // bool replace_labels = (label_idx != -1) && (label_idx == );
-
         if (!ctx.was_mutated) {
             ctx.first_line_iter->set_label_idx(-1);
         }

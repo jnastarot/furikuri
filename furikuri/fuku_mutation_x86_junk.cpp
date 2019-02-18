@@ -10,7 +10,7 @@ uint32_t reg_sizes[] = {
 };
 
 
-fuku_immediate generate_immediate(uint8_t size) {
+fuku_immediate generate_86_immediate(uint8_t size) {
 
     uint8_t sw_ = FUKU_GET_RAND(0, size*4);
 
@@ -40,7 +40,7 @@ fuku_immediate generate_immediate(uint8_t size) {
 
 //transfer reg1,reg2
 //transfer reg1,val
-bool junk_low_pattern_1(mutation_context & ctx) {
+bool junk_86_low_pattern_1(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
@@ -51,9 +51,9 @@ bool junk_low_pattern_1(mutation_context & ctx) {
     }
     
 
-    switch (FUKU_GET_RAND(0, 4)) {
+    switch (FUKU_GET_RAND(0, 0)) {
         case 0: {
-            fuku_type src = generate_immediate(reg_size);
+            fuku_type src = generate_86_immediate(reg_size);
 
             if (FUKU_GET_RAND(0, 1)) {
                 src = reg_(get_random_reg(reg_size, true));
@@ -126,7 +126,7 @@ bool junk_low_pattern_1(mutation_context & ctx) {
 
 //logical reg1,reg2
 //logical reg1,val
-bool junk_low_pattern_2(mutation_context & ctx) {
+bool junk_86_low_pattern_2(mutation_context & ctx) {
 
 
     if (!has_inst_free_eflags(ctx.eflags_changes,
@@ -145,7 +145,7 @@ bool junk_low_pattern_2(mutation_context & ctx) {
     }
 
 
-    fuku_type src = generate_immediate(reg_size);
+    fuku_type src = generate_86_immediate(reg_size);
 
     if (FUKU_GET_RAND(0, 1)) {
         src = reg_(get_random_reg(reg_size, true));
@@ -202,7 +202,7 @@ bool junk_low_pattern_2(mutation_context & ctx) {
 
 //arithmetic reg1,reg2
 //arithmetic reg1,val
-bool junk_low_pattern_3(mutation_context & ctx) {
+bool junk_86_low_pattern_3(mutation_context & ctx) {
 
 
     if (!has_inst_free_eflags(ctx.eflags_changes,
@@ -220,7 +220,7 @@ bool junk_low_pattern_3(mutation_context & ctx) {
     }
 
 
-    fuku_type src = generate_immediate(reg_size);
+    fuku_type src = generate_86_immediate(reg_size);
 
     if (FUKU_GET_RAND(0, 1)) {
         src = reg_(get_random_reg(reg_size, true));
@@ -301,7 +301,7 @@ bool junk_low_pattern_3(mutation_context & ctx) {
 
 //rotate reg1,val
 //rotate reg1,cl
-bool junk_low_pattern_4(mutation_context & ctx) {
+bool junk_86_low_pattern_4(mutation_context & ctx) {
 
 
     if (!has_inst_free_eflags(ctx.eflags_changes,
@@ -370,7 +370,7 @@ bool junk_low_pattern_4(mutation_context & ctx) {
 
 //shift reg1,val
 //shift reg1,reg
-bool junk_low_pattern_5(mutation_context & ctx) {
+bool junk_86_low_pattern_5(mutation_context & ctx) {
 
 
     if (!has_inst_free_eflags(ctx.eflags_changes,
@@ -432,7 +432,7 @@ bool junk_low_pattern_5(mutation_context & ctx) {
 
 //bittest reg1,val
 //bittest reg1,reg
-bool junk_low_pattern_6(mutation_context & ctx) {
+bool junk_86_low_pattern_6(mutation_context & ctx) {
 
 
     if (!has_inst_free_eflags(ctx.eflags_changes,
@@ -499,7 +499,7 @@ bool junk_low_pattern_6(mutation_context & ctx) {
 
 
 //convert byte\word to word\dword
-bool junk_low_pattern_7(mutation_context & ctx) {
+bool junk_86_low_pattern_7(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
@@ -561,7 +561,7 @@ bool junk_low_pattern_7(mutation_context & ctx) {
 
 
 //set / reset flag
-bool junk_low_pattern_8(mutation_context & ctx) {
+bool junk_86_low_pattern_8(mutation_context & ctx) {
 
 
     switch (FUKU_GET_RAND(0, 4)) {
@@ -626,7 +626,7 @@ bool junk_low_pattern_8(mutation_context & ctx) {
 //neg reg
 //inc reg
 //neg reg
-bool junk_high_pattern_1(mutation_context & ctx) {
+bool junk_86_high_pattern_1(mutation_context & ctx) {
 
     if (!has_inst_free_eflags(ctx.eflags_changes,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
@@ -663,12 +663,12 @@ bool junk_high_pattern_1(mutation_context & ctx) {
 
 //not reg1
 //not reg1
-bool junk_high_pattern_2(mutation_context & ctx) {
+bool junk_86_high_pattern_2(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
     fuku_register reg1_ = get_random_reg(reg_size, true, FLAG_REGISTER_SP | FLAG_REGISTER_ESP);
 
-    uint64_t flag_reg = fuku_reg_to_complex_flag_reg(reg1_);
+    uint64_t flag_reg = fuku_reg_to_complex_flag_reg(reg1_, reg_size);
 
 
     ctx.f_asm->not_(reg1_);
@@ -687,7 +687,7 @@ bool junk_high_pattern_2(mutation_context & ctx) {
 
 //push reg1
 //pop  reg1
-bool junk_high_pattern_3(mutation_context & ctx) {
+bool junk_86_high_pattern_3(mutation_context & ctx) {
 
     if (!IsAllowedStackOperations) {
         return false;
@@ -713,7 +713,7 @@ bool junk_high_pattern_3(mutation_context & ctx) {
 
 
 //jcc next_inst
-bool junk_high_pattern_4(mutation_context & ctx) {
+bool junk_86_high_pattern_4(mutation_context & ctx) {
 
     if (ctx.current_line_iter == ctx.code_holder->get_lines().end()) {
         return false;
@@ -742,7 +742,7 @@ bool junk_high_pattern_4(mutation_context & ctx) {
 
 //jmp next_inst
 //some code trash
-bool junk_high_pattern_5(mutation_context & ctx) {
+bool junk_86_high_pattern_5(mutation_context & ctx) {
 
     if (ctx.current_line_iter == ctx.code_holder->get_lines().end()) {
         return false;
@@ -777,32 +777,32 @@ bool junk_high_pattern_5(mutation_context & ctx) {
 }
 
 
-bool fuku_junk_generic_low(mutation_context & ctx) {
+bool fuku_junk_86_generic_low(mutation_context & ctx) {
 
     switch (FUKU_GET_RAND(0, 7)) {
     case 0: {
-        return junk_low_pattern_1(ctx);
+        return junk_86_low_pattern_1(ctx);
     }
     case 1: {
-        return junk_low_pattern_2(ctx);
+        return junk_86_low_pattern_2(ctx);
     }
     case 2: {
-        return junk_low_pattern_3(ctx);
+        return junk_86_low_pattern_3(ctx);
     }
     case 3: {
-        return junk_low_pattern_4(ctx);
+        return junk_86_low_pattern_4(ctx);
     }
     case 4: {
-        return junk_low_pattern_5(ctx);
+        return junk_86_low_pattern_5(ctx);
     }
     case 5: {
-        return junk_low_pattern_6(ctx);
+        return junk_86_low_pattern_6(ctx);
     }
     case 6: {
-        return junk_low_pattern_7(ctx);
+        return junk_86_low_pattern_7(ctx);
     }
     case 7: {
-        return junk_low_pattern_8(ctx);
+        return junk_86_low_pattern_8(ctx);
     }
     }
 
@@ -810,23 +810,23 @@ bool fuku_junk_generic_low(mutation_context & ctx) {
 }
 
 
-bool fuku_junk_generic_high(mutation_context & ctx) {
+bool fuku_junk_86_generic_high(mutation_context & ctx) {
 
     switch (FUKU_GET_RAND(0, 4)) {
     case 0: {
-        return junk_high_pattern_1(ctx);
+        return junk_86_high_pattern_1(ctx);
     }
     case 1: {
-        return junk_high_pattern_2(ctx);
+        return junk_86_high_pattern_2(ctx);
     }
     case 2: {
-        return junk_high_pattern_3(ctx);
+        return junk_86_high_pattern_3(ctx);
     }
     case 3: {
-        return junk_high_pattern_4(ctx);
+        return junk_86_high_pattern_4(ctx);
     }
     case 4: {
-        return junk_high_pattern_5(ctx);
+        return junk_86_high_pattern_5(ctx);
     }
     }
 
@@ -840,12 +840,12 @@ void fuku_junk_86_generic(mutation_context & ctx) {
     switch (FUKU_GET_RAND(0, 3)) {
     case 0:
     case 1: {
-        ctx.was_junked = fuku_junk_generic_low(ctx);
+        ctx.was_junked = fuku_junk_86_generic_low(ctx);
         break;
     }
     case 2:
     case 3: {
-        ctx.was_junked = fuku_junk_generic_high(ctx);
+        ctx.was_junked = fuku_junk_86_generic_high(ctx);
         break;
     }
     }

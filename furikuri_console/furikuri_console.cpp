@@ -287,13 +287,15 @@ void test_on_shellcode() {
     fuku_code_holder code_holder;
     fuku_code_analyzer anal_code;
 
-    
-   // anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
+   // fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X86);
+  //  anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
    // anal_code.analyze_code(code_holder, lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
 
+    fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X64);
     anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X64);
     anal_code.analyze_code(code_holder, lzo_depack_64, sizeof(lzo_depack_64), 0, 0);
 
+    code_profiler.profile_code(code_holder);
 
     typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
     for (unsigned int i = 0; i < 10000; i++) {
@@ -303,7 +305,7 @@ void test_on_shellcode() {
         fuku_obfuscator obfuscator;
 
 
-        fuku_settings_obfuscation ob_set(4, 4, 40.f, 40.f, 40.f,
+        fuku_settings_obfuscation ob_set(3, 3, 30.f, 20.f, 30.f,
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
         obfuscator.set_destination_virtual_address(0);
         // obfuscator.set_settings({ 1,1,00.f,00.f,30.f });
@@ -333,17 +335,23 @@ void test_on_shellcode() {
         }
 
         unsigned int n_time = GetTickCount();
-
+     //   code_profiler.print_code(ob_anal_code.get_code());
         // __try {
         depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
         // }
         // __except (1) {
           //   system("PAUSE");
         // }
-
+        
         printf(" called in %.4f sec | ", (GetTickCount() - n_time) / 1000.f);
         for (unsigned int i = 0; i < 0x1000; i++) {
-            if (data_[i] != data_1[i]) { printf("error!"); Sleep(100000); }
+            if (data_[i] != data_1[i]) { 
+                printf("error! %x != %x : %d\n", data_[i], data_1[i], i); 
+                
+                Sleep(100000);
+
+                
+            }
         }
 
 
