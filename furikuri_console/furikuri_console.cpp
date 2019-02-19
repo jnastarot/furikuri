@@ -264,7 +264,7 @@ int main() {
 
 void test_on_shellcode() {
 
-    srand(GetCurrentThreadId());
+   // srand(0x768);
 
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
@@ -288,7 +288,7 @@ void test_on_shellcode() {
     fuku_code_analyzer anal_code;
 
    // fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X86);
-  //  anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
+   // anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
    // anal_code.analyze_code(code_holder, lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
 
     fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X64);
@@ -305,7 +305,7 @@ void test_on_shellcode() {
         fuku_obfuscator obfuscator;
 
 
-        fuku_settings_obfuscation ob_set(3, 3, 30.f, 20.f, 30.f,
+        fuku_settings_obfuscation ob_set(4, 4, 40.f, 40.f, 40.f,
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
         obfuscator.set_destination_virtual_address(0);
         // obfuscator.set_settings({ 1,1,00.f,00.f,30.f });

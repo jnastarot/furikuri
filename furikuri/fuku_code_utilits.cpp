@@ -132,22 +132,6 @@ uint64_t flag_reg_to_complex_flag_reg(uint64_t flag_reg) {
     uint8_t size = ((index) / 16)+1;
     uint8_t reg_index = (index) % 16;
 
-    switch (size) {
-
-    case 1: {
-        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFF;
-    }
-    case 2: {
-        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFFFFFF;
-    }
-    case 3: {
-        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFFFFFFFFFF;
-    }
-    case 4: {
-        return FULL_INCLUDE_FLAGS_TABLE[reg_index] & 0xFFFFFFFFFFFFFFFF;
-    }
-    }
-
     return FULL_INCLUDE_FLAGS_TABLE[reg_index];
 }
 

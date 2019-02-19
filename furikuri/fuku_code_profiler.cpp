@@ -248,6 +248,10 @@ void fuku_code_profiler::print_code(fuku_code_holder& code) {
     for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
         cs_disasm(cap_handle, line_iter->get_op_code(), line_iter->get_op_length(), 0, 1, &instruction);
 
+        if (line_iter->get_instruction_flags() & FUKU_INST_JUNK_CODE) {
+            continue;
+        }
+
         if (!instruction) {
             __debugbreak();
         }
