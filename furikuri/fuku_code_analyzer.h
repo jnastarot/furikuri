@@ -28,6 +28,8 @@ public:
 
     bool fuku_code_analyzer::push_code(const fuku_code_holder& code_holder);
     bool fuku_code_analyzer::push_code(const fuku_code_analyzer&  code_analyzer);
+    bool fuku_code_analyzer::splice_code(fuku_code_holder& code_holder);
+    bool fuku_code_analyzer::splice_code(fuku_code_analyzer& code_holder);
 public:
     void fuku_code_analyzer::set_arch(fuku_assambler_arch arch);
     void fuku_code_analyzer::clear();

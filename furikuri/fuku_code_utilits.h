@@ -167,7 +167,9 @@ fuku_register_enum  flag_reg_to_fuku_reg(uint64_t reg);
 uint64_t fuku_reg_to_flag_reg(fuku_register_enum reg);
 uint64_t fuku_reg_to_complex_flag_reg(const fuku_register& reg, uint8_t size = 0);
 uint64_t flag_reg_to_complex_flag_reg(uint64_t flag_reg);
+uint64_t flag_reg_to_complex_flag_reg_by_size(uint64_t flag_reg);
 
+fuku_register_enum fuku_reg_down_grade(fuku_register_enum reg);
 fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, uint64_t exclude_regs = 0);
 fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);
 fuku_register_enum get_random_free_flag_reg(const fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);

@@ -184,6 +184,18 @@ bool fuku_code_analyzer::push_code(const fuku_code_analyzer&  code_analyzer) {
     return code.merge_code(code_analyzer.code);
 }
 
+bool fuku_code_analyzer::splice_code(fuku_code_holder& code_holder) {
+    if (code_holder.get_arch() != this->code.get_arch()) { return false; }
+
+    return code.splice_code(code_holder);
+}
+
+bool fuku_code_analyzer::splice_code(fuku_code_analyzer& code_analyzer) {
+    if (code_analyzer.code.get_arch() != this->code.get_arch()) { return false; }
+
+    return code.splice_code(code_analyzer.code);
+}
+
 
 void fuku_code_analyzer::set_arch(fuku_assambler_arch arch) {
     this->code.set_arch(arch);

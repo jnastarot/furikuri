@@ -105,7 +105,7 @@ uint64_t fuku_code_profiler::profile_graph_registers(fuku_code_holder& code, lin
                 current_excluded_registers |= flag_reg_to_complex_flag_reg(op_access[access_idx].reg);
             }
             if (op_access[access_idx].access & REGISTER_ACCESS_WRITE) {
-                current_included_registers |= flag_reg_to_complex_flag_reg(op_access[access_idx].reg);
+                current_included_registers |= flag_reg_to_complex_flag_reg_by_size(op_access[access_idx].reg);
             }
         }
 

@@ -136,7 +136,8 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
 
             obfuscator.obfuscate_code();
 
-            if (!anal_code.push_code(std::move(item.an_code.get_code()))) { FUKU_DEBUG; return false; }
+           // if (!anal_code.push_code(std::move(item.an_code.get_code()))) { FUKU_DEBUG; return false; }
+            if (!anal_code.splice_code(item.an_code.get_code())) { FUKU_DEBUG; return false; }
 
 
             ob_profile.regions.insert(ob_profile.regions.end(), item.regions.begin(), item.regions.end());
