@@ -132,9 +132,6 @@ uint64_t fuku_reg_to_complex_flag_reg(const fuku_register& reg, uint8_t size) {
     case 4: {
         return FULL_INCLUDE_FLAGS_TABLE[reg.get_index() + (reg.is_ext64() ? 8 : 0)] & 0xFFFFFFFFFFFF;
     }
-    case 8: {
-        return FULL_INCLUDE_FLAGS_TABLE[reg.get_index() + (reg.is_ext64() ? 8 : 0)] & 0xFFFFFFFFFFFFFFFF;
-    }
     }
 
     return FULL_INCLUDE_FLAGS_TABLE[reg.get_index() + (reg.is_ext64() ? 8 : 0) ];
@@ -372,4 +369,164 @@ fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_siz
     }
 
     return FUKU_REG_NONE;
+}
+
+
+
+fuku_immediate generate_86_immediate(uint8_t size) {
+
+    uint8_t sw_ = FUKU_GET_RAND(0, size * 4);
+
+    switch (sw_) {
+    case 0:
+        return fuku_immediate(FUKU_GET_RAND(1, size * 0xFF) * 4);
+    case 1:
+        return fuku_immediate(FUKU_GET_RAND(1, 0xFFFFFFFF));
+
+
+    case 2:case 3:
+    case 4:case 5:
+    case 6:case 7:
+    case 8:case 9:
+    case 10:case 11:
+    case 12:case 13:
+    case 14:case 15:
+    case 16:
+        return fuku_immediate(FUKU_GET_RAND(1, 0xF)* (1 << ((sw_ - 2) * 4)));
+
+    default:
+        break;
+    }
+
+    return fuku_immediate(FUKU_GET_RAND(1, 0xFFFFFFFF));
+}
+
+bool generate_86_operand_src(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t disallow_regs) {
+
+    if (!allow_inst) { return false; }
+
+    uint8_t target_type = get_random_bit_by_mask(allow_inst, 0, 2);
+
+    switch (target_type) {
+    case 0: {
+        op = reg_(get_random_reg(size, true, disallow_regs));
+        return op.get_register().get_reg() != FUKU_REG_NONE;
+    }
+    case 1: {
+        break;
+    }
+    case 2: {
+        op = generate_86_immediate(size);
+        return op.get_type() != FUKU_T0_NONE;
+    }
+    default: {break; }
+    }
+
+    return false;
+}
+
+bool generate_86_operand_dst(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t allow_regs, uint64_t disallow_regs) {
+
+    if (!allow_inst) { return false; }
+
+    uint8_t target_type = get_random_bit_by_mask(allow_inst, 0, 2);
+
+    switch (target_type) {
+    case 0: {
+        op = reg_(get_random_free_flag_reg(allow_regs, size, true, disallow_regs));
+        return op.get_register().get_reg() != FUKU_REG_NONE;
+    }
+    case 1: {
+
+        break;
+    }
+    default: {break; }
+    }
+
+    return false;
+}
+
+fuku_register_enum get_random_x64_free_flag_reg(uint64_t reg_flags, uint8_t reg_size, uint64_t exclude_regs) {
+
+    fuku_register_enum reg_ = get_random_free_flag_reg(reg_flags, reg_size == 4 ? 8 : reg_size, false, exclude_regs);
+
+    if (reg_ != FUKU_REG_NONE && reg_size == 4) {
+        return fuku_reg_set_grade(reg_, 4);
+    }
+
+    return reg_;
+}
+
+fuku_immediate generate_64_immediate(uint8_t size) {
+
+    uint8_t sw_ = FUKU_GET_RAND(0, size * 4);
+
+    switch (sw_) {
+    case 0:
+        return fuku_immediate(FUKU_GET_RAND(1, size * 0xFF) * 4);
+    case 1:
+        return fuku_immediate(FUKU_GET_RAND(1, 0xFFFFFFFF));
+
+
+    case 2:case 3:
+    case 4:case 5:
+    case 6:case 7:
+    case 8:case 9:
+    case 10:case 11:
+    case 12:case 13:
+    case 14:case 15:
+    case 16:
+        return fuku_immediate(FUKU_GET_RAND(1, 0xF)* (1 << ((sw_ - 2) * 4)));
+
+    default:
+        break;
+    }
+
+    return fuku_immediate(FUKU_GET_RAND(1, 0xFFFFFFFF));
+}
+
+
+bool generate_64_operand_src(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t disallow_regs) {
+
+    if (!allow_inst) { return false; }
+
+    uint8_t target_type = get_random_bit_by_mask(allow_inst, 0, 2);
+
+    switch (target_type) {
+    case 0: {
+        op = reg_(get_random_reg(size, false, disallow_regs));
+        return op.get_register().get_reg() != FUKU_REG_NONE;
+    }
+    case 1: {
+        break;
+    }
+    case 2: {
+        op = generate_64_immediate(size);
+        return op.get_type() != FUKU_T0_NONE;
+    }
+    default: {break; }
+    }
+
+    return false;
+}
+
+bool generate_64_operand_dst(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t allow_regs, uint64_t disallow_regs) {
+
+    if (!allow_inst) { return false; }
+
+    uint8_t target_type = get_random_bit_by_mask(allow_inst, 0, 2);
+
+    switch (target_type) {
+    case 0: {
+        op = reg_(get_random_x64_free_flag_reg(allow_regs, size, disallow_regs));
+        return op.get_register().get_reg() != FUKU_REG_NONE;
+    }
+    case 1: {
+
+        break;
+    }
+    default: {break; }
+    }
+
+    return false;
 }

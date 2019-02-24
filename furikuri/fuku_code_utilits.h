@@ -183,3 +183,16 @@ uint64_t flag_reg_to_complex_flag_reg_by_size(uint64_t flag_reg);
 fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, uint64_t exclude_regs = 0);
 fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);
 fuku_register_enum get_random_free_flag_reg(const fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);
+fuku_register_enum get_random_x64_free_flag_reg(uint64_t reg_flags, uint8_t reg_size, uint64_t exclude_regs = FUKU_REG_NONE);
+
+#define INST_ALLOW_REGISTER   1
+#define INST_ALLOW_OPERAND    2
+#define INST_ALLOW_IMMEDIATE  4
+
+fuku_immediate generate_86_immediate(uint8_t size);
+bool generate_86_operand_src(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t disallow_regs);
+bool generate_86_operand_dst(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t allow_regs, uint64_t disallow_regs);
+
+fuku_immediate generate_64_immediate(uint8_t size);
+bool generate_64_operand_src(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t disallow_regs);
+bool generate_64_operand_dst(mutation_context & ctx, fuku_type& op, uint8_t allow_inst, uint8_t size, uint64_t allow_regs, uint64_t disallow_regs);

@@ -62,11 +62,42 @@ void fukutate_64_jmp(mutation_context & ctx) {
 
     if (detail.operands[0].type == X86_OP_REG) { //jmp reg32
 
+        switch (FUKU_GET_RAND(0, 0)) {
 
+            //push reg
+            //ret   
+        case 0: {
+
+            if (IsAllowedStackOperations) {
+
+                ctx.f_asm->push(reg_(capstone_to_fuku_reg(detail.operands[0].reg)));
+
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
+                    .set_custom_flags(ctx.regs_changes);
+
+                ctx.f_asm->ret(imm(0));
+                ctx.f_asm->get_context().inst->
+                    set_eflags(ctx.eflags_changes)
+                    .set_custom_flags(ctx.regs_changes);
+            }
+            else {
+                ctx.was_mutated = false;
+                return;
+            }
+
+            break;
+        }
+
+        default: {ctx.was_mutated = false; return; }
+        }
+
+        ctx.was_mutated = true;
+        return;
     }
     else if (detail.operands[0].type == X86_OP_MEM) { //jmp [op]
 
-
+  
     }
     else if (detail.operands[0].type == X86_OP_IMM) { //jmp imm
 
