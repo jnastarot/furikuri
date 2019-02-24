@@ -15,9 +15,6 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector">
       <UniqueIdentifier>{b1ec361b-10a5-4861-b39b-f8c1d18bb7d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_protector_mgr">
-      <UniqueIdentifier>{c0c9f967-82f1-4350-9757-80f028b78f15}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_settings">
       <UniqueIdentifier>{018367a8-16f5-4914-a556-c80f07e66243}</UniqueIdentifier>
     </Filter>
@@ -81,6 +78,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_code\fuku_code_utilits">
       <UniqueIdentifier>{78cc723c-173b-4458-a2ed-0c3d93507808}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_protect_mgr">
+      <UniqueIdentifier>{c0c9f967-82f1-4350-9757-80f028b78f15}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -114,13 +114,13 @@
       <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer</Filter>
     </ClInclude>
     <ClInclude Include="fuku_protect_obfuscator_mgr.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector_mgr</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_protect_mgr</Filter>
     </ClInclude>
     <ClInclude Include="fuku_protect_virtualizer_mgr.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector_mgr</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_protect_mgr</Filter>
     </ClInclude>
     <ClInclude Include="fuku_protect_mgr.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector_mgr</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_protect_mgr</Filter>
     </ClInclude>
     <ClInclude Include="fuku_mutation_x86_rules.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation</Filter>
@@ -176,7 +176,7 @@
       <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x86</Filter>
     </ClCompile>
     <ClCompile Include="fuku_protect_mgr.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector_mgr</Filter>
+      <Filter>Заголовочные файлы\furikuri\fuku_protect_mgr</Filter>
     </ClCompile>
     <ClCompile Include="fuku_mutation_x86_rules.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation</Filter>

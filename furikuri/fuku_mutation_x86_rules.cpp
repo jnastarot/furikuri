@@ -181,7 +181,7 @@ void fukutate_86_jmp(mutation_context& ctx) {
 
             break;
         }
-
+        default: {ctx.was_mutated = false; return; }
         }
 
         ctx.was_mutated = true;

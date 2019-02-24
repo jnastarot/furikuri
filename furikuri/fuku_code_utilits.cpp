@@ -21,6 +21,12 @@ uint64_t FULL_INCLUDE_FLAGS_TABLE[] = {
     FLAG_REGISTER_R15 | FLAG_REGISTER_R15D | FLAG_REGISTER_R15W | FLAG_REGISTER_R15B,
 };
 
+uint8_t index_to_size[] = {
+    1,
+    2,
+    4,
+    8
+};
 
 inline bool bit_scan_forward(uint32_t& index, uint64_t mask) {
     for (; index < 64; index++) {
@@ -40,10 +46,15 @@ inline bool bit_scan_backward(uint32_t& index, uint64_t mask) {
     return false;
 }
 
+
+bool has_free_flag_register(uint64_t regs_flags, uint64_t reg) {
+    return GET_BITES(regs_flags, reg) == reg;
+}
+
 bool has_inst_free_register(const fuku_instruction& inst, x86_reg reg) {
 
     if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg] != -2) {
-        return GET_BITES(inst.get_custom_flags(), CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg]) == CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg];
+        return has_free_flag_register(inst.get_custom_flags(), CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg]);
     }
 
     return false;
@@ -164,6 +175,32 @@ uint64_t flag_reg_to_complex_flag_reg_by_size(uint64_t flag_reg) {
     return FULL_INCLUDE_FLAGS_TABLE[reg_index];
 }
 
+uint8_t get_random_bit_by_mask(uint64_t mask, uint8_t min_index, uint8_t max_index) {
+
+    uint32_t index = min_index;
+
+    uint32_t rand_idx = FUKU_GET_RAND(min_index, max_index);
+
+    index = rand_idx;
+    if (rand_idx == min_index) {
+        bit_scan_forward(index, mask);
+
+        return index;
+    }
+    else if (rand_idx == max_index) {
+        bit_scan_backward(index, mask);
+
+        return index;
+    }
+    else {
+        if (!bit_scan_forward(index, mask) || index > max_index) {
+            index = rand_idx;
+            bit_scan_backward(index, mask);
+        }
+    }
+
+    return index;
+}
 
 fuku_register_enum flag_reg_to_fuku_reg(uint64_t reg) {
 
@@ -176,7 +213,38 @@ fuku_register_enum flag_reg_to_fuku_reg(uint64_t reg) {
     }
 }
 
-fuku_register_enum fuku_reg_down_grade(fuku_register_enum reg) {
+
+uint8_t flag_reg_get_size(uint64_t reg) {
+
+    uint32_t index = 0;
+    if (!bit_scan_forward(index, reg)) {
+        return 0;
+    }
+
+    return index_to_size[((index) / 16) + 1];
+}
+
+uint8_t flag_reg_get_index(uint64_t reg) {
+
+    uint32_t index = 0;
+    if (!bit_scan_forward(index, reg)) {
+        return 0;
+    }
+
+    return (index) % 8;
+}
+
+uint8_t is_flag_reg_ext64(uint64_t reg) {
+
+    uint32_t index = 0;
+    if (!bit_scan_forward(index, reg)) {
+        return 0;
+    }
+
+    return (((index) / 16) > 7) ? 1 : 0;
+}
+
+fuku_register_enum fuku_reg_set_grade(fuku_register_enum reg, uint8_t needed_size) {
     return flag_reg_to_fuku_reg( ((uint64_t)1 << (CONVERT_FUKU_REGISTER_TO_FLAG[reg] - 16)) );
 }
 
@@ -199,28 +267,8 @@ uint32_t get_rand_free_reg_(uint64_t inst_regs, uint32_t min_idx, uint32_t max_i
 
             return -1;
         }
-
-        uint32_t rand_idx = FUKU_GET_RAND(min_idx, max_idx);
-
-        index = rand_idx;
-        if (rand_idx == min_idx) {
-            bit_scan_forward(index, inst_regs);
-            
-            return index;
-        }
-        else if (rand_idx == max_idx) {
-            bit_scan_backward(index, inst_regs);
-
-            return index;
-        }
-        else {
-            if (!bit_scan_forward(index, inst_regs) || index > max_idx) {
-                index = rand_idx;
-                bit_scan_backward(index, inst_regs);
-            }
-        }
-
-        return index;
+     
+        return get_random_bit_by_mask(inst_regs, min_idx, max_idx);
     }
 
     return -1;

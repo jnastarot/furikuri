@@ -47,7 +47,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "capstone", "capstone", "{9C
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "capstone_static", "capstone\msvc\capstone_static\capstone_static.vcxproj", "{5B01D900-2359-44CA-9914-6B0C6AFB7BE7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fukutasm", "..\fukutasm\fukutasm\fukutasm.vcxproj", "{0A569853-B3F6-4BE5-A7DA-F88EFCE68EC7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fukutasm", "fukutasm\fukutasm\fukutasm.vcxproj", "{0A569853-B3F6-4BE5-A7DA-F88EFCE68EC7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fuku_asm", "fuku_asm", "{31944A4F-4379-42ED-8134-785A272EEC9D}"
 EndProject

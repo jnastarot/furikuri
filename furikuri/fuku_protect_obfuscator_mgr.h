@@ -136,9 +136,7 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
 
             obfuscator.obfuscate_code();
 
-           // if (!anal_code.push_code(std::move(item.an_code.get_code()))) { FUKU_DEBUG; return false; }
             if (!anal_code.splice_code(item.an_code.get_code())) { FUKU_DEBUG; return false; }
-
 
             ob_profile.regions.insert(ob_profile.regions.end(), item.regions.begin(), item.regions.end());
 
@@ -161,7 +159,6 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
 
         std::vector<uint8_t> ob_code = finalize_code(anal_code.get_code(), &ob_profile.association_table, &ob_profile.relocation_table);
 
-        //
 
         if (image_io.set_image_offset(dest_address_rva).write(ob_code) != enma_io_success) { 
             

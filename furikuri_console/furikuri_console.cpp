@@ -2,8 +2,7 @@
 
 
 #include "lzo1z.h"
-#pragma comment(lib,"lzo2_mdd64.lib")
-//#include "..\..\LZO\lzo1z.h"
+
 
 unsigned char lzo_depack_32[] = {//0xCC,
     0x55, 0x8B, 0xEC, 0x8B, 0x55, 0x08, 0x8B, 0x45, 0x14, 0x01, 0x55, 0x0C, 0x53, 0x33, 0xDB, 0x56,
@@ -111,6 +110,15 @@ unsigned char lzo_depack_64[963] = {
     0x48, 0x8B, 0x74, 0x24, 0x10, 0xB9, 0xF8, 0xFF, 0xFF, 0xFF, 0x48, 0x8B, 0x7C, 0x24, 0x18, 0x0F,
     0x42, 0xC1, 0xC3
 };
+
+//#define DO_TEST_32 0
+
+#ifdef _M_X64   
+    #pragma comment(lib,"lzo2_mdd64.lib")
+#else
+    #pragma comment(lib,"lzo2_mt32.lib")
+#endif
+
 void test_on_shellcode();
 
 DWORD WINAPI multithread_test(LPVOID) {
@@ -124,7 +132,7 @@ int main() {
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(6);
- //   test_on_shellcode();
+    test_on_shellcode();
     /*
     HANDLE hthread[2];
 
@@ -187,10 +195,10 @@ int main() {
            //0x1000 , 0x6F0
 
 
-        fuku_settings_obfuscation ob_set( 3, 3, 40.f, 40.f, 40.f, 
+        fuku_settings_obfuscation ob_set( 4, 3, 40.f, 40.f, 40.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
 
-        fuku_settings_obfuscation ob1_set(3,3, 40.f, 40.f, 60.f, 
+        fuku_settings_obfuscation ob1_set(4,3, 40.f, 40.f, 60.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
 
@@ -287,13 +295,15 @@ void test_on_shellcode() {
     fuku_code_holder code_holder;
     fuku_code_analyzer anal_code;
 
-   // fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X86);
-   // anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
-   // anal_code.analyze_code(code_holder, lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
-
+#ifdef _M_X64
     fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X64);
     anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X64);
-    anal_code.analyze_code(code_holder, lzo_depack_64, sizeof(lzo_depack_64), 0, 0);
+    anal_code.analyze_code(code_holder, lzo_depack_64, sizeof(lzo_depack_64), 0, 0); 
+#else
+    fuku_code_profiler code_profiler(FUKU_ASSAMBLER_ARCH_X86);
+    anal_code.set_arch(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86);
+    anal_code.analyze_code(code_holder, lzo_depack_32, sizeof(lzo_depack_32), 0, 0);
+#endif
 
     code_profiler.profile_code(code_holder);
 
@@ -330,10 +340,15 @@ void test_on_shellcode() {
 
         unsigned long unpack_size = 0x1000;
 
+#ifdef _M_X64
         for (auto &rel : relocations) { //fix reloc
-            *(DWORD*)&__obf_unpacker_[rel.virtual_address] += (uint32_t)__obf_unpacker_;
+            *(uint64_t*)&__obf_unpacker_[rel.virtual_address] += (uint64_t)__obf_unpacker_;
+        }     
+#else
+        for (auto &rel : relocations) { //fix reloc
+            *(uint32_t*)&__obf_unpacker_[rel.virtual_address] += (uint32_t)__obf_unpacker_;
         }
-
+#endif
         unsigned int n_time = GetTickCount();
      //   code_profiler.print_code(ob_anal_code.get_code());
         // __try {

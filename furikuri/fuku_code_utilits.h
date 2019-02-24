@@ -160,16 +160,26 @@ enum flag_register_index{
 #define REGISTER_ACCESS_WRITE (1 << 1)
 
 
+bool has_free_flag_register(uint64_t regs_flags, uint64_t reg);
 bool has_inst_free_register(const fuku_instruction& inst, x86_reg reg);
 bool has_inst_free_eflags(uint64_t inst_eflags, uint64_t flags); //uint64_t flags used only with MODIFY prefix
 
-fuku_register_enum  flag_reg_to_fuku_reg(uint64_t reg);
+uint8_t get_random_bit_by_mask(uint64_t mask, uint8_t min_index, uint8_t max_index);
+
+fuku_register_enum flag_reg_to_fuku_reg(uint64_t reg);
 uint64_t fuku_reg_to_flag_reg(fuku_register_enum reg);
+
+uint8_t flag_reg_get_size(uint64_t reg);
+uint8_t flag_reg_get_index(uint64_t reg);
+uint8_t is_flag_reg_ext64(uint64_t reg);
+
+fuku_register_enum fuku_reg_set_grade(fuku_register_enum reg, uint8_t needed_size);
+
+
 uint64_t fuku_reg_to_complex_flag_reg(const fuku_register& reg, uint8_t size = 0);
 uint64_t flag_reg_to_complex_flag_reg(uint64_t flag_reg);
 uint64_t flag_reg_to_complex_flag_reg_by_size(uint64_t flag_reg);
 
-fuku_register_enum fuku_reg_down_grade(fuku_register_enum reg);
 fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, uint64_t exclude_regs = 0);
 fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);
 fuku_register_enum get_random_free_flag_reg(const fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);
