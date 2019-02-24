@@ -21,11 +21,18 @@ uint64_t FULL_INCLUDE_FLAGS_TABLE[] = {
     FLAG_REGISTER_R15 | FLAG_REGISTER_R15D | FLAG_REGISTER_R15W | FLAG_REGISTER_R15B,
 };
 
-uint8_t index_to_size[] = {
+uint8_t indexsz_to_size[] = {
     1,
     2,
     4,
     8
+};
+uint8_t size_to_indexsz[] = {
+    0,
+    0,
+    1,
+    0,2,
+    0,0,0,3
 };
 
 inline bool bit_scan_forward(uint32_t& index, uint64_t mask) {
@@ -221,7 +228,7 @@ uint8_t flag_reg_get_size(uint64_t reg) {
         return 0;
     }
 
-    return index_to_size[((index) / 16) + 1];
+    return indexsz_to_size[((index) / 16) + 1];
 }
 
 uint8_t flag_reg_get_index(uint64_t reg) {
@@ -245,7 +252,7 @@ uint8_t is_flag_reg_ext64(uint64_t reg) {
 }
 
 fuku_register_enum fuku_reg_set_grade(fuku_register_enum reg, uint8_t needed_size) {
-    return flag_reg_to_fuku_reg( ((uint64_t)1 << (CONVERT_FUKU_REGISTER_TO_FLAG[reg] - 16)) );
+    return flag_reg_to_fuku_reg(((uint64_t)1 << ((size_to_indexsz[needed_size] * 16) + (CONVERT_FUKU_REGISTER_TO_FLAG[reg] % 16))));
 }
 
 uint32_t get_rand_free_reg_(uint64_t inst_regs, uint32_t min_idx, uint32_t max_idx) {

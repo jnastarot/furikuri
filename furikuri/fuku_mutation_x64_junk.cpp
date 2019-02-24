@@ -24,7 +24,7 @@ fuku_register_enum get_random_x64_free_flag_reg(uint64_t reg_flags, uint8_t reg_
     fuku_register_enum reg_ = get_random_free_flag_reg(reg_flags, reg_size == 4 ? 8 : reg_size, false, exclude_regs);
 
     if (reg_ != FUKU_REG_NONE && reg_size == 4) {
-        return fuku_reg_down_grade(reg_);
+        return fuku_reg_set_grade(reg_, 4);
     }
 
     return reg_;
