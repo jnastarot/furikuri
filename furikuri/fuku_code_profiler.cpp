@@ -910,5 +910,14 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
 
 
 
+void print_full_reg(uint64_t reg) {
 
+    for (size_t reg_idx = X86_REG_INVALID; reg_idx < X86_REG_ENDING; reg_idx++) {
+        if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx] != -2 &&
+            reg & CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
+
+            fuku_code_profiler(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86).print_reg(CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]);
+        }
+    }
+}
 

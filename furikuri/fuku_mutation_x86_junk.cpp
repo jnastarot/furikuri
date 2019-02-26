@@ -728,7 +728,7 @@ bool junk_86_high_pattern_5(mutation_context & ctx) {
     }
 
     ctx.f_asm->nop();
-    ctx.f_asm->get_context().inst->set_op_code(trash.data(), trash.size())
+    ctx.f_asm->get_context().inst->set_op_code(trash.data(), (uint8_t)trash.size())
         .set_instruction_flags(FUKU_INST_JUNK_CODE);
 
     return true;

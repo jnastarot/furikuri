@@ -172,6 +172,7 @@
     <ClInclude Include="fuku_obfuscator.h" />
     <ClInclude Include="fuku_mutation_x64.h" />
     <ClInclude Include="fuku_mutation_x86.h" />
+    <ClInclude Include="mutation_86_templates.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

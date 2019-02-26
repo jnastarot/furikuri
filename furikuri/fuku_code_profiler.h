@@ -27,3 +27,5 @@ public:
     bool profile_code(fuku_code_holder& code);
 
 };
+
+void print_full_reg(uint64_t reg);

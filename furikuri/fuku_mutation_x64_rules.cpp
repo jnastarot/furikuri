@@ -144,7 +144,7 @@ void fukutate_64_jmp(mutation_context & ctx) {
                 ctx.f_asm->get_context().inst->
                     set_eflags(ctx.eflags_changes)
                     .set_custom_flags(ctx.regs_changes)
-                    .set_relocation_first_idx(
+                    .set_relocation_imm_idx(
                         ctx.code_holder->create_relocation_lb(
                             ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
                         )

@@ -15,6 +15,9 @@ static uint64_t di_fl_jcc[] = {
 };
 
 
+#include "mutation_86_templates.h"
+
+
 void fukutate_86_jcc(mutation_context& ctx) {
 
     if (!ctx.is_next_line_end) { //if not last instruction
@@ -108,7 +111,7 @@ void fukutate_86_jmp(mutation_context& ctx) {
                 ctx.f_asm->get_context().inst->
                     set_eflags(ctx.eflags_changes)
                     .set_custom_flags(ctx.regs_changes)
-                    .set_relocation_first_idx(
+                    .set_relocation_imm_idx(
                         ctx.code_holder->create_relocation_lb(
                             ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
                         )
@@ -165,7 +168,7 @@ void fukutate_86_jmp(mutation_context& ctx) {
                 ctx.f_asm->get_context().inst->
                     set_eflags(ctx.eflags_changes)
                     .set_custom_flags(ctx.regs_changes)
-                    .set_relocation_first_idx(
+                    .set_relocation_imm_idx(
                         ctx.code_holder->create_relocation_lb(
                             ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
                         )
@@ -227,7 +230,7 @@ void fukutate_86_call(mutation_context& ctx) {
                 ctx.f_asm->get_context().inst->
                     set_eflags(ctx.eflags_changes)
                     .set_custom_flags(ctx.regs_changes)
-                    .set_relocation_first_idx(
+                    .set_relocation_imm_idx(
                         ctx.code_holder->create_relocation(
                             ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter), 0
                         )
@@ -265,7 +268,7 @@ void fukutate_86_call(mutation_context& ctx) {
             ctx.f_asm->get_context().inst->
                 set_eflags(ctx.eflags_changes)
                 .set_custom_flags(ctx.regs_changes)
-                .set_relocation_first_idx(
+                .set_relocation_imm_idx(
                     ctx.code_holder->create_relocation(
                         ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter), 0
                     )
@@ -316,237 +319,17 @@ void fukutate_86_ret(mutation_context& ctx) {
 
 
 void fukutate_86_push(mutation_context& ctx) {
-
+    if (!IsAllowedStackOperations) { return; }
     auto detail = ctx.instruction->detail->x86;
 
-    if (detail.operands[0].type == X86_OP_REG) {
-
-        fuku_register_enum reg = capstone_to_fuku_reg(detail.operands[0].reg);
-
-        if (reg == FUKU_REG_ESP || reg == FUKU_REG_SP) { return; }
-      
-        if (detail.operands[0].size == 4) { //push reg32
-
-            switch (FUKU_GET_RAND(0, 1)) {
-
-                //(sub esp,4) or (lea esp,[esp - 4]) 
-                //mov [esp],reg
-            case 0: {
-           
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(4));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes).set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes).set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-
-                ctx.f_asm->mov(dword_ptr(FUKU_REG_ESP), reg_(reg));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes)
-                    .set_instruction_flags(FUKU_INST_BAD_STACK);
-
-                break;
-            }
-
-                    //mov [esp - 4],reg
-                    //(sub esp,4) or (lea esp,[esp - 4])            
-            case 1: {
-
-                ctx.f_asm->mov(dword_ptr(FUKU_REG_ESP, imm(-4)), reg_(reg));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes).set_instruction_flags(FUKU_INST_BAD_STACK);
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(4));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-
-                break;
-            }
-            }
-
-            ctx.was_mutated = true;
-        }
-        else if (detail.operands[0].size == 2) { //push reg16
-
-            switch (FUKU_GET_RAND(0, 1)) {
-
-                //(sub esp,2) or (lea esp,[esp - 2]) 
-                //mov [esp],reg
-            case 0: {
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(2));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes).set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-2)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes).set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-
-                ctx.f_asm->mov(word_ptr(FUKU_REG_ESP), reg_(reg));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes)
-                    .set_instruction_flags(FUKU_INST_BAD_STACK);
-
-                break;
-            }
-
-                    //mov [esp - 2],reg
-                    //(sub esp,2) or (lea esp,[esp - 2])            
-            case 1: {
-
-                ctx.f_asm->mov(word_ptr(FUKU_REG_ESP, imm(-2)), reg_(reg));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes).set_instruction_flags(FUKU_INST_BAD_STACK);
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(2));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-2)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-
-                break;
-            }
-            default: { return; }
-            }
-
-            ctx.was_mutated = true;
-        }
-        else if (detail.operands[0].size == 1) { //push reg8
-            FUKU_DEBUG;
-        }
+    if (detail.operands[0].type == X86_OP_REG) {  //push reg
+        ctx.was_mutated = _push_86_reg_tmpl(ctx, detail);
     }
     else if (detail.operands[0].type == X86_OP_MEM) { //push [op]
-
-
+        ctx.was_mutated = _push_86_op_tmpl(ctx, detail);
     }
     else if (detail.operands[0].type == X86_OP_IMM) { //push imm8/imm32
-
-        switch (FUKU_GET_RAND(0, 1)) {
-
-            //(sub esp,4) or (lea esp,[esp - 4]) 
-            //mov [esp],value
-        case 0: {
-            size_t reloc_idx = ctx.current_line_iter->get_relocation_first_idx();
-            uint32_t val = reloc_idx != -1 ? -1 : (uint32_t)detail.operands[0].imm;
-
-
-            if (has_inst_free_eflags(ctx.eflags_changes,
-                X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(4));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-            }
-            else {
-                ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-            }
-
-            ctx.f_asm->mov(dword_ptr(FUKU_REG_ESP), imm(val));
-            ctx.f_asm->get_context().inst->
-                set_eflags(ctx.eflags_changes)
-                .set_custom_flags(ctx.regs_changes)
-                .set_instruction_flags(FUKU_INST_BAD_STACK);
-
-
-            if (reloc_idx != -1) {
-                ctx.f_asm->get_context().inst->
-                    set_relocation_first_idx(reloc_idx);
-
-                ctx.code_holder->get_relocations()[reloc_idx].offset = ctx.f_asm->get_context().immediate_offset;
-            }
-
-            break;
-        }
-
-                //mov [esp - 4],value
-                //(sub esp, 4) or (lea esp,[esp - 4])      
-        case 1: {
-            size_t reloc_idx = ctx.current_line_iter->get_relocation_first_idx();
-            uint32_t val = reloc_idx != -1 ? -1 : (uint32_t)detail.operands[0].imm;
-
-            ctx.f_asm->mov(dword_ptr(FUKU_REG_ESP, imm(-4)), imm(val));
-            ctx.f_asm->get_context().inst->
-                set_eflags(ctx.eflags_changes)
-                .set_custom_flags(ctx.regs_changes);
-
-
-            if (reloc_idx != -1) {
-                ctx.f_asm->get_context().inst->
-                    set_relocation_first_idx(reloc_idx);
-
-                ctx.code_holder->get_relocations()[reloc_idx].offset = ctx.f_asm->get_context().immediate_offset;
-            }
-
-            if (has_inst_free_eflags(ctx.eflags_changes,
-                X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(4));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes)
-                    .set_instruction_flags(FUKU_INST_BAD_STACK);
-            }
-            else {
-                ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes)
-                    .set_instruction_flags(FUKU_INST_BAD_STACK);
-            }
-
-            break;
-        }
-        default: { return; }
-        }
-
-        ctx.was_mutated = true;
+        ctx.was_mutated = _push_86_imm_tmpl(ctx, detail);
     }
 }
 
@@ -713,197 +496,22 @@ void fukutate_86_mov(mutation_context& ctx) {
     if (detail.operands[0].type == X86_OP_REG) {
 
         if (detail.operands[1].type == X86_OP_REG) { //mov reg, reg
-
-            fuku_register_enum reg_dst = capstone_to_fuku_reg(detail.operands[0].reg);
-            fuku_register_enum reg_src = capstone_to_fuku_reg(detail.operands[1].reg);
-
-            if (detail.operands[0].size == 4) {
-
-                switch (FUKU_GET_RAND(0, 2)) {
-
-                case 0: {
-                    //push src
-                    //pop dst
-
-                    if (IsAllowedStackOperations &&
-                        reg_dst != FUKU_REG_ESP && reg_src != FUKU_REG_ESP) {
-
-                        ctx.f_asm->push(reg_(reg_src));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(ctx.regs_changes);
-
-                        ctx.f_asm->pop(reg_(reg_dst));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(ctx.regs_changes);
-
-                    }
-                    else {
-                        return;
-                    }
-
-                    break;
-                }
-
-                //mov somereg, src
-                //xchg dst, somereg
-                case 1: {
-
-                    fuku_type dst;
-
-                    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER, 4, ctx.regs_changes, 0)) {
-                        return;
-                    }
-                    uint64_t out_regflags = ctx.regs_changes & ~(fuku_reg_to_complex_flag_reg(dst.get_register().get_reg(), 8));
-
-                    ctx.f_asm->mov(dst, reg_(reg_src));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes);
-
-                    ctx.f_asm->xchg(reg_(reg_dst), dst);
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(out_regflags);
-
-                    break;
-                }
-
-                //xor dst,dst 
-                //add dst, src
-                case 2: {
-
-                    if (has_inst_free_eflags(ctx.eflags_changes,
-                        X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                        uint64_t out_regflags = ctx.regs_changes & ~(fuku_reg_to_complex_flag_reg(reg_dst, 8));
-
-                        ctx.f_asm->xor_(reg_(reg_dst), reg_(reg_dst));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(ctx.regs_changes);
-
-                        ctx.f_asm->add(reg_(reg_dst), reg_(reg_src));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(out_regflags);
-                    }
-                    else {
-                        return;
-                    }
-
-                    break;
-                }
-                default: { return; }
-                }
-
-                ctx.was_mutated = true;
-            }
-            else if (detail.operands[0].size == 2) {
-
-                switch (FUKU_GET_RAND(0, 2)) {
-
-                case 0: {
-                    //push src
-                    //pop dst
-
-                    if (IsAllowedStackOperations &&
-                        reg_dst != FUKU_REG_SP && reg_src != FUKU_REG_SP) {
-
-                        ctx.f_asm->push(reg_(reg_src));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(ctx.regs_changes);
-
-                        ctx.f_asm->pop(reg_(reg_dst));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(ctx.regs_changes);
-
-                    }
-                    else {
-                        return;
-                    }
-
-                    break;
-                }
-
-                //mov somereg, src
-                //xchg dst, somereg
-                case 1: {
-
-                    fuku_type dst;
-
-                    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER, 2, ctx.regs_changes, 0)) {
-                        return;
-                    }
-                    uint64_t out_regflags = ctx.regs_changes & ~(fuku_reg_to_complex_flag_reg(dst.get_register().get_reg(), 8));
-
-                    ctx.f_asm->mov(dst, reg_(reg_src));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes);
-
-                    ctx.f_asm->xchg(reg_(reg_dst), dst);
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(out_regflags);
-
-                    break;
-                }
-
-               //xor dst,dst 
-               //add dst, src
-                case 2: {
-
-
-                    if (has_inst_free_eflags(ctx.eflags_changes,
-                        X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                        uint64_t out_regflags = ctx.regs_changes & ~(fuku_reg_to_complex_flag_reg(reg_dst, 8));
-
-                        ctx.f_asm->xor_(reg_(reg_dst), reg_(reg_dst));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(ctx.regs_changes);
-
-                        ctx.f_asm->add(reg_(reg_dst), reg_(reg_src));
-                        ctx.f_asm->get_context().inst->
-                            set_eflags(ctx.eflags_changes)
-                            .set_custom_flags(out_regflags);
-                    }
-                    else {
-                        return;
-                    }
-
-                    break;
-                }
-                default: { return; }
-                }
-
-                ctx.was_mutated = true;
-            }
-            else if (detail.operands[0].size == 1) {
-
-            }
-
+            ctx.was_mutated = _mov_86_reg_reg_tmpl(ctx, detail);
         }
         else if (detail.operands[1].type == X86_OP_IMM) {//mov reg, imm
-
+            ctx.was_mutated = _mov_86_reg_imm_tmpl(ctx, detail);
         }
         else if (detail.operands[1].type == X86_OP_MEM) {//mov reg, [op]
-
+            ctx.was_mutated = _mov_86_reg_op_tmpl(ctx, detail);
         }
-
     }
     else if (detail.operands[0].type == X86_OP_MEM) {
 
         if (detail.operands[1].type == X86_OP_REG) { //mov [op], reg
-
+            ctx.was_mutated = _mov_86_op_reg_tmpl(ctx, detail);
         }
         else if (detail.operands[1].type == X86_OP_IMM) {//mov [op], imm
-
+            ctx.was_mutated = _mov_86_op_imm_tmpl(ctx, detail);
         }
     }
 }

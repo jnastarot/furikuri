@@ -132,7 +132,7 @@ int main() {
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(6);
-   // test_on_shellcode();
+    test_on_shellcode();
     /*
     HANDLE hthread[2];
 
@@ -272,7 +272,7 @@ int main() {
 
 void test_on_shellcode() {
 
-   // srand(0x768);
+    srand(0x15343);
 
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
@@ -310,12 +310,16 @@ void test_on_shellcode() {
     typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
     for (unsigned int i = 0; i < 10000; i++) {
 
+        if (i == 566) {
+           // __debugbreak();
+        }
+
         fuku_code_analyzer ob_anal_code = code_holder;
 
         fuku_obfuscator obfuscator;
 
 
-        fuku_settings_obfuscation ob_set(4, 4, 40.f, 30.f, 40.f,
+        fuku_settings_obfuscation ob_set(5, 5, 40.f, 30.f, 40.f,
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
         obfuscator.set_destination_virtual_address(0);
         // obfuscator.set_settings({ 1,1,00.f,00.f,30.f });
@@ -350,7 +354,12 @@ void test_on_shellcode() {
         }
 #endif
         unsigned int n_time = GetTickCount();
-     //   code_profiler.print_code(ob_anal_code.get_code());
+
+        if (i == 787) {
+            code_profiler.print_code(ob_anal_code.get_code());
+        }
+
+    //    code_profiler.print_code(ob_anal_code.get_code());
         // __try {
         depack(compressed_buf, packed_size, data_1, &unpack_size, 0);
         // }
@@ -363,7 +372,7 @@ void test_on_shellcode() {
             if (data_[i] != data_1[i]) { 
                 printf("error! %x != %x : %d\n", data_[i], data_1[i], i); 
                 
-                Sleep(100000);
+          //      Sleep(100000);
 
                 
             }
