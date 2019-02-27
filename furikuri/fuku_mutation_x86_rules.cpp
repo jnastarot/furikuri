@@ -15,7 +15,66 @@ static uint64_t di_fl_jcc[] = {
 };
 
 
-#include "mutation_86_templates.h"
+#define restore_disp_relocate(op) \
+           if (op.get_type() == FUKU_T0_OPERAND && relocate_disp != -1) {\
+                ctx.f_asm->get_context().inst->\
+                set_relocation_disp_idx(relocate_disp);\
+                ctx.code_holder->get_relocations()[relocate_disp].offset = ctx.f_asm->get_context().displacment_offset;\
+           }
+
+#define restore_imm_relocate(op) \
+           if (inst_size == 4 && op.get_type() == FUKU_T0_IMMEDIATE && relocate_imm != -1) {\
+                ctx.f_asm->get_context().inst->\
+                set_relocation_imm_idx(relocate_imm);\
+                ctx.code_holder->get_relocations()[relocate_imm].offset = ctx.f_asm->get_context().immediate_offset;\
+           }
+
+#define restore_rip_to_imm_relocate(op) \
+           if (op.get_type() == FUKU_T0_IMMEDIATE && relocate_rip != -1) {\
+                size_t rip_label_idx = ctx.code_holder->get_rip_relocations()[relocate_rip].label_idx;\
+                ctx.f_asm->get_context().inst->\
+                set_relocation_imm_idx(\
+                    ctx.code_holder->create_relocation_lb(\
+                        ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0\
+                    )\
+                );\
+                ctx.code_holder->delete_rip_relocation(relocate_rip);\
+           }
+
+#define restore_rip_to_disp_relocate(op) \
+           if (op.get_type() == FUKU_T0_OPERAND && relocate_rip != -1) {\
+                size_t rip_label_idx = ctx.code_holder->get_rip_relocations()[relocate_rip].label_idx;\
+                ctx.f_asm->get_context().inst->\
+                set_relocation_disp_idx(\
+                    ctx.code_holder->create_relocation_lb(\
+                        ctx.f_asm->get_context().displacment_offset, rip_label_idx, 0\
+                    )\
+                );\
+                ctx.code_holder->delete_rip_relocation(relocate_rip);\
+           }
+
+#define restore_imm_or_disp(op)         restore_disp_relocate(op) else restore_imm_relocate(op)
+#define restore_rip_to_imm_or_disp(op)  restore_rip_to_imm_relocate(op) else restore_rip_to_disp_relocate(op)
+
+#include "obf_templates/x86/obf_x86_mov_templates.h"
+#include "obf_templates/x86/obf_x86_xchg_templates.h"
+#include "obf_templates/x86/obf_x86_push_templates.h"
+#include "obf_templates/x86/obf_x86_pop_templates.h"
+
+#include "obf_templates/x86/obf_x86_jcc_templates.h"
+#include "obf_templates/x86/obf_x86_jmp_templates.h"
+#include "obf_templates/x86/obf_x86_call_templates.h"
+#include "obf_templates/x86/obf_x86_ret_templates.h"
+
+#include "obf_templates/x86/obf_x86_add_templates.h"
+#include "obf_templates/x86/obf_x86_sub_templates.h"
+#include "obf_templates/x86/obf_x86_cmp_templates.h"
+
+#include "obf_templates/x86/obf_x86_and_templates.h"
+#include "obf_templates/x86/obf_x86_or_templates.h"
+#include "obf_templates/x86/obf_x86_xor_templates.h"
+#include "obf_templates/x86/obf_x86_test_templates.h"
+
 
 
 void fukutate_86_jcc(mutation_context& ctx) {
@@ -57,140 +116,13 @@ void fukutate_86_jmp(mutation_context& ctx) {
     auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) { //jmp reg32
-
-        switch (FUKU_GET_RAND(0, 0)) {
-
-            //push reg
-            //ret   
-        case 0: {
-
-            if (IsAllowedStackOperations) {
-
-                ctx.f_asm->push(reg_(capstone_to_fuku_reg(detail.operands[0].reg)));
-
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-
-                ctx.f_asm->ret(imm(0));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-            }
-            else {
-                return;
-            }
-
-            break;
-        }
-
-        default: { return; }
-        }
-
-        ctx.was_mutated = true;
-        return;
+        ctx.was_mutated = _jmp_86_reg_tmpl(ctx);
     }
     else if (detail.operands[0].type == X86_OP_MEM) { //jmp [op]
-
-
+        ctx.was_mutated = _jmp_86_op_tmpl(ctx);
     }
     else if (detail.operands[0].type == X86_OP_IMM) { //jmp imm
-
-        size_t rip_label_orig = ctx.current_line_iter->get_rip_relocation_idx();
-        size_t rip_label_idx = ctx.code_holder->get_rip_relocations()[rip_label_orig].label_idx;
-
-        switch (FUKU_GET_RAND(0, 2)) {
-            //push jmpdst
-            //ret   
-        case 0: {
-
-            if (IsAllowedStackOperations) {
-
-
-                ctx.f_asm->push(imm(0xFFFFFFFF));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes)
-                    .set_relocation_imm_idx(
-                        ctx.code_holder->create_relocation_lb(
-                            ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
-                        )
-                    );
-
-                ctx.f_asm->ret(imm(0));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-
-                ctx.code_holder->delete_rip_relocation(rip_label_orig);
-            }
-            else {
-                return;
-            }
-            break;
-        }
-
-        case 1: {
-            //je  dst
-            //jne dst
-
-            uint8_t cond = FUKU_GET_RAND(0, 15);
-
-            ctx.f_asm->jcc(fuku_condition(cond), imm(-1));
-            ctx.f_asm->get_context().inst->
-                set_eflags(ctx.eflags_changes)
-                .set_custom_flags(ctx.regs_changes)
-                .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
-                .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
-
-            ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(-1));
-            ctx.f_asm->get_context().inst->
-                set_eflags(ctx.eflags_changes & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
-                .set_custom_flags(ctx.regs_changes)
-                .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
-                .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
-
-            ctx.code_holder->delete_rip_relocation(rip_label_orig);
-
-            break;
-        }
-        case 2: {
-            //mov randreg, dst
-            //jmp randreg
-
-            fuku_register rand_reg = get_random_free_flag_reg(ctx.regs_changes, 4, true);
-
-            if (rand_reg.get_reg() != FUKU_REG_NONE) {
-
-                uint64_t flag_reg = fuku_reg_to_complex_flag_reg(rand_reg);
-
-                ctx.f_asm->mov(rand_reg, imm(0xFFFFFFFF));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes)
-                    .set_relocation_imm_idx(
-                        ctx.code_holder->create_relocation_lb(
-                            ctx.f_asm->get_context().immediate_offset, rip_label_idx, 0
-                        )
-                    );
-
-                ctx.f_asm->jmp(rand_reg);
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes & (~flag_reg));
-
-                ctx.code_holder->delete_rip_relocation(rip_label_orig);
-            }
-            else {
-                return;
-            }
-
-            break;
-        }
-        default: { return; }
-        }
-
-        ctx.was_mutated = true;
+        ctx.was_mutated = _jmp_86_imm_tmpl(ctx);
     }
 }
 
@@ -290,202 +222,36 @@ void fukutate_86_call(mutation_context& ctx) {
 
 
 void fukutate_86_ret(mutation_context& ctx) {
-
-    auto detail = ctx.instruction->detail->x86;
-
-
-    //lea esp,[esp + (4 + stack_offset)]
-    //jmp [esp - 4 - stack_offset] <- bad esp here
-    uint16_t ret_stack = 0;
-
-    if (detail.op_count) { //ret 0x0000
-        ret_stack = (uint16_t)detail.operands[0].imm;
-    }
-
-    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4 + ret_stack)));
-    ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
-
-    ctx.f_asm->jmp(dword_ptr(FUKU_REG_ESP, imm(-4 - ret_stack)));
-    ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes)
-        .set_instruction_flags(FUKU_INST_BAD_STACK);
-
-    ctx.was_mutated = true;
+    ctx.was_mutated = _ret_86_imm_tmpl(ctx); //ret \ ret 0xXXXX
 }
 
 
 
 void fukutate_86_push(mutation_context& ctx) {
-    if (!IsAllowedStackOperations) { return; }
+
     auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {  //push reg
-        ctx.was_mutated = _push_86_reg_tmpl(ctx, detail);
+        ctx.was_mutated = _push_86_reg_tmpl(ctx);
     }
     else if (detail.operands[0].type == X86_OP_MEM) { //push [op]
-        ctx.was_mutated = _push_86_op_tmpl(ctx, detail);
+        ctx.was_mutated = _push_86_op_tmpl(ctx);
     }
     else if (detail.operands[0].type == X86_OP_IMM) { //push imm8/imm32
-        ctx.was_mutated = _push_86_imm_tmpl(ctx, detail);
+        ctx.was_mutated = _push_86_imm_tmpl(ctx);
     }
 }
-
 
 
 void fukutate_86_pop(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
-    uint32_t instruction_flags = ctx.current_line_iter->get_instruction_flags();
 
     if (detail.operands[0].type == X86_OP_REG) { //pop reg
-
-        fuku_register_enum reg = capstone_to_fuku_reg(detail.operands[0].reg);
-
-        if (reg == FUKU_REG_ESP || reg == FUKU_REG_SP) { return; }
-
-        uint64_t out_regflags = ctx.regs_changes & ~(fuku_reg_to_complex_flag_reg(reg, 8));
-
-        if (detail.operands[0].size == 4) {      //pop reg32
-
-            switch (FUKU_GET_RAND(0, 1)) {
-
-
-            //mov reg,[esp]
-             //add esp,4
-            case 0: {
-                ctx.f_asm->mov(reg_(reg), dword_ptr(FUKU_REG_ESP));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->add(reg_(FUKU_REG_ESP), imm(4));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(out_regflags)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(out_regflags)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-
-                break;
-            }
-            case 1: {
-                //add esp,4
-                //mov reg,[esp - 4]
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->add(reg_(FUKU_REG_ESP), imm(4));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes);
-                }
-
-                ctx.f_asm->mov(reg_(reg), dword_ptr(FUKU_REG_ESP, imm(-4)));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(out_regflags)
-                    .set_instruction_flags(FUKU_INST_BAD_STACK);
-
-                break;
-            }
-
-            default: { return; }
-            }
-
-
-            ctx.was_mutated = true;
-        }
-        else if (detail.operands[0].size == 2) { //pop reg16
-
-            switch (FUKU_GET_RAND(0, 1)) {
-
-                //mov reg,[esp]
-                //add esp,2
-            case 0: {
-                ctx.f_asm->mov(reg_(reg), word_ptr(FUKU_REG_ESP));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(ctx.regs_changes);
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->add(reg_(FUKU_REG_ESP), imm(2));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(out_regflags)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(2)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(out_regflags)
-                        .set_instruction_flags(FUKU_INST_BAD_STACK);
-                }
-
-                break;
-            }
-            case 1: {
-                //add esp,2
-                //mov reg,[esp - 2]
-
-                if (has_inst_free_eflags(ctx.eflags_changes,
-                    X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
-
-                    ctx.f_asm->add(reg_(FUKU_REG_ESP), imm(2));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes);
-                }
-                else {
-                    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(2)));
-                    ctx.f_asm->get_context().inst->
-                        set_eflags(ctx.eflags_changes)
-                        .set_custom_flags(ctx.regs_changes);
-                }
-
-                ctx.f_asm->mov(reg_(reg), word_ptr(FUKU_REG_ESP, imm(-2)));
-                ctx.f_asm->get_context().inst->
-                    set_eflags(ctx.eflags_changes)
-                    .set_custom_flags(out_regflags)
-                    .set_instruction_flags(FUKU_INST_BAD_STACK);
-
-                break;
-            }
-
-            default: { return; }
-            }
-
-
-            ctx.was_mutated = true;
-        }
-        else if (detail.operands[0].size == 1) { //pop reg8
-
-        }
-
+        ctx.was_mutated = _pop_86_reg_tmpl(ctx);
     }
     else if (detail.operands[0].type == X86_OP_MEM) { //pop [op]
-
+        ctx.was_mutated = _pop_86_op_tmpl(ctx);
     }
 }
 
@@ -496,22 +262,22 @@ void fukutate_86_mov(mutation_context& ctx) {
     if (detail.operands[0].type == X86_OP_REG) {
 
         if (detail.operands[1].type == X86_OP_REG) { //mov reg, reg
-            ctx.was_mutated = _mov_86_reg_reg_tmpl(ctx, detail);
+            ctx.was_mutated = _mov_86_reg_reg_tmpl(ctx);
         }
         else if (detail.operands[1].type == X86_OP_IMM) {//mov reg, imm
-            ctx.was_mutated = _mov_86_reg_imm_tmpl(ctx, detail);
+            ctx.was_mutated = _mov_86_reg_imm_tmpl(ctx);
         }
         else if (detail.operands[1].type == X86_OP_MEM) {//mov reg, [op]
-            ctx.was_mutated = _mov_86_reg_op_tmpl(ctx, detail);
+            ctx.was_mutated = _mov_86_reg_op_tmpl(ctx);
         }
     }
     else if (detail.operands[0].type == X86_OP_MEM) {
 
         if (detail.operands[1].type == X86_OP_REG) { //mov [op], reg
-            ctx.was_mutated = _mov_86_op_reg_tmpl(ctx, detail);
+            ctx.was_mutated = _mov_86_op_reg_tmpl(ctx);
         }
         else if (detail.operands[1].type == X86_OP_IMM) {//mov [op], imm
-            ctx.was_mutated = _mov_86_op_imm_tmpl(ctx, detail);
+            ctx.was_mutated = _mov_86_op_imm_tmpl(ctx);
         }
     }
 }

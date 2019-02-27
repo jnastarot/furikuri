@@ -319,7 +319,7 @@ void test_on_shellcode() {
         fuku_obfuscator obfuscator;
 
 
-        fuku_settings_obfuscation ob_set(5, 5, 40.f, 30.f, 40.f,
+        fuku_settings_obfuscation ob_set(4, 4, 40.f, 30.f, 40.f,
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
         obfuscator.set_destination_virtual_address(0);
         // obfuscator.set_settings({ 1,1,00.f,00.f,30.f });

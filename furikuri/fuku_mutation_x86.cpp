@@ -71,7 +71,9 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
 
     cs_disasm(cap_handle, lines_iter->get_op_code(), lines_iter->get_op_length(), 0, 1, &ctx.instruction);
 
-    if (!ctx.instruction) { FUKU_DEBUG; }
+    if (!ctx.instruction) { 
+        FUKU_DEBUG;
+    }
 
     f_asm.get_context().short_cfg = this->settings.get_asm_cfg() & FUKU_GET_RAND(0, 0xFF);
 

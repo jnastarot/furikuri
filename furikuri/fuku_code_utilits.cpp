@@ -457,6 +457,35 @@ fuku_register_enum get_random_x64_free_flag_reg(uint64_t reg_flags, uint8_t reg_
     return reg_;
 }
 
+
+uint64_t get_operand_mask_register(const fuku_type& op) {
+
+    switch (op.get_type()) {
+    case FUKU_T0_REGISTER: {
+        return fuku_reg_to_complex_flag_reg(op.get_register().get_reg(), 8);
+    }
+    case FUKU_T0_OPERAND: {
+        auto& _op = op.get_operand();
+        uint64_t result = 0;
+
+        if (_op.get_base().get_reg() != FUKU_REG_NONE) {
+            result &= fuku_reg_to_complex_flag_reg(_op.get_base(), 8);
+        }
+        if (_op.get_index().get_reg() != FUKU_REG_NONE) {
+            result &= fuku_reg_to_complex_flag_reg(_op.get_index(), 8);
+        }
+
+        return result;
+    }
+    }
+
+    return 0;
+}
+
+uint64_t get_operand_mask_register(const fuku_type& op1, const fuku_type& op2) {
+    return get_operand_mask_register(op1) | get_operand_mask_register(op2);
+}
+
 fuku_immediate generate_64_immediate(uint8_t size) {
 
     uint8_t sw_ = FUKU_GET_RAND(0, size * 4);

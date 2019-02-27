@@ -185,6 +185,12 @@ fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_siz
 fuku_register_enum get_random_free_flag_reg(const fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs = FUKU_REG_NONE);
 fuku_register_enum get_random_x64_free_flag_reg(uint64_t reg_flags, uint8_t reg_size, uint64_t exclude_regs = FUKU_REG_NONE);
 
+
+uint64_t get_operand_mask_register(const fuku_type& op);
+uint64_t get_operand_mask_register(const fuku_type& op1, const fuku_type& op2);
+
+
+
 #define INST_ALLOW_REGISTER   1
 #define INST_ALLOW_OPERAND    2
 #define INST_ALLOW_IMMEDIATE  4

@@ -172,7 +172,21 @@
     <ClInclude Include="fuku_obfuscator.h" />
     <ClInclude Include="fuku_mutation_x64.h" />
     <ClInclude Include="fuku_mutation_x86.h" />
-    <ClInclude Include="mutation_86_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_add_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_and_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_call_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_cmp_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_jcc_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_jmp_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_or_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_pop_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_push_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_ret_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_sub_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_mov_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_test_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_xchg_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_xor_templates.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
