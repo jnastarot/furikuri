@@ -67,8 +67,6 @@ inline bool _jmp_86_multi_tmpl_2(mutation_context& ctx, fuku_type src) {
 //jmp randreg
 inline bool _jmp_86_multi_tmpl_3(mutation_context& ctx, fuku_type src) {
 
-  //  if (src.get_type() == FUKU_T0_IMMEDIATE) { return false; }
-
     fuku_register rand_reg = get_random_free_flag_reg(ctx.regs_changes, 4, true);
 
     if (rand_reg.get_reg() != FUKU_REG_NONE) {

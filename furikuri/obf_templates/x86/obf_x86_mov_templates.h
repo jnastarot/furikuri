@@ -17,10 +17,6 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
         return false;
     }
 
-    if (temp_dst.get_register().get_reg() == dst.get_register().get_reg()) {
-        return true;
-    }
-
     uint64_t out_regflags = changes_regflags & ~(fuku_reg_to_complex_flag_reg(temp_dst.get_register().get_reg(), 8));
 
     ctx.f_asm->mov(temp_dst, src);
@@ -77,7 +73,7 @@ inline bool _mov_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type
 //pop dst
 inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
 
-    if (inst_size == 1 || src.get_type() == FUKU_T0_IMMEDIATE) { return false; }
+    if (inst_size == 1 || (src.get_type() == FUKU_T0_IMMEDIATE && inst_size != 4) ) { return false; }
 
     size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
     size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();

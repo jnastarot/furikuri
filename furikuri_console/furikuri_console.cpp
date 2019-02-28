@@ -131,8 +131,8 @@ int main() {
 
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
-    srand(6);
-    test_on_shellcode();
+    srand(234);
+   // test_on_shellcode();
     /*
     HANDLE hthread[2];
 
@@ -195,10 +195,10 @@ int main() {
            //0x1000 , 0x6F0
 
 
-        fuku_settings_obfuscation ob_set( 4, 3, 40.f, 40.f, 40.f, 
+        fuku_settings_obfuscation ob_set( 2, 2, 40.f, 40.f, 40.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
 
-        fuku_settings_obfuscation ob1_set(4,3, 40.f, 40.f, 60.f, 
+        fuku_settings_obfuscation ob1_set(2, 2, 40.f, 40.f, 60.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
 
@@ -249,6 +249,7 @@ int main() {
 
 
         if (fuku.fuku_protect(out_image)) {
+
             FILE* hTargetFile;
             fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
 
@@ -256,7 +257,9 @@ int main() {
                 fwrite(out_image.data(), out_image.size(), 1, hTargetFile);
                 fclose(hTargetFile);
             }
+
         }
+
     }
     //  }
 
@@ -310,8 +313,8 @@ void test_on_shellcode() {
     typedef int(__cdecl * _depack_algo)(const unsigned char * src, unsigned long  src_len, unsigned char * dst, unsigned long * dst_len, void * wrkmem);
     for (unsigned int i = 0; i < 10000; i++) {
 
-        if (i == 566) {
-           // __debugbreak();
+        if (i == 52) {
+//            __debugbreak();
         }
 
         fuku_code_analyzer ob_anal_code = code_holder;
@@ -355,7 +358,7 @@ void test_on_shellcode() {
 #endif
         unsigned int n_time = GetTickCount();
 
-        if (i == 787) {
+        if (i == 52) {
             code_profiler.print_code(ob_anal_code.get_code());
         }
 
