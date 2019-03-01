@@ -132,7 +132,7 @@ int main() {
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(234);
-   // test_on_shellcode();
+    test_on_shellcode();
     /*
     HANDLE hthread[2];
 
@@ -275,7 +275,7 @@ int main() {
 
 void test_on_shellcode() {
 
-    srand(0x15343);
+    srand(0x15464323);
 
     uint8_t * data_ = new uint8_t[0x1000];
     uint8_t * data_1 = new uint8_t[0x1000];
@@ -359,7 +359,7 @@ void test_on_shellcode() {
         unsigned int n_time = GetTickCount();
 
         if (i == 52) {
-            code_profiler.print_code(ob_anal_code.get_code());
+         //   code_profiler.print_code(ob_anal_code.get_code());
         }
 
     //    code_profiler.print_code(ob_anal_code.get_code());

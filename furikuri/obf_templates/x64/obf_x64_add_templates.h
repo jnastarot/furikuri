@@ -2,7 +2,7 @@
 
 
 
-bool _add_86_reg_reg_tmpl(mutation_context& ctx) {
+bool _add_64_reg_reg_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -21,7 +21,7 @@ bool _add_86_reg_reg_tmpl(mutation_context& ctx) {
     return true;
 }
 
-bool _add_86_reg_imm_tmpl(mutation_context& ctx) {
+bool _add_64_reg_imm_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -41,7 +41,7 @@ bool _add_86_reg_imm_tmpl(mutation_context& ctx) {
 }
 
 
-bool _add_86_reg_op_tmpl(mutation_context& ctx) {
+bool _add_64_reg_op_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -61,7 +61,7 @@ bool _add_86_reg_op_tmpl(mutation_context& ctx) {
 }
 
 
-bool _add_86_op_reg_tmpl(mutation_context& ctx) {
+bool _add_64_op_reg_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -81,7 +81,7 @@ bool _add_86_op_reg_tmpl(mutation_context& ctx) {
     return true;
 }
 
-bool _add_86_op_imm_tmpl(mutation_context& ctx) {
+bool _add_64_op_imm_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 

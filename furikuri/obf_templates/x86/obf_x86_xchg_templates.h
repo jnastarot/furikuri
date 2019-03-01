@@ -40,7 +40,7 @@ inline bool _xchg_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst_1, fuku_t
     fuku_type temp_dst_1;
     fuku_type temp_dst_2;
 
-    uint64_t additation_inst_flag = 0;
+    uint32_t additation_inst_flag = 0;
 
     if ((dst_1.get_type() == FUKU_T0_OPERAND ? 
         dst_1.get_operand().get_base().get_index() == FUKU_REG_INDEX_SP || dst_1.get_operand().get_index().get_index() == FUKU_REG_INDEX_SP : 

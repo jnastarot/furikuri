@@ -84,6 +84,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates">
       <UniqueIdentifier>{f06d945f-01e7-48e0-9058-225c2bbc0528}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates">
+      <UniqueIdentifier>{0c33f646-caf9-47ab-b1d8-433f6c89a7d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -195,6 +198,195 @@
       <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
     </ClInclude>
     <ClInclude Include="obf_templates\x86\obf_x86_ret_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_add_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_and_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_call_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_cmp_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_jcc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_jmp_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_mov_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_or_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_pop_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_push_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_ret_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_sub_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_test_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_xchg_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_xor_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_adc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_bsf_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_bsr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_bt_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_btc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_btr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_bts_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_dec_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_div_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_idiv_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_imul_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_inc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_lea_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_mul_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_neg_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_not_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_rcl_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_rcr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_rol_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_ror_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_sar_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_sbb_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_shl_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x64\obf_x64_shr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_adc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_bsf_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_bsr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_bt_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_btc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_btr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_bts_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_dec_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_div_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_idiv_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_imul_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_inc_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_lea_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_mul_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_neg_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_not_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_rcl_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_rcr_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_rol_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_ror_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_sar_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_sbb_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_shl_templates.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
+    </ClInclude>
+    <ClInclude Include="obf_templates\x86\obf_x86_shr_templates.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
     </ClInclude>
   </ItemGroup>

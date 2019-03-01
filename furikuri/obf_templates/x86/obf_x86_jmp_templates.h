@@ -2,10 +2,11 @@
 
 //push reg
 //ret   
-inline bool _jmp_86_multi_tmpl_1(mutation_context& ctx, fuku_type src) {
+inline bool _jmp_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, uint8_t inst_size) {
 
     if (IsAllowedStackOperations) {
         size_t relocate_rip = ctx.current_line_iter->get_rip_relocation_idx();
+        size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
 
         if (src.get_type() == FUKU_T0_IMMEDIATE) { //need 4 byte imm
             ctx.f_asm->push(imm(0xFFFFFFFF));
@@ -13,7 +14,7 @@ inline bool _jmp_86_multi_tmpl_1(mutation_context& ctx, fuku_type src) {
         }
         else {
             ctx.f_asm->push(src);
-            restore_rip_to_disp_relocate(src);
+            restore_disp_relocate(src);
         }
  
         ctx.f_asm->get_context().inst->
@@ -34,7 +35,7 @@ inline bool _jmp_86_multi_tmpl_1(mutation_context& ctx, fuku_type src) {
 
 //je  dst
 //jne dst
-inline bool _jmp_86_multi_tmpl_2(mutation_context& ctx, fuku_type src) {
+inline bool _jmp_86_multi_tmpl_2(mutation_context& ctx, fuku_type src, uint8_t inst_size) {
 
     if (src.get_type() != FUKU_T0_IMMEDIATE) { return false; }
 
@@ -43,14 +44,14 @@ inline bool _jmp_86_multi_tmpl_2(mutation_context& ctx, fuku_type src) {
     size_t relocate_rip = ctx.current_line_iter->get_rip_relocation_idx();
     size_t rip_label_idx = ctx.code_holder->get_rip_relocations()[relocate_rip].label_idx;
 
-    ctx.f_asm->jcc(fuku_condition(cond), imm(-1));
+    ctx.f_asm->jcc(fuku_condition(cond), imm(0xFFFFFFFF));
     ctx.f_asm->get_context().inst->
         set_eflags(ctx.eflags_changes)
         .set_custom_flags(ctx.regs_changes)
         .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
         .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
 
-    ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(-1));
+    ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(0xFFFFFFFF));
     ctx.f_asm->get_context().inst->
         set_eflags(ctx.eflags_changes & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
         .set_custom_flags(ctx.regs_changes)
@@ -65,13 +66,14 @@ inline bool _jmp_86_multi_tmpl_2(mutation_context& ctx, fuku_type src) {
 
 //mov randreg, dst
 //jmp randreg
-inline bool _jmp_86_multi_tmpl_3(mutation_context& ctx, fuku_type src) {
+inline bool _jmp_86_multi_tmpl_3(mutation_context& ctx, fuku_type src, uint8_t inst_size) {
 
     fuku_register rand_reg = get_random_free_flag_reg(ctx.regs_changes, 4, true);
 
     if (rand_reg.get_reg() != FUKU_REG_NONE) {
 
         size_t relocate_rip = ctx.current_line_iter->get_rip_relocation_idx();
+        size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
 
         uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(rand_reg, src);
 
@@ -81,7 +83,7 @@ inline bool _jmp_86_multi_tmpl_3(mutation_context& ctx, fuku_type src) {
         }
         else {
             ctx.f_asm->mov(rand_reg, src);
-            restore_rip_to_disp_relocate(src);
+            restore_disp_relocate(src);
         }
 
         ctx.f_asm->get_context().inst->
@@ -110,13 +112,13 @@ bool _jmp_86_imm_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 2)) {
 
     case 0: {
-        return _jmp_86_multi_tmpl_1(ctx, imm_src);
+        return _jmp_86_multi_tmpl_1(ctx, imm_src, detail.operands[0].size);
     }
     case 1: {
-        return _jmp_86_multi_tmpl_2(ctx, imm_src);
+        return _jmp_86_multi_tmpl_2(ctx, imm_src, detail.operands[0].size);
     }
     case 2: {
-        return _jmp_86_multi_tmpl_3(ctx, imm_src);
+        return _jmp_86_multi_tmpl_3(ctx, imm_src, detail.operands[0].size);
     }
     default: { return false; }
     }
@@ -133,10 +135,10 @@ bool _jmp_86_reg_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 1)) {
 
     case 0: {
-        return _jmp_86_multi_tmpl_1(ctx, reg_src);
+        return _jmp_86_multi_tmpl_1(ctx, reg_src, detail.operands[0].size);
     }
     case 1: {
-        return _jmp_86_multi_tmpl_3(ctx, reg_src);
+        return _jmp_86_multi_tmpl_3(ctx, reg_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -154,10 +156,10 @@ bool _jmp_86_op_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 1)) {
 
     case 0: {
-        return _jmp_86_multi_tmpl_1(ctx, op_src);
+        return _jmp_86_multi_tmpl_1(ctx, op_src, detail.operands[0].size);
     }
     case 1: {
-        return _jmp_86_multi_tmpl_3(ctx, op_src);
+        return _jmp_86_multi_tmpl_3(ctx, op_src, detail.operands[0].size);
     }
 
     default: { return false; }

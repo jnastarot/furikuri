@@ -32,7 +32,7 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
         .set_custom_flags(out_regflags);
 
 
-    restore_imm_or_disp(dst)
+    restore_disp_relocate(dst)
 
     return true;
 }
@@ -91,7 +91,7 @@ inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type
 
         restore_imm_or_disp(src)
 
-            ctx.f_asm->pop(dst);
+        ctx.f_asm->pop(dst);
         ctx.f_asm->get_context().inst->
             set_eflags(ctx.eflags_changes)
             .set_custom_flags(out_regflags);

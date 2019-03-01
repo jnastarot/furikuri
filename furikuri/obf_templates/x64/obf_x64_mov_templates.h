@@ -2,7 +2,7 @@
 
 //mov somereg, src
 //xchg dst, somereg
-inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
+inline bool _mov_64_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
 
     size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
     size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
@@ -11,8 +11,8 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
 
     uint64_t changes_regflags = ctx.regs_changes & ~get_operand_mask_register(dst, src);
 
-    if (!generate_86_operand_dst(ctx, temp_dst, INST_ALLOW_REGISTER, inst_size, changes_regflags,
-        FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!generate_64_operand_dst(ctx, temp_dst, INST_ALLOW_REGISTER, inst_size, changes_regflags,
+        FLAG_REGISTER_SP | FLAG_REGISTER_ESP | FLAG_REGISTER_RSP)) {
 
         return false;
     }
@@ -32,7 +32,7 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
         .set_custom_flags(out_regflags);
 
 
-    restore_imm_or_disp(dst)
+    restore_disp_relocate(src)
 
     return true;
 }
@@ -40,7 +40,7 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
 
 //xor dst,dst 
 //add dst, src
-inline bool _mov_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
+inline bool _mov_64_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
 
     size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
     size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
@@ -60,7 +60,8 @@ inline bool _mov_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type
             set_eflags(ctx.eflags_changes)
             .set_custom_flags(out_regflags);
 
-        restore_imm_or_disp(src)
+        restore_disp_relocate(src)
+        restore_imm_relocate(src)
     }
     else {
         return false;
@@ -71,7 +72,7 @@ inline bool _mov_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type
 
 //push src
 //pop dst
-inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
+inline bool _mov_64_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
 
     if (inst_size == 1 || (src.get_type() == FUKU_T0_IMMEDIATE && inst_size != 4) ) { return false; }
 
@@ -91,7 +92,7 @@ inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type
 
         restore_imm_or_disp(src)
 
-            ctx.f_asm->pop(dst);
+        ctx.f_asm->pop(dst);
         ctx.f_asm->get_context().inst->
             set_eflags(ctx.eflags_changes)
             .set_custom_flags(out_regflags);
@@ -106,7 +107,7 @@ inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type
     return true;
 }
 
-bool _mov_86_reg_reg_tmpl(mutation_context& ctx) {
+bool _mov_64_reg_reg_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -116,13 +117,13 @@ bool _mov_86_reg_reg_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 2)) {
 
     case 0: {
-        return _mov_86_multi_tmpl_1(ctx, reg_dst, reg_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_1(ctx, reg_dst, reg_src, detail.operands[0].size);
     }
     case 1: {
-        return _mov_86_multi_tmpl_2(ctx, reg_dst, reg_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_2(ctx, reg_dst, reg_src, detail.operands[0].size);
     }
     case 2: {
-        return _mov_86_multi_tmpl_3(ctx, reg_dst, reg_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_3(ctx, reg_dst, reg_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -131,7 +132,7 @@ bool _mov_86_reg_reg_tmpl(mutation_context& ctx) {
     return true;
 }
 
-bool _mov_86_reg_imm_tmpl(mutation_context& ctx) {
+bool _mov_64_reg_imm_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -141,13 +142,13 @@ bool _mov_86_reg_imm_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 2)) {
 
     case 0: {
-        return _mov_86_multi_tmpl_1(ctx, reg_dst, imm_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_1(ctx, reg_dst, imm_src, detail.operands[0].size);
     }
     case 1: {
-        return _mov_86_multi_tmpl_2(ctx, reg_dst, imm_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_2(ctx, reg_dst, imm_src, detail.operands[0].size);
     }
     case 2: {
-        return _mov_86_multi_tmpl_3(ctx, reg_dst, imm_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_3(ctx, reg_dst, imm_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -157,7 +158,7 @@ bool _mov_86_reg_imm_tmpl(mutation_context& ctx) {
 }
 
 
-bool _mov_86_reg_op_tmpl(mutation_context& ctx) {
+bool _mov_64_reg_op_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -167,13 +168,13 @@ bool _mov_86_reg_op_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 2)) {
 
     case 0: {
-        return _mov_86_multi_tmpl_1(ctx, reg_dst, op_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_1(ctx, reg_dst, op_src, detail.operands[0].size);
     }
     case 1: {
-        return _mov_86_multi_tmpl_2(ctx, reg_dst, op_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_2(ctx, reg_dst, op_src, detail.operands[0].size);
     }
     case 2: {
-        return _mov_86_multi_tmpl_3(ctx, reg_dst, op_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_3(ctx, reg_dst, op_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -183,7 +184,7 @@ bool _mov_86_reg_op_tmpl(mutation_context& ctx) {
 }
 
 
-bool _mov_86_op_reg_tmpl(mutation_context& ctx) {
+bool _mov_64_op_reg_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -194,10 +195,10 @@ bool _mov_86_op_reg_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 1)) {
 
     case 0: {
-        return _mov_86_multi_tmpl_1(ctx, op_dst, reg_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_1(ctx, op_dst, reg_src, detail.operands[0].size);
     }
     case 1: {
-        return _mov_86_multi_tmpl_3(ctx, op_dst, reg_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_3(ctx, op_dst, reg_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -206,7 +207,7 @@ bool _mov_86_op_reg_tmpl(mutation_context& ctx) {
     return true;
 }
 
-bool _mov_86_op_imm_tmpl(mutation_context& ctx) {
+bool _mov_64_op_imm_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -216,10 +217,10 @@ bool _mov_86_op_imm_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 1)) {
 
     case 0: {
-        return _mov_86_multi_tmpl_1(ctx, op_dst, imm_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_1(ctx, op_dst, imm_src, detail.operands[0].size);
     }
     case 1: {
-        return _mov_86_multi_tmpl_3(ctx, op_dst, imm_src, detail.operands[0].size);
+        return _mov_64_multi_tmpl_3(ctx, op_dst, imm_src, detail.operands[0].size);
     }
 
     default: { return false; }

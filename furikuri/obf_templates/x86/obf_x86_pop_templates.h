@@ -31,8 +31,6 @@ inline bool _pop_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, int8_t in
         .set_custom_flags(out_regflags)
         .set_instruction_flags(FUKU_INST_BAD_STACK);    
 
-    restore_disp_relocate(dst)
-
     return true;
 }
 
@@ -49,8 +47,6 @@ inline bool _pop_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, int8_t in
     ctx.f_asm->get_context().inst->
         set_eflags(ctx.eflags_changes)
         .set_custom_flags(ctx.regs_changes);
-
-    restore_disp_relocate(dst)
 
     uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(dst);
 

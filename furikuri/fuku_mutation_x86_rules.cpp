@@ -29,11 +29,18 @@ static uint64_t di_fl_jcc[] = {
                 ctx.code_holder->get_relocations()[relocate_imm].offset = ctx.f_asm->get_context().immediate_offset;\
            }
 
-#define restore_rip_relocate(op) \
-           if (op.get_type() == FUKU_T0_IMMEDIATE && relocate_rip != -1) {\
+#define restore_rip_relocate_imm(op) \
+           if (inst_size == 4 && op.get_type() == FUKU_T0_IMMEDIATE &&relocate_rip != -1) {\
                 ctx.f_asm->get_context().inst->\
                 set_rip_relocation_idx(relocate_rip);\
                 ctx.code_holder->get_rip_relocations()[relocate_rip].offset = ctx.f_asm->get_context().immediate_offset;\
+           }
+
+#define restore_rip_relocate_disp(op) \
+           if (inst_size == 4 && op.get_type() == FUKU_T0_OPERAND &&relocate_rip != -1) {\
+                ctx.f_asm->get_context().inst->\
+                set_rip_relocation_idx(relocate_rip);\
+                ctx.code_holder->get_rip_relocations()[relocate_rip].offset = ctx.f_asm->get_context().displacment_offset;\
            }
 
 #define restore_rip_to_imm_relocate(op) \
@@ -61,13 +68,14 @@ static uint64_t di_fl_jcc[] = {
            }
 
 #define restore_imm_or_disp(op)         restore_disp_relocate(op) else restore_imm_relocate(op)
-#define restore_rip_or_disp(op)         restore_rip_relocate(op) else restore_disp_relocate(op)
+#define restore_rip_imm_or_disp(op)     restore_rip_relocate_imm(op) else restore_disp_relocate(op)
 #define restore_rip_to_imm_or_disp(op)  restore_rip_to_imm_relocate(op) else restore_rip_to_disp_relocate(op)
 
 #include "obf_templates/x86/obf_x86_mov_templates.h"
 #include "obf_templates/x86/obf_x86_xchg_templates.h"
 #include "obf_templates/x86/obf_x86_push_templates.h"
 #include "obf_templates/x86/obf_x86_pop_templates.h"
+#include "obf_templates/x86/obf_x86_lea_templates.h"
 
 #include "obf_templates/x86/obf_x86_jcc_templates.h"
 #include "obf_templates/x86/obf_x86_jmp_templates.h"
@@ -76,25 +84,48 @@ static uint64_t di_fl_jcc[] = {
 
 #include "obf_templates/x86/obf_x86_add_templates.h"
 #include "obf_templates/x86/obf_x86_sub_templates.h"
+#include "obf_templates/x86/obf_x86_adc_templates.h"
+#include "obf_templates/x86/obf_x86_sbb_templates.h"
 #include "obf_templates/x86/obf_x86_cmp_templates.h"
+#include "obf_templates/x86/obf_x86_neg_templates.h"
+#include "obf_templates/x86/obf_x86_inc_templates.h"
+#include "obf_templates/x86/obf_x86_dec_templates.h"
+#include "obf_templates/x86/obf_x86_mul_templates.h"
+#include "obf_templates/x86/obf_x86_imul_templates.h"
+#include "obf_templates/x86/obf_x86_div_templates.h"
+#include "obf_templates/x86/obf_x86_idiv_templates.h"
 
 #include "obf_templates/x86/obf_x86_and_templates.h"
 #include "obf_templates/x86/obf_x86_or_templates.h"
 #include "obf_templates/x86/obf_x86_xor_templates.h"
 #include "obf_templates/x86/obf_x86_test_templates.h"
+#include "obf_templates/x86/obf_x86_not_templates.h"
 
+#include "obf_templates/x86/obf_x86_ror_templates.h"
+#include "obf_templates/x86/obf_x86_rol_templates.h"
+#include "obf_templates/x86/obf_x86_rcl_templates.h"
+#include "obf_templates/x86/obf_x86_rcr_templates.h"
+#include "obf_templates/x86/obf_x86_shl_templates.h"
+#include "obf_templates/x86/obf_x86_shr_templates.h"
+#include "obf_templates/x86/obf_x86_sar_templates.h"
+
+#include "obf_templates/x86/obf_x86_bt_templates.h"
+#include "obf_templates/x86/obf_x86_bts_templates.h"
+#include "obf_templates/x86/obf_x86_btr_templates.h"
+#include "obf_templates/x86/obf_x86_btc_templates.h"
+#include "obf_templates/x86/obf_x86_bsf_templates.h"
+#include "obf_templates/x86/obf_x86_bsr_templates.h"
 
 
 void fukutate_86_jcc(mutation_context& ctx) {
-    ctx.was_mutated = _jcc_86_imm_tmpl(ctx);
+    ctx.was_mutated = _jcc_86_imm_tmpl(ctx); //jcc imm
 }
-
 
 void fukutate_86_jmp(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
 
-    if (detail.operands[0].type == X86_OP_REG) { //jmp reg32
+    if (detail.operands[0].type == X86_OP_REG) { //jmp reg
         ctx.was_mutated = _jmp_86_reg_tmpl(ctx);
     }
     else if (detail.operands[0].type == X86_OP_MEM) { //jmp [op]
@@ -104,7 +135,6 @@ void fukutate_86_jmp(mutation_context& ctx) {
         ctx.was_mutated = _jmp_86_imm_tmpl(ctx);
     }
 }
-
 
 void fukutate_86_call(mutation_context& ctx) {
 
@@ -122,11 +152,9 @@ void fukutate_86_call(mutation_context& ctx) {
 
 }
 
-
 void fukutate_86_ret(mutation_context& ctx) {
     ctx.was_mutated = _ret_86_imm_tmpl(ctx); //ret \ ret 0xXXXX
 }
-
 
 void fukutate_86_push(mutation_context& ctx) {
 
@@ -143,7 +171,6 @@ void fukutate_86_push(mutation_context& ctx) {
     }
 }
 
-
 void fukutate_86_pop(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
@@ -155,7 +182,6 @@ void fukutate_86_pop(mutation_context& ctx) {
         ctx.was_mutated = _pop_86_op_tmpl(ctx);
     }
 }
-
 
 void fukutate_86_mov(mutation_context& ctx) {
 
@@ -196,6 +222,7 @@ void fukutate_86_xchg(mutation_context& ctx) {
         ctx.was_mutated = _xchg_86_reg_reg_tmpl(ctx);
     }
 }
+
 void fukutate_86_lea(mutation_context& ctx) {
 
     
@@ -344,6 +371,7 @@ void fukutate_86_xor(mutation_context& ctx) {
     }
     
 }
+
 void fukutate_86_cmp(mutation_context& ctx) {
 
 }

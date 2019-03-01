@@ -5,13 +5,10 @@
 inline bool _push_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, int8_t inst_size) {
 
     size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
-    size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
 
     if (src.get_type() == FUKU_T0_REGISTER && src.get_register().get_index() == FUKU_REG_INDEX_SP) { return false; }
 
     uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(src);
-
-    ctx.f_asm->get_context().short_cfg = 0xFF;
 
     if (has_inst_free_eflags(ctx.eflags_changes,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
@@ -35,7 +32,7 @@ inline bool _push_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, int8_t i
         .set_instruction_flags(FUKU_INST_BAD_STACK);
 
 
-    restore_imm_or_disp(src)
+    restore_imm_relocate(src)
 
 
     return true;
@@ -58,7 +55,7 @@ inline bool _push_86_multi_tmpl_2(mutation_context& ctx, fuku_type src, int8_t i
 
     uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(src);
 
-    restore_imm_or_disp(src)
+    restore_imm_relocate(src)
 
     if (has_inst_free_eflags(ctx.eflags_changes,
             X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {

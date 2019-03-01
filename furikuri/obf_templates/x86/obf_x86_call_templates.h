@@ -3,7 +3,7 @@
 
 //push next_inst_address
 //jmp reg
-inline bool _call_86_multi_tmpl_1(mutation_context& ctx, fuku_type src) {
+inline bool _call_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, uint8_t inst_size) {
 
     if (!ctx.is_next_line_end) { //if not last instruction
 
@@ -27,7 +27,7 @@ inline bool _call_86_multi_tmpl_1(mutation_context& ctx, fuku_type src) {
             set_eflags(ctx.eflags_changes)
             .set_custom_flags(out_regflags);
  
-        restore_rip_or_disp(src);
+        restore_rip_imm_or_disp(src);
 
 
         return true;
@@ -45,7 +45,7 @@ bool _call_86_imm_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 0)) {
 
     case 0: {
-        return _call_86_multi_tmpl_1(ctx, imm_src);
+        return _call_86_multi_tmpl_1(ctx, imm_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -63,7 +63,7 @@ bool _call_86_reg_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 0)) {
 
     case 0: {
-        return _call_86_multi_tmpl_1(ctx, reg_src);
+        return _call_86_multi_tmpl_1(ctx, reg_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -81,7 +81,7 @@ bool _call_86_op_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 0)) {
 
     case 0: {
-        return _call_86_multi_tmpl_1(ctx, op_src);
+        return _call_86_multi_tmpl_1(ctx, op_src, detail.operands[0].size);
     }
 
     default: { return false; }

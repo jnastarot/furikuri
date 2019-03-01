@@ -2,14 +2,14 @@
 
 //lea esp,[esp + (4 + stack_offset)]
 //jmp [esp - 4 - stack_offset]
-inline bool _ret_86_multi_tmpl_1(mutation_context& ctx, uint16_t stack_ret) {
+inline bool _ret_64_multi_tmpl_1(mutation_context& ctx, uint16_t stack_ret) {
 
-    ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(4 + stack_ret)));
+    ctx.f_asm->lea(reg_(FUKU_REG_RSP), qword_ptr(FUKU_REG_RSP, imm(8 + stack_ret)));
     ctx.f_asm->get_context().inst->
         set_eflags(ctx.eflags_changes)
         .set_custom_flags(ctx.regs_changes);
 
-    ctx.f_asm->jmp(dword_ptr(FUKU_REG_ESP, imm(-4 - stack_ret)));
+    ctx.f_asm->jmp(qword_ptr(FUKU_REG_RSP, imm(-8 - stack_ret)));
     ctx.f_asm->get_context().inst->
         set_eflags(ctx.eflags_changes)
         .set_custom_flags(ctx.regs_changes)
@@ -19,7 +19,7 @@ inline bool _ret_86_multi_tmpl_1(mutation_context& ctx, uint16_t stack_ret) {
 }
 
 
-bool _ret_86_imm_tmpl(mutation_context& ctx) {
+bool _ret_64_imm_tmpl(mutation_context& ctx) {
 
     auto& detail = ctx.instruction->detail->x86;
 
@@ -32,7 +32,7 @@ bool _ret_86_imm_tmpl(mutation_context& ctx) {
     switch (FUKU_GET_RAND(0, 0)) {
 
     case 0: {
-        return _ret_86_multi_tmpl_1(ctx, ret_stack);
+        return _ret_64_multi_tmpl_1(ctx, ret_stack);
     }
 
     default: { return false; }

@@ -75,7 +75,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         FUKU_DEBUG;
     }
 
-    f_asm.get_context().short_cfg = this->settings.get_asm_cfg() & FUKU_GET_RAND(0, 0xFF);
+    f_asm.get_context().short_cfg = 0xFF & ~(this->settings.get_asm_cfg() & FUKU_GET_RAND(0, 0xFF));
 
     
     if (FUKU_GET_CHANCE(settings.get_junk_chance())) {
