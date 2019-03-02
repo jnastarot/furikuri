@@ -218,7 +218,7 @@ fuku_register_enum flag_reg_to_fuku_reg(uint64_t reg) {
 }
 
 
-uint8_t flag_reg_get_size(uint64_t reg) {
+uint8_t get_flag_reg_size(uint64_t reg) {
 
     uint32_t index = 0;
     if (!bit_scan_forward(index, reg)) {
@@ -228,7 +228,7 @@ uint8_t flag_reg_get_size(uint64_t reg) {
     return indexsz_to_size[((index) / 16) + 1];
 }
 
-uint8_t flag_reg_get_index(uint64_t reg) {
+uint8_t get_flag_reg_index(uint64_t reg) {
 
     uint32_t index = 0;
     if (!bit_scan_forward(index, reg)) {
@@ -248,7 +248,7 @@ uint8_t is_flag_reg_ext64(uint64_t reg) {
     return (((index) / 16) > 7) ? 1 : 0;
 }
 
-fuku_register_enum fuku_reg_set_grade(fuku_register_enum reg, uint8_t needed_size) {
+fuku_register_enum set_fuku_reg_grade(fuku_register_enum reg, uint8_t needed_size) {
     return flag_reg_to_fuku_reg(((uint64_t)1 << ((size_to_indexsz[needed_size] * 16) + (CONVERT_FUKU_REGISTER_TO_FLAG[reg] % 16))));
 }
 
@@ -451,7 +451,7 @@ fuku_register_enum get_random_x64_free_flag_reg(uint64_t reg_flags, uint8_t reg_
     fuku_register_enum reg_ = get_random_free_flag_reg(reg_flags, reg_size == 4 ? 8 : reg_size, false, exclude_regs);
 
     if (reg_ != FUKU_REG_NONE && reg_size == 4) {
-        return fuku_reg_set_grade(reg_, 4);
+        return set_fuku_reg_grade(reg_, 4);
     }
 
     return reg_;

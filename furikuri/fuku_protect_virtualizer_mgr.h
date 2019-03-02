@@ -151,28 +151,36 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
             fuku_code_analyzer anal_code;
             anal_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
-            for (int32_t item_idx = profile.second.items.size() - 1; item_idx >= 0; item_idx--) {
-                auto& item = profile.second.items[item_idx];
 
-                if (item.settings.is_null() != false) {
-                    fuku_obfuscator obfuscator;
 
-                    obfuscator.set_settings(item.settings);
-                    obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
-                    obfuscator.set_code(&item.an_code.get_code());
+            if (ob_profile.items.size()) {
+                size_t item_idx = profile.second.items.size();
 
-                    obfuscator.obfuscate_code();
+                do {
+                    item_idx--;
 
-                    if (!anal_code.push_code(std::move(item.an_code.get_code()))) { FUKU_DEBUG; return false; }
-                }
-                else {
-                    if (!anal_code.push_code(std::move(item.an_code))) { FUKU_DEBUG; return false; }
-                }
+                    auto& item = profile.second.items[item_idx];
 
-                profile.second.regions.insert(profile.second.regions.end(), item.regions.begin(), item.regions.end());
-                profile.second.items.erase(profile.second.items.begin() + item_idx);
+                    if (item.settings.is_null() != false) {
+                        fuku_obfuscator obfuscator;
+
+                        obfuscator.set_settings(item.settings);
+                        obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
+                        obfuscator.set_code(&item.an_code.get_code());
+
+                        obfuscator.obfuscate_code();
+
+                        if (!anal_code.push_code(std::move(item.an_code.get_code()))) { FUKU_DEBUG; return false; }
+                    }
+                    else {
+                        if (!anal_code.push_code(std::move(item.an_code))) { FUKU_DEBUG; return false; }
+                    }
+
+                    profile.second.regions.insert(profile.second.regions.end(), item.regions.begin(), item.regions.end());
+                    profile.second.items.erase(profile.second.items.begin() + item_idx);
+
+                } while (item_idx);
             }
-
     
             fuku_vm_result result = ((fuku_virtualization_environment&)profile.first).get_virtualizer()->build_bytecode(
                 anal_code.get_code(), profile.second.relocation_table, profile.second.association_table,

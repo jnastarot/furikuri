@@ -23,9 +23,9 @@ public:
 
 public:
     void print_reg(uint64_t reg);
+    void print_full_reg(uint64_t reg);
     void print_code(fuku_code_holder& code);
     bool profile_code(fuku_code_holder& code);
 
 };
 
-void print_full_reg(uint64_t reg);

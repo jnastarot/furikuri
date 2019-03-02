@@ -217,12 +217,19 @@ void fukutate_64_xchg(mutation_context & ctx) {
         ctx.was_mutated = _xchg_64_reg_reg_tmpl(ctx);
     }
 }
-void fukutate_64_lea(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
+void fukutate_64_lea(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        if (detail.operands[1].type == X86_OP_MEM) {//lea reg, [op]
+            ctx.was_mutated = _lea_64_reg_op_tmpl(ctx);
+        }
+    }
 }
 
-//aritch
-void fukutate_64_add(mutation_context & ctx) {
+void fukutate_64_add(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
 
@@ -247,40 +254,89 @@ void fukutate_64_add(mutation_context & ctx) {
             ctx.was_mutated = _add_64_op_imm_tmpl(ctx);
         }
     }
+
 }
-void fukutate_64_or(mutation_context & ctx) {
+void fukutate_64_or(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
 
     if (detail.operands[0].type == X86_OP_REG) {
 
         if (detail.operands[1].type == X86_OP_REG) { //or reg, reg
-            ctx.was_mutated = _add_64_reg_reg_tmpl(ctx);
+            ctx.was_mutated = _or_64_reg_reg_tmpl(ctx);
         }
         else if (detail.operands[1].type == X86_OP_IMM) {//or reg, imm
-            ctx.was_mutated = _add_64_reg_imm_tmpl(ctx);
+            ctx.was_mutated = _or_64_reg_imm_tmpl(ctx);
         }
         else if (detail.operands[1].type == X86_OP_MEM) {//or reg, [op]
-            ctx.was_mutated = _add_64_reg_op_tmpl(ctx);
+            ctx.was_mutated = _or_64_reg_op_tmpl(ctx);
         }
     }
     else if (detail.operands[0].type == X86_OP_MEM) {
 
         if (detail.operands[1].type == X86_OP_REG) { //or [op], reg
-            ctx.was_mutated = _add_64_op_reg_tmpl(ctx);
+            ctx.was_mutated = _or_64_op_reg_tmpl(ctx);
         }
         else if (detail.operands[1].type == X86_OP_IMM) {//or [op], imm
-            ctx.was_mutated = _add_64_op_imm_tmpl(ctx);
+            ctx.was_mutated = _or_64_op_imm_tmpl(ctx);
+        }
+    }
+
+}
+void fukutate_64_adc(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //adc reg, reg
+            ctx.was_mutated = _adc_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//adc reg, imm
+            ctx.was_mutated = _adc_64_reg_imm_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//adc reg, [op]
+            ctx.was_mutated = _adc_64_reg_op_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //adc [op], reg
+            ctx.was_mutated = _adc_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//adc [op], imm
+            ctx.was_mutated = _adc_64_op_imm_tmpl(ctx);
         }
     }
 }
-void fukutate_64_adc(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+void fukutate_64_sbb(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //sbb reg, reg
+            ctx.was_mutated = _sbb_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//sbb reg, imm
+            ctx.was_mutated = _sbb_64_reg_imm_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//sbb reg, [op]
+            ctx.was_mutated = _sbb_64_reg_op_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //sbb [op], reg
+            ctx.was_mutated = _sbb_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//sbb [op], imm
+            ctx.was_mutated = _sbb_64_op_imm_tmpl(ctx);
+        }
+    }
 }
-void fukutate_64_sbb(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_and(mutation_context & ctx) {
+
+void fukutate_64_and(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
 
@@ -305,8 +361,10 @@ void fukutate_64_and(mutation_context & ctx) {
             ctx.was_mutated = _and_64_op_imm_tmpl(ctx);
         }
     }
+
 }
-void fukutate_64_sub(mutation_context & ctx) {
+
+void fukutate_64_sub(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
 
@@ -331,8 +389,9 @@ void fukutate_64_sub(mutation_context & ctx) {
             ctx.was_mutated = _sub_64_op_imm_tmpl(ctx);
         }
     }
+
 }
-void fukutate_64_xor(mutation_context & ctx) {
+void fukutate_64_xor(mutation_context& ctx) {
 
     auto detail = ctx.instruction->detail->x86;
 
@@ -357,78 +416,447 @@ void fukutate_64_xor(mutation_context & ctx) {
             ctx.was_mutated = _xor_64_op_imm_tmpl(ctx);
         }
     }
-}
-void fukutate_64_cmp(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_inc(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_dec(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_test(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_not(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_neg(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_mul(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_imul(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_div(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_idiv(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
 }
 
-//shift
-void fukutate_64_rol(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_ror(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_rcl(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_rcr(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_shl(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_shr(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
-}
-void fukutate_64_sar(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+void fukutate_64_cmp(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //cmp reg, reg
+            ctx.was_mutated = _cmp_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//cmp reg, imm
+            ctx.was_mutated = _cmp_64_reg_imm_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//cmp reg, [op]
+            ctx.was_mutated = _cmp_64_reg_op_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //cmp [op], reg
+            ctx.was_mutated = _cmp_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//cmp [op], imm
+            ctx.was_mutated = _cmp_64_op_imm_tmpl(ctx);
+        }
+    }
 }
 
-//bittest
-void fukutate_64_bt(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+void fukutate_64_test(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //test reg, reg
+            ctx.was_mutated = _test_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//test reg, imm
+            ctx.was_mutated = _test_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //test [op], reg
+            ctx.was_mutated = _test_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//test [op], imm
+            ctx.was_mutated = _test_64_op_imm_tmpl(ctx);
+        }
+    }
 }
-void fukutate_64_bts(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
+
+void fukutate_64_inc(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //inc reg
+        ctx.was_mutated = _inc_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //inc [op]
+        ctx.was_mutated = _inc_64_op_tmpl(ctx);
+    }
 }
-void fukutate_64_btr(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
+void fukutate_64_dec(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //dec reg
+        ctx.was_mutated = _dec_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //dec [op]
+        ctx.was_mutated = _dec_64_op_tmpl(ctx);
+    }
 }
-void fukutate_64_btc(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
+void fukutate_64_not(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //not reg
+        ctx.was_mutated = _not_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //not [op]
+        ctx.was_mutated = _not_64_op_tmpl(ctx);
+    }
 }
-void fukutate_64_bsf(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
+void fukutate_64_neg(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //neg reg
+        ctx.was_mutated = _neg_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //neg [op]
+        ctx.was_mutated = _neg_64_op_tmpl(ctx);
+    }
 }
-void fukutate_64_bsr(mutation_context & ctx) {
-    ctx.was_mutated = false; return;
+
+void fukutate_64_mul(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //mul reg
+        ctx.was_mutated = _mul_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //mul [op]
+        ctx.was_mutated = _mul_64_op_tmpl(ctx);
+    }
+}
+
+void fukutate_64_imul(mutation_context& ctx) {
+
+}
+
+void fukutate_64_div(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //div reg
+        ctx.was_mutated = _div_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //div [op]
+        ctx.was_mutated = _div_64_op_tmpl(ctx);
+    }
+}
+
+void fukutate_64_idiv(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //idiv reg
+        ctx.was_mutated = _idiv_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //idiv [op]
+        ctx.was_mutated = _idiv_64_op_tmpl(ctx);
+    }
+}
+
+
+void fukutate_64_rol(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //rol reg, reg
+            ctx.was_mutated = _rol_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rol reg, imm
+            ctx.was_mutated = _rol_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //rol [op], reg
+            ctx.was_mutated = _rol_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rol [op], imm
+            ctx.was_mutated = _rol_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+void fukutate_64_ror(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //ror reg, reg
+            ctx.was_mutated = _ror_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//ror reg, imm
+            ctx.was_mutated = _ror_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //ror [op], reg
+            ctx.was_mutated = _ror_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//ror [op], imm
+            ctx.was_mutated = _ror_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+
+void fukutate_64_rcl(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //rcl reg, reg
+            ctx.was_mutated = _rcl_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcl reg, imm
+            ctx.was_mutated = _rcl_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //rcl [op], reg
+            ctx.was_mutated = _rcl_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcl [op], imm
+            ctx.was_mutated = _rcl_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+
+void fukutate_64_rcr(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //rcr reg, reg
+            ctx.was_mutated = _rcr_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcr reg, imm
+            ctx.was_mutated = _rcr_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //rcr [op], reg
+            ctx.was_mutated = _rcr_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//rcr [op], imm
+            ctx.was_mutated = _rcr_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+
+void fukutate_64_shl(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //shl reg, reg
+            ctx.was_mutated = _shl_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shl reg, imm
+            ctx.was_mutated = _shl_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //shl [op], reg
+            ctx.was_mutated = _shl_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shl [op], imm
+            ctx.was_mutated = _shl_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+
+void fukutate_64_shr(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //shr reg, reg
+            ctx.was_mutated = _shr_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shr reg, imm
+            ctx.was_mutated = _shr_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //shr [op], reg
+            ctx.was_mutated = _shr_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//shr [op], imm
+            ctx.was_mutated = _shr_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+
+void fukutate_64_sar(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //sar reg, reg
+            ctx.was_mutated = _sar_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//sar reg, imm
+            ctx.was_mutated = _sar_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //sar [op], reg
+            ctx.was_mutated = _sar_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//sar [op], imm
+            ctx.was_mutated = _sar_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+
+void fukutate_64_bt(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bt reg, reg
+            ctx.was_mutated = _bt_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//bt reg, imm
+            ctx.was_mutated = _bt_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bt [op], reg
+            ctx.was_mutated = _bt_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//bt [op], imm
+            ctx.was_mutated = _bt_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+void fukutate_64_bts(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bts reg, reg
+            ctx.was_mutated = _bts_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//bts reg, imm
+            ctx.was_mutated = _bts_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bts [op], reg
+            ctx.was_mutated = _bts_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//bts [op], imm
+            ctx.was_mutated = _bts_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+void fukutate_64_btr(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //btr reg, reg
+            ctx.was_mutated = _btr_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//btr reg, imm
+            ctx.was_mutated = _btr_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //btr [op], reg
+            ctx.was_mutated = _btr_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//btr [op], imm
+            ctx.was_mutated = _btr_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+void fukutate_64_btc(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //btc reg, reg
+            ctx.was_mutated = _btc_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//btc reg, imm
+            ctx.was_mutated = _btc_64_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //btc [op], reg
+            ctx.was_mutated = _btc_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//btc [op], imm
+            ctx.was_mutated = _btc_64_op_imm_tmpl(ctx);
+        }
+    }
+}
+
+void fukutate_64_bsf(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bsf reg, reg
+            ctx.was_mutated = _bsf_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//bsf reg, [op]
+            ctx.was_mutated = _bsf_64_reg_op_tmpl(ctx);
+        }
+    }
+}
+
+void fukutate_64_bsr(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bsr reg, reg
+            ctx.was_mutated = _bsr_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//bsr reg, [op]
+            ctx.was_mutated = _bsr_64_reg_op_tmpl(ctx);
+        }
+    }
 }
 

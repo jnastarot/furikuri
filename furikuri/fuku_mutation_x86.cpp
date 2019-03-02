@@ -165,7 +165,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
             fukutate_86_pop(ctx);
             break;
         }
-
+                          
 //ARITHMETIC
         case X86_INS_ADD: {
             fukutate_86_add(ctx);
@@ -190,7 +190,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
         case X86_INS_SUB: {
             fukutate_86_sub(ctx);
             break;
-        }
+        } 
         case X86_INS_XOR: {
             fukutate_86_xor(ctx);
             break;
@@ -211,7 +211,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
             fukutate_86_test(ctx);
             break;
         }
-
+       
         case X86_INS_NOT: {
             fukutate_86_not(ctx);
             break;
@@ -236,7 +236,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
             fukutate_86_idiv(ctx);
             break;
         }
-
+         
 //SHIFT
         case X86_INS_ROL: {
             fukutate_86_rol(ctx);
@@ -294,7 +294,7 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
             fukutate_86_bsr(ctx);
             break;
         }
-        
+       
 
 
         }

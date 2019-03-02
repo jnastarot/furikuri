@@ -125,22 +125,29 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
         fuku_code_analyzer anal_code;
         anal_code.set_arch(target_module.get_image().is_x32_image() ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
-        for (int32_t item_idx = ob_profile.items.size() - 1; item_idx >= 0; item_idx--) {
-            auto& item = ob_profile.items[item_idx];
+        if (ob_profile.items.size()) {
+            size_t item_idx = ob_profile.items.size();
 
-            fuku_obfuscator obfuscator;
+            do {
+                item_idx--;
 
-            obfuscator.set_settings(item.settings);
-            obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
-            obfuscator.set_code(&item.an_code.get_code());
+                auto& item = ob_profile.items[item_idx];
 
-            obfuscator.obfuscate_code();
+                fuku_obfuscator obfuscator;
 
-            if (!anal_code.splice_code(item.an_code.get_code())) { FUKU_DEBUG; return false; }
+                obfuscator.set_settings(item.settings);
+                obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
+                obfuscator.set_code(&item.an_code.get_code());
 
-            ob_profile.regions.insert(ob_profile.regions.end(), item.regions.begin(), item.regions.end());
+                obfuscator.obfuscate_code();
 
-            ob_profile.items.erase(ob_profile.items.begin() + item_idx);
+                if (!anal_code.splice_code(item.an_code.get_code())) { FUKU_DEBUG; return false; }
+
+                ob_profile.regions.insert(ob_profile.regions.end(), item.regions.begin(), item.regions.end());
+
+                ob_profile.items.erase(ob_profile.items.begin() + item_idx);
+
+            } while (item_idx);
         }
 
         uint32_t dest_address_rva = ALIGN_UP(

@@ -170,117 +170,6 @@ uint64_t fuku_code_profiler::profile_graph_eflags(fuku_code_holder& code, linest
     return included_flags;
 }
 
-
-void fuku_code_profiler::print_reg(uint64_t reg) {
-
-    switch (reg) {
-
-    case FLAG_REGISTER_AX: {printf("AX "); break; }
-    case FLAG_REGISTER_AL: {printf("AL "); break; }
-    case FLAG_REGISTER_BX: {printf("BX "); break; }
-    case FLAG_REGISTER_BL: {printf("BL "); break; }
-    case FLAG_REGISTER_BP: {printf("BP "); break; }
-    case FLAG_REGISTER_BPL: {printf("BPL "); break; }
-    case FLAG_REGISTER_CX: {printf("CX "); break; }
-    case FLAG_REGISTER_CL: {printf("CL "); break; }
-    case FLAG_REGISTER_DX: {printf("DX "); break; }
-    case FLAG_REGISTER_DI: {printf("DI "); break; }
-    case FLAG_REGISTER_DIL: {printf("DIL "); break; }
-    case FLAG_REGISTER_DL: {printf("DL "); break; }
-    case FLAG_REGISTER_EAX: {printf("EAX "); break; }
-    case FLAG_REGISTER_EBP: {printf("EBP "); break; }
-    case FLAG_REGISTER_EBX: {printf("EBX "); break; }
-    case FLAG_REGISTER_ECX: {printf("ECX "); break; }
-    case FLAG_REGISTER_EDI: {printf("EDI "); break; }
-    case FLAG_REGISTER_EDX: {printf("EDX "); break; }
-    case FLAG_REGISTER_ESI: {printf("ESI "); break; }
-    case FLAG_REGISTER_ESP: {printf("ESP "); break; }
-    case FLAG_REGISTER_RAX: {printf("RAX "); break; }
-    case FLAG_REGISTER_RBP: {printf("RBP "); break; }
-    case FLAG_REGISTER_RBX: {printf("RBX "); break; }
-    case FLAG_REGISTER_RCX: {printf("RCX "); break; }
-    case FLAG_REGISTER_RDI: {printf("RDI "); break; }
-    case FLAG_REGISTER_RDX: {printf("RDX "); break; }
-    case FLAG_REGISTER_RSI: {printf("RSI "); break; }
-    case FLAG_REGISTER_RSP: {printf("RSP "); break; }
-    case FLAG_REGISTER_SI: {printf("SI "); break; }
-    case FLAG_REGISTER_SIL: {printf("SIL "); break; }
-    case FLAG_REGISTER_SP: {printf("SP "); break; }
-    case FLAG_REGISTER_SPL: {printf("SPL "); break; }
-    case FLAG_REGISTER_R8: {printf("R8 "); break; }
-    case FLAG_REGISTER_R9: {printf("R9 "); break; }
-    case FLAG_REGISTER_R10: {printf("R10 "); break; }
-    case FLAG_REGISTER_R11: {printf("R11 "); break; }
-    case FLAG_REGISTER_R12: {printf("R12 "); break; }
-    case FLAG_REGISTER_R13: {printf("R13 "); break; }
-    case FLAG_REGISTER_R14: {printf("R14 "); break; }
-    case FLAG_REGISTER_R15: {printf("R15 "); break; }
-    case FLAG_REGISTER_R8B: {printf("R8B "); break; }
-    case FLAG_REGISTER_R9B: {printf("R9B "); break; }
-    case FLAG_REGISTER_R10B: {printf("R10B "); break; }
-    case FLAG_REGISTER_R11B: {printf("R11B "); break; }
-    case FLAG_REGISTER_R12B: {printf("R12B "); break; }
-    case FLAG_REGISTER_R13B: {printf("R13B "); break; }
-    case FLAG_REGISTER_R14B: {printf("R14B "); break; }
-    case FLAG_REGISTER_R15B: {printf("R15B "); break; }
-    case FLAG_REGISTER_R8D: {printf("R8D "); break; }
-    case FLAG_REGISTER_R9D: {printf("R9D "); break; }
-    case FLAG_REGISTER_R10D: {printf("R10D "); break; }
-    case FLAG_REGISTER_R11D: {printf("R11D "); break; }
-    case FLAG_REGISTER_R12D: {printf("R12D "); break; }
-    case FLAG_REGISTER_R13D: {printf("R13D "); break; }
-    case FLAG_REGISTER_R14D: {printf("R14D "); break; }
-    case FLAG_REGISTER_R15D: {printf("R15D "); break; }
-    case FLAG_REGISTER_R8W: {printf("R8W "); break; }
-    case FLAG_REGISTER_R9W: {printf("R9W "); break; }
-    case FLAG_REGISTER_R10W: {printf("R10W "); break; }
-    case FLAG_REGISTER_R11W: {printf("R11W "); break; }
-    case FLAG_REGISTER_R12W: {printf("R12W "); break; }
-    case FLAG_REGISTER_R13W: {printf("R13W "); break; }
-    case FLAG_REGISTER_R14W: {printf("R14W "); break; }
-    case FLAG_REGISTER_R15W: {printf("R15W "); break; }
-    }
-}
-
-void fuku_code_profiler::print_code(fuku_code_holder& code) {
-
-    cs_insn *instruction;
-    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
-        cs_disasm(cap_handle, line_iter->get_op_code(), line_iter->get_op_length(), 0, 1, &instruction);
-
-        if (line_iter->get_instruction_flags() & FUKU_INST_JUNK_CODE) {
-            continue;
-        }
-
-        if (!instruction) {
-            __debugbreak();
-        }
-
-        if (line_iter->get_label_idx() != -1) {
-            printf("\n LABEL : %08x |\n", line_iter->get_label_idx());
-        }
-
-        printf("%016I64x   %s %s | ", line_iter->get_virtual_address(), instruction->mnemonic, instruction->op_str);
-
-        
-
-        for (size_t reg_idx = X86_REG_INVALID; reg_idx < X86_REG_ENDING; reg_idx++) {
-            if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx] != -2 &&
-                line_iter->get_custom_flags() & CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
-
-                print_reg(CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]);
-
-            }
-        }
-        if (line_iter->get_source_virtual_address() == -1) {
-            printf("  TRASH _____________| ");
-        }
-        printf("\n");
-
-        cs_free(instruction, 1);
-    }
-}
-
 bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
 
     if (arch != code.get_arch()) {
@@ -344,7 +233,7 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
     }
     
   
-    print_code(code);
+    //print_code(code);
     //*/
     return true;
 }
@@ -909,15 +798,123 @@ bool fuku_code_profiler::get_instruction_operands_access(cs_insn *instruction, u
 }
 
 
+void fuku_code_profiler::print_reg(uint64_t reg) {
 
-void print_full_reg(uint64_t reg) {
+    switch (reg) {
 
-    for (size_t reg_idx = X86_REG_INVALID; reg_idx < X86_REG_ENDING; reg_idx++) {
-        if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx] != -2 &&
-            reg & CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
+    case FLAG_REGISTER_AX: {printf("AX "); break; }
+    case FLAG_REGISTER_AL: {printf("AL "); break; }
+    case FLAG_REGISTER_BX: {printf("BX "); break; }
+    case FLAG_REGISTER_BL: {printf("BL "); break; }
+    case FLAG_REGISTER_BP: {printf("BP "); break; }
+    case FLAG_REGISTER_BPL: {printf("BPL "); break; }
+    case FLAG_REGISTER_CX: {printf("CX "); break; }
+    case FLAG_REGISTER_CL: {printf("CL "); break; }
+    case FLAG_REGISTER_DX: {printf("DX "); break; }
+    case FLAG_REGISTER_DI: {printf("DI "); break; }
+    case FLAG_REGISTER_DIL: {printf("DIL "); break; }
+    case FLAG_REGISTER_DL: {printf("DL "); break; }
+    case FLAG_REGISTER_EAX: {printf("EAX "); break; }
+    case FLAG_REGISTER_EBP: {printf("EBP "); break; }
+    case FLAG_REGISTER_EBX: {printf("EBX "); break; }
+    case FLAG_REGISTER_ECX: {printf("ECX "); break; }
+    case FLAG_REGISTER_EDI: {printf("EDI "); break; }
+    case FLAG_REGISTER_EDX: {printf("EDX "); break; }
+    case FLAG_REGISTER_ESI: {printf("ESI "); break; }
+    case FLAG_REGISTER_ESP: {printf("ESP "); break; }
+    case FLAG_REGISTER_RAX: {printf("RAX "); break; }
+    case FLAG_REGISTER_RBP: {printf("RBP "); break; }
+    case FLAG_REGISTER_RBX: {printf("RBX "); break; }
+    case FLAG_REGISTER_RCX: {printf("RCX "); break; }
+    case FLAG_REGISTER_RDI: {printf("RDI "); break; }
+    case FLAG_REGISTER_RDX: {printf("RDX "); break; }
+    case FLAG_REGISTER_RSI: {printf("RSI "); break; }
+    case FLAG_REGISTER_RSP: {printf("RSP "); break; }
+    case FLAG_REGISTER_SI: {printf("SI "); break; }
+    case FLAG_REGISTER_SIL: {printf("SIL "); break; }
+    case FLAG_REGISTER_SP: {printf("SP "); break; }
+    case FLAG_REGISTER_SPL: {printf("SPL "); break; }
+    case FLAG_REGISTER_R8: {printf("R8 "); break; }
+    case FLAG_REGISTER_R9: {printf("R9 "); break; }
+    case FLAG_REGISTER_R10: {printf("R10 "); break; }
+    case FLAG_REGISTER_R11: {printf("R11 "); break; }
+    case FLAG_REGISTER_R12: {printf("R12 "); break; }
+    case FLAG_REGISTER_R13: {printf("R13 "); break; }
+    case FLAG_REGISTER_R14: {printf("R14 "); break; }
+    case FLAG_REGISTER_R15: {printf("R15 "); break; }
+    case FLAG_REGISTER_R8B: {printf("R8B "); break; }
+    case FLAG_REGISTER_R9B: {printf("R9B "); break; }
+    case FLAG_REGISTER_R10B: {printf("R10B "); break; }
+    case FLAG_REGISTER_R11B: {printf("R11B "); break; }
+    case FLAG_REGISTER_R12B: {printf("R12B "); break; }
+    case FLAG_REGISTER_R13B: {printf("R13B "); break; }
+    case FLAG_REGISTER_R14B: {printf("R14B "); break; }
+    case FLAG_REGISTER_R15B: {printf("R15B "); break; }
+    case FLAG_REGISTER_R8D: {printf("R8D "); break; }
+    case FLAG_REGISTER_R9D: {printf("R9D "); break; }
+    case FLAG_REGISTER_R10D: {printf("R10D "); break; }
+    case FLAG_REGISTER_R11D: {printf("R11D "); break; }
+    case FLAG_REGISTER_R12D: {printf("R12D "); break; }
+    case FLAG_REGISTER_R13D: {printf("R13D "); break; }
+    case FLAG_REGISTER_R14D: {printf("R14D "); break; }
+    case FLAG_REGISTER_R15D: {printf("R15D "); break; }
+    case FLAG_REGISTER_R8W: {printf("R8W "); break; }
+    case FLAG_REGISTER_R9W: {printf("R9W "); break; }
+    case FLAG_REGISTER_R10W: {printf("R10W "); break; }
+    case FLAG_REGISTER_R11W: {printf("R11W "); break; }
+    case FLAG_REGISTER_R12W: {printf("R12W "); break; }
+    case FLAG_REGISTER_R13W: {printf("R13W "); break; }
+    case FLAG_REGISTER_R14W: {printf("R14W "); break; }
+    case FLAG_REGISTER_R15W: {printf("R15W "); break; }
+    }
+}
 
-            fuku_code_profiler(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86).print_reg(CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]);
+void fuku_code_profiler::print_full_reg(uint64_t reg) {
+
+    for (size_t reg_idx = 0; reg_idx < 64; reg_idx++) {
+        if (reg & ((uint64_t)1 << reg_idx)) {
+
+            fuku_code_profiler(fuku_assambler_arch::FUKU_ASSAMBLER_ARCH_X86).print_reg(((uint64_t)1 << reg_idx));
         }
+    }
+}
+
+void fuku_code_profiler::print_code(fuku_code_holder& code) {
+
+    cs_insn *instruction;
+    for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
+        cs_disasm(cap_handle, line_iter->get_op_code(), line_iter->get_op_length(), 0, 1, &instruction);
+
+        if (line_iter->get_instruction_flags() & FUKU_INST_JUNK_CODE) {
+            continue;
+        }
+
+        if (!instruction) {
+            __debugbreak();
+        }
+
+        if (line_iter->get_label_idx() != -1) {
+            printf("\n LABEL : %08x |\n", line_iter->get_label_idx());
+        }
+
+        printf("%016I64x   %s %s | ", line_iter->get_virtual_address(), instruction->mnemonic, instruction->op_str);
+
+
+
+        for (size_t reg_idx = X86_REG_INVALID; reg_idx < X86_REG_ENDING; reg_idx++) {
+            if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx] != -2 &&
+                line_iter->get_custom_flags() & CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
+
+                print_reg(CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]);
+
+            }
+        }
+        if (line_iter->get_source_virtual_address() == -1) {
+            printf("  TRASH _____________| ");
+        }
+        printf("\n");
+
+        cs_free(instruction, 1);
     }
 }
 

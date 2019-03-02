@@ -169,11 +169,11 @@ uint8_t get_random_bit_by_mask(uint64_t mask, uint8_t min_index, uint8_t max_ind
 fuku_register_enum flag_reg_to_fuku_reg(uint64_t reg);
 uint64_t fuku_reg_to_flag_reg(fuku_register_enum reg);
 
-uint8_t flag_reg_get_size(uint64_t reg);
-uint8_t flag_reg_get_index(uint64_t reg);
+uint8_t get_flag_reg_size(uint64_t reg);
+uint8_t get_flag_reg_index(uint64_t reg);
 uint8_t is_flag_reg_ext64(uint64_t reg);
 
-fuku_register_enum fuku_reg_set_grade(fuku_register_enum reg, uint8_t needed_size);
+fuku_register_enum set_fuku_reg_grade(fuku_register_enum reg, uint8_t needed_size);
 
 
 uint64_t fuku_reg_to_complex_flag_reg(const fuku_register& reg, uint8_t size = 0);
