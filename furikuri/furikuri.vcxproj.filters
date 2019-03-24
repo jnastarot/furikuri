@@ -87,6 +87,9 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x64\rules\mutation\templates">
       <UniqueIdentifier>{0c33f646-caf9-47ab-b1d8-433f6c89a7d7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\furikuri\fuku_settings\protection_mgr">
+      <UniqueIdentifier>{1ea0a418-5928-4831-a7f1-fc60eb31c3c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -389,6 +392,9 @@
     <ClInclude Include="obf_templates\x86\obf_x86_shr_templates.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp\x86\rules\mutation\templates</Filter>
     </ClInclude>
+    <ClInclude Include="fuku_settings_protect_mgr.h">
+      <Filter>Заголовочные файлы\furikuri\fuku_settings\protection_mgr</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -441,6 +447,9 @@
     </ClCompile>
     <ClCompile Include="fuku_code_utilits.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_utilits</Filter>
+    </ClCompile>
+    <ClCompile Include="fuku_settings_protect_mgr.cpp">
+      <Filter>Заголовочные файлы\furikuri\fuku_settings\protection_mgr</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

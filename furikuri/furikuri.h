@@ -111,22 +111,27 @@ class furikuri {
 
     std::vector<fuku_code_raw_list> code_raw_lists;
 public:
-    furikuri::furikuri();
-    furikuri::~furikuri();
+    furikuri();
+    ~furikuri();
 
-    bool furikuri::fuku_protect(std::vector<uint8_t>& out_image);
+    bool fuku_protect(std::vector<uint8_t>& out_image); //for custom settings
+    bool fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::vector<uint8_t>& out_image); //for snapshot settings
+
+    bool create_snapshot(fuku_settings_protect_mgr& mgr_settings, fuku_protect_stage stage);
+
 public:
-    bool furikuri::set_main_module(shibari_module* module,std::string module_path = "");
-    bool furikuri::add_extended_module(shibari_module* module, std::string module_path = "");
+    bool set_main_module(shibari_module* module,std::string module_path = "");
+    bool add_extended_module(shibari_module* module, std::string module_path = "");
 
-    bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_obfuscation& settings);
-    bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_virtualization& settings);
+    bool add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_obfuscation& settings);
+    bool add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_virtualization& settings);
 
-    void furikuri::clear_code_lists();
-    void furikuri::clear_extended_modules(); //delete only from pointer table without destruction classes
+    void clear_code_lists();
+    void clear_extended_modules(); //delete only from pointer table without destruction classes
+
 public:
-    const std::vector<fuku_code_raw_list> & furikuri::get_code_raw_lists() const;
-    std::vector<shibari_module*>& furikuri::get_extended_modules();
-    shibari_module* furikuri::get_main_module();
+    const std::vector<fuku_code_raw_list> & get_code_raw_lists() const;
+    std::vector<shibari_module*>& get_extended_modules();
+    shibari_module* get_main_module();
 };
 

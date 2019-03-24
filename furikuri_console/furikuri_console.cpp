@@ -132,7 +132,7 @@ int main() {
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(24265);
-  //  test_on_shellcode();
+    //test_on_shellcode();
     /*
     HANDLE hthread[2];
 
@@ -248,17 +248,33 @@ int main() {
             //fuku.add_code_list({ 0x1110 , 0x123 }, fuku_code_type::fuku_code_obfuscate, &_module, { 2,2,50.f,50.f,50.f });
 
 
-        if (fuku.fuku_protect(out_image)) {
+        fuku_settings_protect_mgr fuku_snapshot;
 
-            FILE* hTargetFile;
-            fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
+        if (fuku.create_snapshot(fuku_snapshot, fuku_protect_stage_initialization)) {
 
-            if (hTargetFile) {
-                fwrite(out_image.data(), out_image.size(), 1, hTargetFile);
-                fclose(hTargetFile);
+            while (1) {
+
+                if (fuku.fuku_protect(fuku_snapshot, out_image)) {
+
+                    FILE* hTargetFile;
+                    fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
+
+                    if (hTargetFile) {
+                        fwrite(out_image.data(), out_image.size(), 1, hTargetFile);
+                        fclose(hTargetFile);
+
+                        printf("fuku_protect good !\n");
+                    }
+                }
+                else {
+                    printf("fuku_protect error !\n");
+                }
+
+                //Sleep(100);
             }
-
         }
+
+       
 
     }
     //  }

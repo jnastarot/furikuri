@@ -1,37 +1,16 @@
 #pragma once
 
+bool fuku_protect_mgr::initialize_virtualization_profiles() {
 
-void fuku_protect_mgr::add_vm_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_virtualization& settings) {
-
-    fuku_virtualization_environment env(settings.get_vm_holder_module()->get_module_position().get_address_offset() + settings.get_vm_entry_rva(), settings.get_virtualizer());
-    auto& vm_profile = vm_profiles.find(env);
-
-    if (vm_profile != vm_profiles.end()) {
-        vm_profile->second.items.push_back({ fuku_code_analyzer() , settings.get_obfuscation_settings(), regions });
-    }
-    else {
-        vm_profiles[env] = {
-
-            std::vector<fuku_protected_region>(),
-            std::vector<fuku_code_association>(),
-            std::vector<fuku_image_relocation>(),
-
-            std::vector<fuku_protection_item>(1,{ fuku_code_analyzer() , settings.get_obfuscation_settings(), regions })
-        };
-    }
-}
-
-bool    fuku_protect_mgr::initialize_virtualization_profiles() {
-
-    pe_image_io image_io(target_module.get_image());
-    bool     is32arch = target_module.get_image().is_x32_image();
-    uint64_t base_address = target_module.get_image().get_image_base();
+    pe_image_io image_io(settings.get_target_module().get_image());
+    bool     is32arch = settings.get_target_module().get_image().is_x32_image();
+    uint64_t base_address = settings.get_target_module().get_image().get_image_base();
 
     fuku_code_profiler code_profiler(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
-    target_module.get_image_relocations().sort();
+    settings.get_target_module().get_image_relocations().sort();
 
-    for (auto& profile : vm_profiles) {
+    for (auto& profile : settings.get_vm_profiles()) {
 
         for (auto& item : profile.second.items) {
             item.an_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
@@ -61,7 +40,7 @@ bool    fuku_protect_mgr::initialize_virtualization_profiles() {
                     return false;
                 }
 
-                auto& relocations = target_module.get_image_relocations().get_items();
+                auto& relocations = settings.get_target_module().get_image_relocations().get_items();
 
                 for (size_t reloc_idx = last_reloc_idx; reloc_idx < relocations.size(); reloc_idx++, last_reloc_idx++) {
                     auto& reloc_item = relocations[reloc_idx];
@@ -139,21 +118,21 @@ bool    fuku_protect_mgr::initialize_virtualization_profiles() {
 
 bool fuku_protect_mgr::process_virtualization_profiles() {
 
-    if (vm_profiles.size()) {
+    if (settings.get_vm_profiles().size()) {
 
-        pe_image_io image_io(target_module.get_image(), enma_io_mode::enma_io_mode_allow_expand);
-        bool     is32arch = target_module.get_image().is_x32_image();
+        pe_image_io image_io(settings.get_target_module().get_image(), enma_io_mode::enma_io_mode_allow_expand);
+        bool     is32arch = settings.get_target_module().get_image().is_x32_image();
 
         image_io.seek_to_end();
 
-        for (auto& profile : vm_profiles) {
+        for (auto& profile : settings.get_vm_profiles()) {
 
             fuku_code_analyzer anal_code;
             anal_code.set_arch(is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
 
 
-            if (ob_profile.items.size()) {
+            if (settings.get_ob_profile().items.size()) {
                 size_t item_idx = profile.second.items.size();
 
                 do {
@@ -165,7 +144,7 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
                         fuku_obfuscator obfuscator;
 
                         obfuscator.set_settings(item.settings);
-                        obfuscator.set_destination_virtual_address(target_module.get_image().get_image_base());
+                        obfuscator.set_destination_virtual_address(settings.get_target_module().get_image().get_image_base());
                         obfuscator.set_code(&item.an_code.get_code());
 
                         obfuscator.obfuscate_code();
@@ -184,7 +163,7 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
     
             fuku_vm_result result = ((fuku_virtualization_environment&)profile.first).get_virtualizer()->build_bytecode(
                 anal_code.get_code(), profile.second.relocation_table, profile.second.association_table,
-                target_module.get_image().get_image_base() + image_io.get_image_offset()
+                settings.get_target_module().get_image().get_image_base() + image_io.get_image_offset()
             );
             
             if (result != fuku_vm_result::fuku_vm_ok) {
@@ -207,22 +186,22 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
 bool    fuku_protect_mgr::postprocess_virtualization() {
 
 
-    if (vm_profiles.size()) {
+    if (settings.get_vm_profiles().size()) {
 
-        pe_image_io image_io(target_module.get_image());
-        uint64_t base_address = target_module.get_image().get_image_base();
-        auto&   image_relocs = target_module.get_image_relocations();
+        pe_image_io image_io(settings.get_target_module().get_image());
+        uint64_t base_address = settings.get_target_module().get_image().get_image_base();
+        auto&   image_relocs = settings.get_target_module().get_image_relocations();
 
-        for (auto& profile : vm_profiles) {
+        for (auto& profile : settings.get_vm_profiles()) {
             std::sort(profile.second.association_table.begin(), profile.second.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
                 return lhs.original_virtual_address < rhs.original_virtual_address;
             });
         }
 
-        for (auto& profile : vm_profiles) {
+        for (auto& profile : settings.get_vm_profiles()) {
             for (auto& region : profile.second.regions) {
 
-                fuku_code_association * dst_func_assoc = find_profile_association(profile.second, region.region_rva);   //set jumps to start of virtualized funcs
+                fuku_code_association * dst_func_assoc = find_profile_association(settings, profile.second, region.region_rva);   //set jumps to start of virtualized funcs
 
                 if (dst_func_assoc) {
                     auto _jmp = profile.first.get_virtualizer()->create_vm_jumpout((region.region_rva + base_address), dst_func_assoc->virtual_address, 

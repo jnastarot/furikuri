@@ -108,7 +108,10 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
         return false;
     }
 
-    fuku_protect_mgr protector(*main_module);
+    fuku_protect_mgr protect_manager;
+
+    protect_manager.get_settings().set_target_module(*main_module);
+    protect_manager.get_settings().set_module_used_relocations(main_has_relocations);
 
     for (auto& list : code_raw_lists) {
         uint32_t module_offset = list.get_target_module()->get_module_position().get_address_offset();
@@ -120,11 +123,11 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
         }
 
         if (list.get_type() == CODE_RAW_LIST_TYPE_OBFUSCATION) {
-            protector.add_ob_profile(list.get_functions(), list.get_settings());
+            protect_manager.add_ob_profile(list.get_functions(), list.get_settings());
         }
         else {
 
-            protector.add_vm_profile(list.get_functions(), fuku_settings_virtualization(
+            protect_manager.add_vm_profile(list.get_functions(), fuku_settings_virtualization(
                 list.get_settings(),
                 list.get_vm_holder_module(),
                 list.get_vm_entry_rva(),
@@ -134,16 +137,76 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
         
     }
 
-    fuku_protect_mgr_result code = protector.protect_module();
+    fuku_protect_mgr_result code = protect_manager.step_to_stage(fuku_protect_stage_full);
 
-    if (code == fuku_protect_mgr_result::fuku_protect_ok) {
+    if (code == fuku_protect_ok) {
 
-        shibari_builder(protector.get_target_module(), main_has_relocations, out_image);
+        shibari_builder(protect_manager.get_settings().get_target_module(),
+            protect_manager.get_settings().is_module_used_relocations(), out_image);
 
         return true;
     }
 
     return false;
+}
+
+bool furikuri::fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::vector<uint8_t>& out_image) {
+
+    fuku_protect_mgr protect_manager;
+
+    protect_manager_load_snapshot(protect_manager, mgr_settings);
+
+    fuku_protect_mgr_result code = protect_manager.step_to_stage(fuku_protect_stage_full);
+
+    if (code == fuku_protect_ok) {
+
+        shibari_builder(protect_manager.get_settings().get_target_module(),
+            protect_manager.get_settings().is_module_used_relocations(), out_image);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool furikuri::create_snapshot(fuku_settings_protect_mgr& mgr_settings, fuku_protect_stage stage) {
+
+    bool main_has_relocations = main_module->get_image_relocations().size() != 0;
+
+    shibari_linker_errors linker_result = shibari_linker(extended_modules, main_module).link_modules();
+
+    if (linker_result != shibari_linker_errors::shibari_linker_ok) {
+        return false;
+    }
+
+    mgr_settings.set_target_module(*main_module);
+    mgr_settings.set_module_used_relocations(main_has_relocations);
+
+    for (auto& list : code_raw_lists) {
+        uint32_t module_offset = list.get_target_module()->get_module_position().get_address_offset();
+
+        if (module_offset) {
+            for (auto& func : list.get_functions()) {
+                func.region_rva += module_offset;
+            }
+        }
+
+        if (list.get_type() == CODE_RAW_LIST_TYPE_OBFUSCATION) {
+            mgr_settings.add_ob_profile(list.get_functions(), list.get_settings());
+        }
+        else {
+
+            mgr_settings.add_vm_profile(list.get_functions(), fuku_settings_virtualization(
+                list.get_settings(),
+                list.get_vm_holder_module(),
+                list.get_vm_entry_rva(),
+                list.get_virtualizer()
+            ));
+        }
+
+    }
+
+    return protect_manager_create_stage_snapshot(mgr_settings, stage);
 }
 
 bool furikuri::set_main_module(shibari_module* module, std::string module_path) {

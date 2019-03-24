@@ -1,47 +1,10 @@
 #pragma once
 
-
-enum fuku_protect_mgr_result {
-    fuku_protect_ok,
-    fuku_protect_err_code_range,
-    fuku_protect_err_initialization,
-    fuku_protect_err_processing,
-    fuku_protect_err_post_processing,
-    fuku_protect_err_module_processing,
-};
-
-
-struct fuku_protected_region {
-    uint32_t region_rva;
-    uint32_t region_size;
-};
-
-struct fuku_protection_item {
-    fuku_code_analyzer an_code;
-    fuku_settings_obfuscation settings;
-    std::vector<fuku_protected_region> regions;
-};
-
-struct fuku_protection_profile {
-    std::vector<fuku_protected_region> regions;
-    std::vector<fuku_code_association> association_table;
-    std::vector<fuku_image_relocation>  relocation_table;
-
-    std::vector<fuku_protection_item> items;
-};
+#include "fuku_settings_protect_mgr.h"
 
 class fuku_protect_mgr {
-    shibari_module target_module;
-
-    fuku_protection_profile ob_profile;
-    std::map<
-        fuku_virtualization_environment, 
-        fuku_protection_profile
-    > vm_profiles;
-
-    fuku_code_association * find_profile_association(fuku_protection_profile& profile, uint32_t rva);
-
-    bool test_regions_scope();  
+    
+    fuku_settings_protect_mgr settings;
 
     bool initialize_obfuscation_profiles();
     bool initialize_virtualization_profiles();
@@ -52,19 +15,37 @@ class fuku_protect_mgr {
     bool postprocess_obfuscation();
     bool postprocess_virtualization();
 
-    bool    finish_module();
 public:
-    fuku_protect_mgr(const shibari_module& module);
+    fuku_protect_mgr();
+    fuku_protect_mgr(const fuku_settings_protect_mgr& settings);
+
     ~fuku_protect_mgr();
 
 public:
-    fuku_protect_mgr_result protect_module();
+    fuku_protect_mgr_result step_to_stage(fuku_protect_stage stage);
 
 public:
+    bool check_regions_scope();
+    bool initialize_profiles();
+    bool process_profiles();
+    bool post_process_profiles();
+    bool finish_process_module();   
+public:
+
     void add_vm_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_virtualization& settings);
     void add_ob_profile(const std::vector<fuku_protected_region>& regions, fuku_settings_obfuscation& settings);
 
     void clear_profiles();
+
+    void set_settings(const fuku_settings_protect_mgr& settings);
 public:
-    const shibari_module& get_target_module() const;
+
+    fuku_settings_protect_mgr& get_settings();
+    const fuku_settings_protect_mgr& get_settings() const;
 };
+
+
+bool protect_manager_create_stage_snapshot(
+    fuku_settings_protect_mgr& settings, fuku_protect_stage stage);
+bool protect_manager_load_snapshot(
+    fuku_protect_mgr& mgr, const fuku_settings_protect_mgr& settings);
