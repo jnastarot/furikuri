@@ -65,9 +65,9 @@ bool fuku_code_analyzer::analyze_code(
             line.set_source_virtual_address(virtual_address + current_insn.address)
                 .set_virtual_address(virtual_address + current_insn.address)
                 .set_op_code(&src[current_insn.address], (uint8_t)current_insn.size)
-                .set_eflags(current_insn.detail->x86.eflags)
+                .set_used_eflags(current_insn.detail->x86.eflags)
                 .set_id(current_insn.id)
-                .set_custom_flags(current_insn.detail->x86.encoding.disp_offset << 8 | current_insn.detail->x86.encoding.imm_offset);
+                .set_used_regs(current_insn.detail->x86.encoding.disp_offset << 8 | current_insn.detail->x86.encoding.imm_offset);
             
 
             for (uint8_t op_idx = 0; op_idx < current_insn.detail->x86.op_count;op_idx++) {
@@ -133,10 +133,10 @@ bool fuku_code_analyzer::analyze_code(
                         *(uint64_t*)&line->get_op_code()[reloc_offset]);
 
 
-                    if (reloc_offset == (line->get_custom_flags() & 0xFF) ) {
+                    if (reloc_offset == (line->get_used_regs() & 0xFF) ) {
                         line->set_relocation_imm_idx(analyzed_code.create_relocation(reloc_offset, reloc_dst, reloc.relocation_id));
 
-                    } else if (reloc_offset == ((line->get_custom_flags() >> 8) & 0xFF) ) {
+                    } else if (reloc_offset == ((line->get_used_regs() >> 8) & 0xFF) ) {
                         line->set_relocation_disp_idx(analyzed_code.create_relocation(reloc_offset, reloc_dst, reloc.relocation_id));
                     }
                     else {

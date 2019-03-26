@@ -6,13 +6,13 @@ inline bool _ret_64_multi_tmpl_1(mutation_context& ctx, uint16_t stack_ret) {
 
     ctx.f_asm->lea(reg_(FUKU_REG_RSP), qword_ptr(FUKU_REG_RSP, imm(8 + stack_ret)));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     ctx.f_asm->jmp(qword_ptr(FUKU_REG_RSP, imm(-8 - stack_ret)));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes)
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes)
         .set_instruction_flags(FUKU_INST_BAD_STACK);
 
     return true;

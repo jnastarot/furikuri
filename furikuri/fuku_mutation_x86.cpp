@@ -64,8 +64,8 @@ void fuku_mutation_x86::fukutation(fuku_code_holder& code_holder, linestorage::i
     ctx.source_virtual_address = lines_iter->get_source_virtual_address();
     
     ctx.instruction_flags = lines_iter->get_instruction_flags();
-    ctx.eflags_changes    = lines_iter->get_eflags();
-    ctx.regs_changes      = lines_iter->get_custom_flags();
+    ctx.eflags_changes    = lines_iter->get_used_eflags();
+    ctx.regs_changes      = lines_iter->get_used_regs();
 
     ctx.swap_junk_label = false;
 

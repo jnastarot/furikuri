@@ -14,8 +14,8 @@ inline bool _call_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, uint8_t 
 
         ctx.f_asm->push(imm(0xFFFFFFFF));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes)
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes)
             .set_relocation_imm_idx(
                 ctx.code_holder->create_relocation(
                     ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter), 0
@@ -24,8 +24,8 @@ inline bool _call_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, uint8_t 
 
         ctx.f_asm->jmp(src);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags);
  
         restore_rip_imm_or_disp(src);
 

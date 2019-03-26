@@ -15,13 +15,13 @@ inline bool _jmp_64_multi_tmpl_1(mutation_context& ctx, fuku_type src) {
 
 
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes);
 
         ctx.f_asm->ret(imm(0));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes);
     }
     else {
         return false;
@@ -43,15 +43,15 @@ inline bool _jmp_64_multi_tmpl_2(mutation_context& ctx, fuku_type src) {
 
     ctx.f_asm->jcc(fuku_condition(cond), imm(0xFFFFFFFF));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes)
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes)
         .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
         .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
 
     ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(0xFFFFFFFF));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
-        .set_custom_flags(ctx.regs_changes)
+        set_used_eflags(ctx.eflags_changes & (~di_fl_jcc[fuku_condition(cond ^ 1)]))
+        .set_used_regs(ctx.regs_changes)
         .set_rip_relocation_idx(ctx.code_holder->create_rip_relocation_lb(ctx.f_asm->get_context().immediate_offset, rip_label_idx))
         .set_instruction_flags(ctx.instruction_flags | FUKU_INST_NO_MUTATE);
 
@@ -84,13 +84,13 @@ inline bool _jmp_64_multi_tmpl_3(mutation_context& ctx, fuku_type src) {
         }
 
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags);      
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags);      
 
         ctx.f_asm->jmp(rand_reg);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags);
 
     }
     else {

@@ -61,7 +61,7 @@ bool has_free_flag_register(uint64_t regs_flags, uint64_t reg) {
 bool has_inst_free_register(const fuku_instruction& inst, x86_reg reg) {
 
     if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg] != -2) {
-        return has_free_flag_register(inst.get_custom_flags(), CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg]);
+        return has_free_flag_register(inst.get_used_regs(), CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg]);
     }
 
     return false;
@@ -307,7 +307,7 @@ fuku_register_enum get_random_reg(uint32_t reg_size, bool x86_only, uint64_t exc
 }
 
 fuku_register_enum get_random_free_flag_reg(const fuku_instruction& inst, uint32_t reg_size, bool x86_only, uint64_t exclude_regs) {
-    return get_random_free_flag_reg(inst.get_custom_flags(), reg_size, x86_only, exclude_regs);
+    return get_random_free_flag_reg(inst.get_used_regs(), reg_size, x86_only, exclude_regs);
 }
 
 fuku_register_enum get_random_free_flag_reg(uint64_t reg_flags, uint32_t reg_size, bool x86_only, uint64_t exclude_regs) {

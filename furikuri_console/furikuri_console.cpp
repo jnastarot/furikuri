@@ -132,7 +132,7 @@ int main() {
     
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(24265);
-    //test_on_shellcode();
+    test_on_shellcode();
     /*
     HANDLE hthread[2];
 

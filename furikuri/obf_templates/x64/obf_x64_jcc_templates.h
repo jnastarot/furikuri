@@ -12,8 +12,8 @@ inline bool _jcc_64_multi_tmpl_1(mutation_context& ctx, fuku_type dst, uint8_t i
 
         ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(0xFFFFFFFF));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes)
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes)
             .set_rip_relocation_idx(
                 ctx.code_holder->create_rip_relocation(
                     ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter)
@@ -23,8 +23,8 @@ inline bool _jcc_64_multi_tmpl_1(mutation_context& ctx, fuku_type dst, uint8_t i
 
         ctx.f_asm->jmp(imm(0xFFFFFFFF));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes)
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes)
             .set_instruction_flags(FUKU_INST_NO_MUTATE | ctx.instruction_flags);
 
         restore_rip_relocate_imm(dst);

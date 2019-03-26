@@ -135,15 +135,15 @@ void fuku_obfuscator::spagetti_code() {
 
             if (code->get_lines().size()) {
                 inst_flags = (code->get_lines().begin()->get_instruction_flags());
-                inst_eflags = code->get_lines().begin()->get_eflags();
-                inst_customflags = code->get_lines().begin()->get_custom_flags();
+                inst_eflags = code->get_lines().begin()->get_used_eflags();
+                inst_customflags = code->get_lines().begin()->get_used_regs();
             }
 
             if (block_idx + 1 != block_lens.size()) { //insert jmp to next block
                 line_blocks[block_idx].push_back(
                     inst.set_instruction_flags(inst_flags)
-                    .set_eflags(inst_eflags)
-                    .set_custom_flags(inst_customflags)
+                    .set_used_eflags(inst_eflags)
+                    .set_used_regs(inst_customflags)
                 );
             }
 
@@ -153,7 +153,7 @@ void fuku_obfuscator::spagetti_code() {
                 auto& first_item_of_current_block = line_blocks[block_idx].begin();
 
                 prev_block_jmp.set_rip_relocation_idx(code->create_rip_relocation(1, &(*first_item_of_current_block)));
-                prev_block_jmp.set_eflags(first_item_of_current_block->get_eflags());
+                prev_block_jmp.set_used_eflags(first_item_of_current_block->get_used_eflags());
             }
 
         }

@@ -158,8 +158,8 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -217,8 +217,8 @@ bool junk_86_low_pattern_2(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -285,8 +285,8 @@ bool junk_86_low_pattern_3(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -345,8 +345,8 @@ bool junk_86_low_pattern_4(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -399,8 +399,8 @@ bool junk_86_low_pattern_5(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -457,8 +457,8 @@ bool junk_86_low_pattern_6(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -512,8 +512,8 @@ bool junk_86_low_pattern_7(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -559,8 +559,8 @@ bool junk_86_low_pattern_8(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -588,20 +588,20 @@ bool junk_86_high_pattern_1(mutation_context & ctx) {
 
     ctx.f_asm->inc(dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
     ctx.f_asm->neg(dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
     ctx.f_asm->inc(dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
     ctx.f_asm->neg(dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     return true;
 }
@@ -624,12 +624,12 @@ bool junk_86_high_pattern_2(mutation_context & ctx) {
 
     ctx.f_asm->not_(dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
     ctx.f_asm->not_(dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes & ~(flag_reg));
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes & ~(flag_reg));
 
     return true;
 }
@@ -658,13 +658,13 @@ bool junk_86_high_pattern_3(mutation_context & ctx) {
 
     ctx.f_asm->push(src);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     ctx.f_asm->pop(src);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes | flag_reg);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes | flag_reg);
 
     return true;
 }
@@ -682,8 +682,8 @@ bool junk_86_high_pattern_4(mutation_context & ctx) {
     ctx.f_asm->jcc(fuku_condition(cond), imm(-1));
 
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes)
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes)
         .set_rip_relocation_idx(
             ctx.code_holder->create_rip_relocation(
                 ctx.f_asm->get_context().immediate_offset, 
@@ -708,8 +708,8 @@ bool junk_86_high_pattern_5(mutation_context & ctx) {
 
     ctx.f_asm->jmp(imm(-1));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes)
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes)
         .set_rip_relocation_idx(
             ctx.code_holder->create_rip_relocation(
                 ctx.f_asm->get_context().immediate_offset,

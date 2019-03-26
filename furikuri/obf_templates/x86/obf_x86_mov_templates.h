@@ -21,15 +21,15 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
 
     ctx.f_asm->mov(temp_dst, src);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags);
 
     restore_imm_or_disp(src)
 
     ctx.f_asm->xchg(dst, temp_dst);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags);
 
 
     restore_disp_relocate(dst)
@@ -52,13 +52,13 @@ inline bool _mov_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type
 
         ctx.f_asm->xor_(dst, dst);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes);
 
         ctx.f_asm->add(dst, src);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags);
 
         restore_imm_or_disp(src)
     }
@@ -86,15 +86,15 @@ inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type
 
         ctx.f_asm->push(src);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags);
 
         restore_imm_or_disp(src)
 
         ctx.f_asm->pop(dst);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags);
 
         restore_disp_relocate(dst)
 

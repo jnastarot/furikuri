@@ -13,22 +13,22 @@ inline bool _pop_64_multi_tmpl_1(mutation_context& ctx, fuku_type dst, int8_t in
 
         ctx.f_asm->add(reg_(FUKU_REG_RSP), imm(inst_size));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes);
     }
     else {
         ctx.f_asm->lea(reg_(FUKU_REG_RSP), qword_ptr(FUKU_REG_RSP, imm(inst_size)));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(ctx.regs_changes);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(ctx.regs_changes);
     }
 
     uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(dst);
 
     ctx.f_asm->mov(dst, fuku_operand(FUKU_REG_RSP, imm(-inst_size), (fuku_operand_size)inst_size));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags)
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags)
         .set_instruction_flags(FUKU_INST_BAD_STACK);    
 
     restore_disp_relocate(dst)
@@ -47,8 +47,8 @@ inline bool _pop_64_multi_tmpl_2(mutation_context& ctx, fuku_type dst, int8_t in
 
     ctx.f_asm->mov(dst, fuku_operand(FUKU_REG_RSP, (fuku_operand_size)inst_size));
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(ctx.regs_changes);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(ctx.regs_changes);
 
     restore_disp_relocate(dst)
 
@@ -60,15 +60,15 @@ inline bool _pop_64_multi_tmpl_2(mutation_context& ctx, fuku_type dst, int8_t in
 
         ctx.f_asm->add(reg_(FUKU_REG_RSP), imm(inst_size));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags)
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags)
             .set_instruction_flags(FUKU_INST_BAD_STACK);
     }
     else {
         ctx.f_asm->lea(reg_(FUKU_REG_RSP), qword_ptr(FUKU_REG_RSP, imm(inst_size)));
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(out_regflags)
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(out_regflags)
             .set_instruction_flags(FUKU_INST_BAD_STACK);
     }
 

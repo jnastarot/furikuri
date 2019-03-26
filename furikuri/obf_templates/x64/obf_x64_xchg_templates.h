@@ -13,16 +13,16 @@ inline bool _xchg_64_multi_tmpl_1(mutation_context& ctx, fuku_type dst_1, fuku_t
 
         ctx.f_asm->xor_(dst_1, dst_2);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(changes_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(changes_regflags);
         ctx.f_asm->xor_(dst_2, dst_1);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(changes_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(changes_regflags);
         ctx.f_asm->xor_(dst_1, dst_2);
         ctx.f_asm->get_context().inst->
-            set_eflags(ctx.eflags_changes)
-            .set_custom_flags(changes_regflags);
+            set_used_eflags(ctx.eflags_changes)
+            .set_used_regs(changes_regflags);
 
         return true;
     }
@@ -73,22 +73,22 @@ inline bool _xchg_64_multi_tmpl_2(mutation_context& ctx, fuku_type dst_1, fuku_t
 
     ctx.f_asm->mov(temp_dst_1, dst_1);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags).set_instruction_flags(additation_inst_flag);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags).set_instruction_flags(additation_inst_flag);
     restore_disp_relocate(dst_1);
     ctx.f_asm->mov(temp_dst_2, dst_2);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags).set_instruction_flags(additation_inst_flag);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags).set_instruction_flags(additation_inst_flag);
     ctx.f_asm->mov(dst_1, temp_dst_2);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags).set_instruction_flags(additation_inst_flag);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags).set_instruction_flags(additation_inst_flag);
     restore_disp_relocate(dst_1);
     ctx.f_asm->mov(dst_2, temp_dst_1);
     ctx.f_asm->get_context().inst->
-        set_eflags(ctx.eflags_changes)
-        .set_custom_flags(out_regflags).set_instruction_flags(additation_inst_flag);
+        set_used_eflags(ctx.eflags_changes)
+        .set_used_regs(out_regflags).set_instruction_flags(additation_inst_flag);
 
     return true;
 }

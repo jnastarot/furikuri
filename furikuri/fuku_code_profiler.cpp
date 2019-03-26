@@ -128,7 +128,7 @@ uint64_t fuku_code_profiler::profile_graph_eflags(fuku_code_holder& code, linest
         auto& current_inst = *lines_iter;
 
         uint16_t current_id = current_inst.get_id();
-        uint64_t current_eflags = current_inst.get_eflags();
+        uint64_t current_eflags = current_inst.get_used_eflags();
 
 
         if (current_eflags & EFLAGS_GROUP_TEST) {
@@ -180,8 +180,8 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
 
     for (auto line_iter = code.get_lines().begin(); line_iter != code.get_lines().end(); ++line_iter) {
 
-        (*line_iter).set_eflags(profile_graph_eflags(code, line_iter));
-        (*line_iter).set_custom_flags(profile_graph_registers(code, line_iter));
+        (*line_iter).set_used_eflags(profile_graph_eflags(code, line_iter));
+        (*line_iter).set_used_regs(profile_graph_registers(code, line_iter));
     }
 
     
@@ -195,7 +195,7 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
                 size_t label_idx = code.get_rip_relocations()[line_iter->get_rip_relocation_idx()].label_idx;
                 auto& label = code.get_labels()[label_idx];
                 if (label.has_linked_instruction) {
-                    line_iter->set_custom_flags(label.instruction->get_custom_flags());
+                    line_iter->set_used_regs(label.instruction->get_used_regs());
                 }
             }
             break;
@@ -219,7 +219,7 @@ bool fuku_code_profiler::profile_code(fuku_code_holder& code) {
                     ++next_line;
 
                     if (next_line != code.get_lines().end()) {
-                        line_iter->set_custom_flags(label.instruction->get_custom_flags() & next_line->get_custom_flags());
+                        line_iter->set_used_regs(label.instruction->get_used_regs() & next_line->get_used_regs());
                     }
                 }
             }
@@ -894,7 +894,7 @@ void fuku_code_profiler::print_code(fuku_code_holder& code) {
         }
 
         if (line_iter->get_label_idx() != -1) {
-            printf("\n LABEL : %08x |\n", line_iter->get_label_idx());
+            printf("\n LABEL : %08x |\n", (uint32_t)line_iter->get_label_idx());
         }
 
         printf("%016I64x   %s %s | ", line_iter->get_virtual_address(), instruction->mnemonic, instruction->op_str);
@@ -903,7 +903,7 @@ void fuku_code_profiler::print_code(fuku_code_holder& code) {
 
         for (size_t reg_idx = X86_REG_INVALID; reg_idx < X86_REG_ENDING; reg_idx++) {
             if (CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx] != -2 &&
-                line_iter->get_custom_flags() & CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
+                line_iter->get_used_regs() & CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]) {
 
                 print_reg(CONVERT_CAPSTONE_REGISTER_TO_FLAG[reg_idx]);
 
