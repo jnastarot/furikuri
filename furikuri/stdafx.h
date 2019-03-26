@@ -28,6 +28,8 @@ using namespace std;
 
 #include "enma_pe\enma_pe\enma_pe.h"
 #include "shibari\shibari\shibari.h"
+#include "capstone\include\capstone\capstone.h"
+#include "fukutasm\fukutasm\fukutasm.h"
 
 #define FUKU_GET_RAND(_min,_max) ((_min) == (_max) ? (_min) : ((_min) + ( (rand() | rand() << 16) %(((_max) + (((_max) == UINT_MAX) ? 0 : 1)) - (_min)))))
 

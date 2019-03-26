@@ -1,8 +1,5 @@
 #pragma once
 
-#include "..\capstone\include\capstone\capstone.h"
-#include "..\fukutasm\fukutasm\fukutasm.h"
-
 using namespace fukutasm;
 
 class fuku_code_analyzer;
