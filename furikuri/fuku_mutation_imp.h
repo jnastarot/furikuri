@@ -2,10 +2,10 @@
 
 class fuku_mutation {
 public:
-    virtual fuku_mutation::~fuku_mutation() {};
+    virtual ~fuku_mutation() {};
 
-    virtual void fuku_mutation::obfuscate(fuku_code_holder& code_holder) {};
-    virtual void fuku_mutation::generate_junk(std::vector<uint8_t>& junk, size_t junk_size) {};
+    virtual void obfuscate(fuku_code_holder& code_holder) {};
+    virtual void generate_junk(std::vector<uint8_t>& junk, size_t junk_size) {};
 };
 
 

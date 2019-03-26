@@ -18,24 +18,24 @@ class fuku_obfuscator {
 
     fuku_settings_obfuscation settings;
 
-    void    fuku_obfuscator::handle_jmps();
-    void    fuku_obfuscator::spagetti_code();
+    void    handle_jmps();
+    void    spagetti_code();
 public:
-    fuku_obfuscator::fuku_obfuscator();
-    fuku_obfuscator::~fuku_obfuscator();
+    fuku_obfuscator();
+    ~fuku_obfuscator();
 
-    void fuku_obfuscator::obfuscate_code();
+    void obfuscate_code();
 public:
-    void fuku_obfuscator::set_code(fuku_code_holder* code_holder);
+    void set_code(fuku_code_holder* code_holder);
 
-    void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtual_address);
-    void fuku_obfuscator::set_settings(const fuku_settings_obfuscation& settings);
+    void set_destination_virtual_address(uint64_t destination_virtual_address);
+    void set_settings(const fuku_settings_obfuscation& settings);
 
 public:  
-    fuku_assambler_arch    fuku_obfuscator::get_arch() const;
-    uint64_t     fuku_obfuscator::get_destination_virtual_address() const;
-    const fuku_settings_obfuscation& fuku_obfuscator::get_settings() const;
+    fuku_assambler_arch    get_arch() const;
+    uint64_t     get_destination_virtual_address() const;
+    const fuku_settings_obfuscation& get_settings() const;
 
-    fuku_code_holder* fuku_obfuscator::get_code();
-    const fuku_code_holder* fuku_obfuscator::get_code() const;
+    fuku_code_holder* get_code();
+    const fuku_code_holder* get_code() const;
 };
