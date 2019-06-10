@@ -129,10 +129,9 @@ DWORD WINAPI multithread_test(LPVOID) {
 
 int main() {
 
-    
     //  for (uint32_t i = 0x234235; i < 0xF0000000;i+= 0x10000000) {
     srand(24265);
-    test_on_shellcode();
+ //   test_on_shellcode();
     /*
     HANDLE hthread[2];
 
@@ -195,17 +194,18 @@ int main() {
            //0x1000 , 0x6F0
 
 
-        fuku_settings_obfuscation ob_set( 2, 2, 40.f, 40.f, 40.f, 
+        fuku_settings_obfuscation ob_set(3, 3, 40.f, 40.f, 40.f,
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT | FUKU_ASM_SHORT_CFG_USE_IMM_SHORT);
 
-        fuku_settings_obfuscation ob1_set(2, 2, 40.f, 40.f, 60.f, 
+        fuku_settings_obfuscation ob1_set(3, 3, 40.f, 40.f, 60.f, 
             FUKU_ASM_SHORT_CFG_USE_EAX_SHORT | FUKU_ASM_SHORT_CFG_USE_DISP_SHORT);
 
 
        fuku.add_ob_code_list({ 0x1000 , 0x6F0 }, &_module, ob_set);
      //   fuku.add_ob_code_list({ 0x103A , 0x6B6 }, &_module, ob1_set);
-        fuku.add_ob_code_list({ 0x16F0 , 0x1A6 }, &_module, ob1_set);
-        /*
+       fuku.add_ob_code_list({ 0x16F0 , 0x1A6 }, &_module, ob1_set);
+      //  fuku.add_ob_code_list({ 0x16915 , 0x29 }, &_module, ob1_set);
+         /*
         fuku.add_vm_code_list({ 0x16F0 , 0x1A6 }, &_module, fuku_vm_settings({
             { 0,0,00.f,00.f,00.f },// { 2,2,50.f,50.f,50.f },
             &_vm_module,
@@ -250,11 +250,11 @@ int main() {
 
         fuku_settings_protect_mgr fuku_snapshot;
 
-        if (fuku.create_snapshot(fuku_snapshot, fuku_protect_stage_initialization)) {
+        //if (fuku.create_snapshot(fuku_snapshot, fuku_protect_stage_initialization)) {
 
-            while (1) {
+        //    while (1) {
 
-                if (fuku.fuku_protect(fuku_snapshot, out_image)) {
+                if (fuku.fuku_protect(out_image)) {
 
                     FILE* hTargetFile;
                     fopen_s(&hTargetFile, "..\\..\\app for test\\fuku_test.exe", "wb");
@@ -271,8 +271,8 @@ int main() {
                 }
 
                 //Sleep(100);
-            }
-        }
+       //     }
+       // }
 
        
 

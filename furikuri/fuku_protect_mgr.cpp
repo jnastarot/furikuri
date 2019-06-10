@@ -178,12 +178,14 @@ bool fuku_protect_mgr::finish_process_module() {
 
         if (settings.get_result_code() == fuku_protect_ok) {
 
+            pe_image_full& image_full = settings.get_target_module().get_module_image();
+
             settings.set_stage_code(fuku_protect_stage_finish_processing);
 
             bool result = true;
 
-            settings.get_target_module().get_image_load_config().get_se_handlers().clear();
-            settings.get_target_module().get_image_load_config().get_guard_cf_functions().clear();
+            image_full.get_load_config().get_se_handlers().clear();
+            image_full.get_load_config().get_guard_cf_functions().clear();
 
             if (!result) {
                 settings.set_result_code(fuku_protect_err_module_processing);
@@ -229,10 +231,13 @@ const fuku_settings_protect_mgr& fuku_protect_mgr::get_settings() const {
 
 fuku_code_association * find_profile_association(fuku_settings_protect_mgr& settings, fuku_protection_profile& profile, uint32_t rva) {
 
+    pe_image_full& image_full = settings.get_target_module().get_module_image();
+
     for (auto& region : profile.regions) {
 
         if (region.region_rva <= rva && region.region_rva + region.region_size > rva) {
-            uint64_t real_address = settings.get_target_module().get_image().rva_to_va((uint32_t)rva);
+
+            uint64_t real_address = image_full.get_image().rva_to_va((uint32_t)rva);
 
             size_t left = 0;
             size_t right = profile.association_table.size();

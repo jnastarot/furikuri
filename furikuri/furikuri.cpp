@@ -100,7 +100,7 @@ furikuri::~furikuri(){}
 
 
 bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
-    bool main_has_relocations = main_module->get_image_relocations().size() != 0;
+    bool main_has_relocations = main_module->get_module_image().get_relocations().size() != 0;
 
     shibari_linker_errors linker_result = shibari_linker(extended_modules, main_module).link_modules();
 
@@ -141,8 +141,8 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
 
     if (code == fuku_protect_ok) {
 
-        shibari_builder(protect_manager.get_settings().get_target_module(),
-            protect_manager.get_settings().is_module_used_relocations(), out_image);
+        build_shibari_image(protect_manager.get_settings().get_target_module().get_module_image(),
+            PE_IMAGE_BUILD_ALL_EXTENDED_SECTIONS | PE_IMAGE_BUILD_ALL_DIRECTORIES, out_image);
 
         return true;
     }
@@ -160,8 +160,10 @@ bool furikuri::fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::
 
     if (code == fuku_protect_ok) {
 
-        shibari_builder(protect_manager.get_settings().get_target_module(),
-            protect_manager.get_settings().is_module_used_relocations(), out_image);
+
+
+        build_shibari_image(protect_manager.get_settings().get_target_module().get_module_image(),
+            PE_IMAGE_BUILD_ALL_EXTENDED_SECTIONS | PE_IMAGE_BUILD_ALL_DIRECTORIES, out_image);
 
         return true;
     }
@@ -171,7 +173,7 @@ bool furikuri::fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::
 
 bool furikuri::create_snapshot(fuku_settings_protect_mgr& mgr_settings, fuku_protect_stage stage) {
 
-    bool main_has_relocations = main_module->get_image_relocations().size() != 0;
+    bool main_has_relocations = main_module->get_module_image().get_relocations().size() != 0;
 
     shibari_linker_errors linker_result = shibari_linker(extended_modules, main_module).link_modules();
 

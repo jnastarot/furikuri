@@ -167,8 +167,6 @@
     <ClInclude Include="fuku_settings_protect_mgr.h" />
     <ClInclude Include="fuku_settings_virtualization.h" />
     <ClInclude Include="fuku_virtualizer_imp.h" />
-    <ClInclude Include="fuku_virtualization_x64.h" />
-    <ClInclude Include="fuku_virtualization_x86.h" />
     <ClInclude Include="furikuri.h" />
     <ClInclude Include="fuku_obfuscator.h" />
     <ClInclude Include="fuku_mutation_x64.h" />
@@ -267,8 +265,6 @@
     <ClCompile Include="fuku_settings_obfuscation.cpp" />
     <ClCompile Include="fuku_settings_protect_mgr.cpp" />
     <ClCompile Include="fuku_settings_virtualization.cpp" />
-    <ClCompile Include="fuku_virtualization_x64.cpp" />
-    <ClCompile Include="fuku_virtualization_x86.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />
     <ClCompile Include="stdafx.cpp">

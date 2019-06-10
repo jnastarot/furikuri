@@ -60,12 +60,6 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp">
       <UniqueIdentifier>{120955fa-a672-41be-a201-73a7b3d8da10}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x86">
-      <UniqueIdentifier>{b6814b8a-4984-45b7-82fd-5bcabcbe3b7a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x64">
-      <UniqueIdentifier>{b7e713aa-eafd-43e6-9156-5ba1c1c70954}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Заголовочные файлы\furikuri\fuku_code">
       <UniqueIdentifier>{d471826d-d172-4bc8-878c-b1fe4be23a90}</UniqueIdentifier>
     </Filter>
@@ -112,12 +106,6 @@
     </ClInclude>
     <ClInclude Include="fuku_mutation_imp.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\obfuscator\fuku_mutation_imp</Filter>
-    </ClInclude>
-    <ClInclude Include="fuku_virtualization_x64.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x64</Filter>
-    </ClInclude>
-    <ClInclude Include="fuku_virtualization_x86.h">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x86</Filter>
     </ClInclude>
     <ClInclude Include="fuku_virtualizer_imp.h">
       <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer</Filter>
@@ -414,12 +402,6 @@
     </ClCompile>
     <ClCompile Include="fuku_code_analyzer.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_code\fuku_code_analyzer</Filter>
-    </ClCompile>
-    <ClCompile Include="fuku_virtualization_x64.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x64</Filter>
-    </ClCompile>
-    <ClCompile Include="fuku_virtualization_x86.cpp">
-      <Filter>Заголовочные файлы\furikuri\fuku_protector\virtualizer\fuku_virtualizer_imp\x86</Filter>
     </ClCompile>
     <ClCompile Include="fuku_protect_mgr.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_protect_mgr</Filter>
