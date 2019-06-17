@@ -50,3 +50,4 @@ using namespace std;
 #define FUKU_ASSERT_GT(lhs, rhs) if( !((lhs) >  (rhs)) ){FUKU_DEBUG}
 
 #include "furikuri.h"
+#include "psyche_storage.h"

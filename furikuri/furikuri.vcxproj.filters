@@ -84,6 +84,21 @@
     <Filter Include="Заголовочные файлы\furikuri\fuku_settings\protection_mgr">
       <UniqueIdentifier>{1ea0a418-5928-4831-a7f1-fc60eb31c3c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Заголовочные файлы\protcol7">
+      <UniqueIdentifier>{2e27f76f-78a3-42f2-8a73-7fb2a473a903}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\protcol7\block">
+      <UniqueIdentifier>{67fa11fb-3749-4854-9c9f-b2045bbd6804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\protcol7\cmd">
+      <UniqueIdentifier>{356b733e-855a-4db9-8f4f-2200118397f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\protcol7\handler">
+      <UniqueIdentifier>{c3cc9aed-d9e1-41f3-a1ca-daa79f2883e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\protcol7\pcode">
+      <UniqueIdentifier>{75567c6c-a812-4f92-b2cf-a7b2bf10fb94}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -383,6 +398,21 @@
     <ClInclude Include="fuku_settings_protect_mgr.h">
       <Filter>Заголовочные файлы\furikuri\fuku_settings\protection_mgr</Filter>
     </ClInclude>
+    <ClInclude Include="psyche_storage.h">
+      <Filter>Заголовочные файлы\protcol7</Filter>
+    </ClInclude>
+    <ClInclude Include="psyche_block.h">
+      <Filter>Заголовочные файлы\protcol7\block</Filter>
+    </ClInclude>
+    <ClInclude Include="psyche_cmd.h">
+      <Filter>Заголовочные файлы\protcol7\cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="psyche_handler.h">
+      <Filter>Заголовочные файлы\protcol7\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="psyche_pcode.h">
+      <Filter>Заголовочные файлы\protcol7\pcode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -432,6 +462,21 @@
     </ClCompile>
     <ClCompile Include="fuku_settings_protect_mgr.cpp">
       <Filter>Заголовочные файлы\furikuri\fuku_settings\protection_mgr</Filter>
+    </ClCompile>
+    <ClCompile Include="psyche_storage.cpp">
+      <Filter>Заголовочные файлы\protcol7</Filter>
+    </ClCompile>
+    <ClCompile Include="psyche_block.cpp">
+      <Filter>Заголовочные файлы\protcol7\block</Filter>
+    </ClCompile>
+    <ClCompile Include="psyche_cmd.cpp">
+      <Filter>Заголовочные файлы\protcol7\cmd</Filter>
+    </ClCompile>
+    <ClCompile Include="psyche_handler.cpp">
+      <Filter>Заголовочные файлы\protcol7\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="psyche_pcode.cpp">
+      <Filter>Заголовочные файлы\protcol7\pcode</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

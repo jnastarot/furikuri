@@ -249,6 +249,11 @@
     <ClInclude Include="obf_templates\x86\obf_x86_test_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_xchg_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_xor_templates.h" />
+    <ClInclude Include="psyche_block.h" />
+    <ClInclude Include="psyche_cmd.h" />
+    <ClInclude Include="psyche_handler.h" />
+    <ClInclude Include="psyche_pcode.h" />
+    <ClInclude Include="psyche_storage.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -267,6 +272,11 @@
     <ClCompile Include="fuku_settings_virtualization.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />
+    <ClCompile Include="psyche_block.cpp" />
+    <ClCompile Include="psyche_cmd.cpp" />
+    <ClCompile Include="psyche_handler.cpp" />
+    <ClCompile Include="psyche_pcode.cpp" />
+    <ClCompile Include="psyche_storage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
