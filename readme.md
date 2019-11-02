@@ -10,10 +10,10 @@ Furikuri is protection framework what targeting on shellcode and executable file
 Supported x32 and x64 archs
 ```
 1. [Obfuscation techniques](#Obfuscation-techniques)
-1.1. [Instruction mutation](#Instruction-mutation) 
-1.2. [Junk generation](#Junk-generation) 
-1.3. [Spaghetti code](#Spaghetti-code) 
-1.4. [Bytecode obfuscation](#Bytecode-obfuscation) 
+	* [Instruction mutation](#Instruction-mutation) 
+    * [Junk generation](#Junk-generation) 
+    * [Spaghetti code](#Spaghetti-code) 
+    * [Bytecode obfuscation](#Bytecode-obfuscation) 
 2. [Examples](#Examples)
 3. [Compile](#Compile)
 4. [Third party](#third-party)
@@ -120,16 +120,16 @@ Changes bytecode of instruction to another bytecode
 
 Examples
 --------------
-[shellcode obfuscation](exemples/shellcode obfuscation)
-[executable obfuscation](exemples/executable obfuscation)
+[shellcode obfuscation](https://github.com/jnastarot/furikuri/tree/master/examples/shellcode%20obfuscation)<br>
+[executable obfuscation](https://github.com/jnastarot/furikuri/tree/master/examples/executable%20obfuscation)
 
 ---
 Compile 
 -------------
 * Windows
 	1. Requirements 
-	    1.1. Git Bush
-	    1.2. Visual Studio 2019 (for now, but u can change runtime version and compile in on below versions)
+	    * Git Bush
+	    * Visual Studio 2019 (for now, but u can change runtime version and compile in on below versions)
 	
 	2. Clone repo and initialize submodules
 	
@@ -155,4 +155,3 @@ Third Party
 [capstone](http://www.capstone-engine.org/)<br>
 [enma pe](https://github.com/jnastarot/enma_pe)<br>
 [fukutasm](https://github.com/jnastarot/fukutasm)<br>
-
