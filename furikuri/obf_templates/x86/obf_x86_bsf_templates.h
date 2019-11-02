@@ -37,3 +37,20 @@ bool _bsf_86_reg_op_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_86_bsf(mutation_context& ctx) {
+
+    auto& detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bsf reg, reg
+            return _bsf_86_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//bsf reg, [op]
+            return _bsf_86_reg_op_tmpl(ctx);
+        }
+    }
+
+    return false;
+}

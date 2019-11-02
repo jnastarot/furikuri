@@ -1,10 +1,9 @@
 #pragma once
 
 enum fuku_inst_flags {
-    FUKU_INST_HAS_EXTERNAL_LABEL = 1 << 28,
-    FUKU_INST_JUNK_CODE          = 1 << 29,
-    FUKU_INST_BAD_STACK          = 1 << 30,
-    FUKU_INST_NO_MUTATE          = 1 << 31,
+    FUKU_INST_JUNK_CODE          = 1 << 0,
+    FUKU_INST_BAD_STACK          = 1 << 1,
+    FUKU_INST_NO_MUTATE          = 1 << 2,
 };
 
 

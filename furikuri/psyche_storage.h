@@ -8,7 +8,7 @@ class psyche_handler;
 
 typedef std::list<psyche_block> blocks_table;
 typedef std::list<psyche_cmd> commands_table;
-typedef std::map<fuku_instruction*, commands_table> psy_instructions;
+typedef std::map<fuku_inst*, commands_table> psy_instructions;
 typedef std::map<uint32_t, std::vector<uint32_t>> psy_block_props;
 
 #include "psyche_handler.h"
@@ -17,7 +17,7 @@ typedef std::map<uint32_t, std::vector<uint32_t>> psy_block_props;
 #include "psyche_block.h"
 
 class psyche_storage {
-    shibari_module* target_module;
+    //shibari_module* target_module;
     fuku_code_holder* code_holder;
     
     blocks_table blocks;
@@ -28,19 +28,19 @@ class psyche_storage {
     
 public:
     psyche_storage();
-    psyche_storage(shibari_module* target_module, fuku_code_holder* code_holder);
+    //psyche_storage(shibari_module* target_module, fuku_code_holder* code_holder);
     ~psyche_storage();
 
 
 public:
-    void set_target_module(shibari_module* module_);
+    //void set_target_module(shibari_module* module_);
     void set_code_holder(fuku_code_holder* holder);
     void set_psy_blocks(const blocks_table& blocks);
 
 public:
 
-    const shibari_module* get_target_module() const;
-    shibari_module* get_target_module();
+    //const shibari_module* get_target_module() const;
+    //shibari_module* get_target_module();
 
     const fuku_code_holder* get_code_holder() const;
     fuku_code_holder* get_code_holder();

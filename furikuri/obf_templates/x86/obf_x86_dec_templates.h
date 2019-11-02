@@ -36,3 +36,17 @@ bool _dec_86_op_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_86_dec(mutation_context& ctx) {
+
+    auto& detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //dec reg
+        return _dec_86_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //dec [op]
+        return _dec_86_op_tmpl(ctx);
+    }
+
+    return false;
+}

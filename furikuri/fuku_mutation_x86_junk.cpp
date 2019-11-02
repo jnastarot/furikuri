@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "fuku_mutation_x86_junk.h"
 
-#define IsAllowedStackOperations (!HAS_FULL_MASK(ctx.instruction_flags, FUKU_INST_BAD_STACK))
+#define IsAllowedStackOperations (!HAS_FULL_MASK(ctx.inst_flags, FUKU_INST_BAD_STACK))
 
 uint8_t reg_sizes[] = {
     1,
@@ -17,17 +17,17 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
     fuku_type dst;
     fuku_type src;
 
-    switch (FUKU_GET_RAND(0, 7)) {
+    switch (FUKU_GET_RAND(0, 6)) {
         case 0: {
             
             uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+                reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
-            if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE
+            if (!get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE
                 | (dst.get_type() == FUKU_T0_OPERAND ? 0 : INST_ALLOW_OPERAND),
                 reg_size, 0)) {
                 return false;
@@ -38,8 +38,8 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
         }
         case 1: {
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-                1, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+                1, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
@@ -49,12 +49,12 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
         case 2: {
             uint32_t reg_size = reg_sizes[FUKU_GET_RAND(1, 2)];
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER,
+                reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
-            if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+            if (!get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
                 reg_size, 0)) {
                 return false;
             }
@@ -65,14 +65,14 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
         case 3: {
             uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER,
+                reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
-            if (!generate_86_operand_dst(ctx, src, INST_ALLOW_REGISTER
+            if (!get_operand_dst_x86( src, INST_ALLOW_REGISTER
                 | (dst.get_type() == FUKU_T0_OPERAND ? 0 : INST_ALLOW_OPERAND),
-                reg_size, ctx.regs_changes, 0)) {
+                reg_size, ctx.cpu_registers, 0)) {
                 return false;
             }
 
@@ -83,8 +83,8 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
 
             uint32_t reg_size = reg_sizes[FUKU_GET_RAND(1, 2)];
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER,
+                reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
@@ -95,7 +95,7 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
                 reg_size = 1;
             }
 
-            if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+            if (!get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
                 reg_size, 0)) {
                 return false;
             }
@@ -106,8 +106,8 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
         case 5: {
             uint32_t reg_size = reg_sizes[FUKU_GET_RAND(1, 2)];
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER,
+                reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
@@ -118,7 +118,7 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
                 reg_size = 1;
             }
 
-            if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+            if (!get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
                 reg_size, 0)) {
                 return false;
             }
@@ -126,28 +126,11 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
             ctx.f_asm->movsx(dst, src);
             break;
         }
-        case 6: { return false;
-            uint32_t reg_size = reg_sizes[FUKU_GET_RAND(1, 2)];
-
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
-                return false;
-            }
-
-            if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER
-                | (dst.get_type() == FUKU_T0_OPERAND ? 0 : INST_ALLOW_OPERAND),
-                reg_size, 0)) {
-                return false;
-            }
-
-            ctx.f_asm->movsxd(dst, src);
-            break;
-        }
-        case 7: {
+        case 6: {
             uint32_t reg_size = reg_sizes[FUKU_GET_RAND(2, 3)];
 
-            if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-                reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+            if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER,
+                reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
                 return false;
             }
 
@@ -158,8 +141,8 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -170,7 +153,7 @@ bool junk_86_low_pattern_1(mutation_context & ctx) {
 bool junk_86_low_pattern_2(mutation_context & ctx) {
 
 
-    if (!has_inst_free_eflags(ctx.eflags_changes,
+    if (!has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
         return false;
@@ -182,12 +165,12 @@ bool junk_86_low_pattern_2(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
-    bool has_src = generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE
+    bool has_src = get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE
         | (dst.get_type() == FUKU_T0_OPERAND ? 0 : INST_ALLOW_OPERAND),
         reg_size, 0);
 
@@ -217,8 +200,8 @@ bool junk_86_low_pattern_2(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -228,7 +211,7 @@ bool junk_86_low_pattern_2(mutation_context & ctx) {
 //arithmetic reg1,val
 bool junk_86_low_pattern_3(mutation_context & ctx) {
 
-    if (!has_inst_free_eflags(ctx.eflags_changes,
+    if (!has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
         return false;
     }
@@ -238,12 +221,12 @@ bool junk_86_low_pattern_3(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
-    bool has_src = generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE
+    bool has_src = get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE
         | (dst.get_type() == FUKU_T0_OPERAND ? 0 : INST_ALLOW_OPERAND),
         reg_size, 0);
 
@@ -285,8 +268,8 @@ bool junk_86_low_pattern_3(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -297,7 +280,7 @@ bool junk_86_low_pattern_3(mutation_context & ctx) {
 bool junk_86_low_pattern_4(mutation_context & ctx) {
 
 
-    if (!has_inst_free_eflags(ctx.eflags_changes,
+    if (!has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_CF)) {
 
         return false;
@@ -309,8 +292,8 @@ bool junk_86_low_pattern_4(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
@@ -345,8 +328,8 @@ bool junk_86_low_pattern_4(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -357,7 +340,7 @@ bool junk_86_low_pattern_4(mutation_context & ctx) {
 bool junk_86_low_pattern_5(mutation_context & ctx) {
 
 
-    if (!has_inst_free_eflags(ctx.eflags_changes,
+    if (!has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF)) {
 
         return false;
@@ -368,8 +351,8 @@ bool junk_86_low_pattern_5(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
@@ -399,8 +382,8 @@ bool junk_86_low_pattern_5(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -412,7 +395,7 @@ bool junk_86_low_pattern_5(mutation_context & ctx) {
 bool junk_86_low_pattern_6(mutation_context & ctx) {
 
 
-    if (!has_inst_free_eflags(ctx.eflags_changes,
+    if (!has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_PF | X86_EFLAGS_MODIFY_CF)) {
 
         return false;
@@ -423,12 +406,12 @@ bool junk_86_low_pattern_6(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(1, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
-    if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE,
+    if (!get_operand_src_x86( src, INST_ALLOW_REGISTER | INST_ALLOW_IMMEDIATE,
         1, 0)) {
         return false;
     }
@@ -457,8 +440,8 @@ bool junk_86_low_pattern_6(mutation_context & ctx) {
 
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -471,8 +454,8 @@ bool junk_86_low_pattern_7(mutation_context & ctx) {
 
     fuku_type dst;
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER,
-        reg_size, ctx.regs_changes, 
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER,
+        reg_size, ctx.cpu_registers, 
         FLAG_REGISTER_AL |
         FLAG_REGISTER_RCX | FLAG_REGISTER_ECX | FLAG_REGISTER_CX | FLAG_REGISTER_CL |
         FLAG_REGISTER_DL |
@@ -499,12 +482,12 @@ bool junk_86_low_pattern_7(mutation_context & ctx) {
         break;
     }
     case FUKU_REG_DX: {
-        if (!has_free_flag_register(ctx.regs_changes, FLAG_REGISTER_AX)) { return false; }
-       ctx.f_asm->cwd();
+        if (!has_flag_free_register(ctx.cpu_registers, FLAG_REGISTER_AX)) { return false; }
+        ctx.f_asm->cwd();
         break;
     }
-    case FUKU_REG_EDX: {
-        if (!has_free_flag_register(ctx.regs_changes, FLAG_REGISTER_EAX)) { return false; }
+    case FUKU_REG_EDX: {      
+        if (!has_flag_free_register(ctx.cpu_registers, FLAG_REGISTER_EAX)) { return false; }
         ctx.f_asm->cdq();
         break;
     }
@@ -512,8 +495,8 @@ bool junk_86_low_pattern_7(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -526,31 +509,31 @@ bool junk_86_low_pattern_8(mutation_context & ctx) {
     switch (FUKU_GET_RAND(0, 4)) {
 
     case 0: {
-        if (!has_inst_free_eflags(ctx.eflags_changes,X86_EFLAGS_MODIFY_CF)) { return false; }
+        if (!has_inst_free_eflags(ctx.cpu_flags,X86_EFLAGS_MODIFY_CF)) { return false; }
 
         ctx.f_asm->stc();
         break;
     }
     case 1: {
-        if (!has_inst_free_eflags(ctx.eflags_changes, X86_EFLAGS_MODIFY_CF)) { return false; }
+        if (!has_inst_free_eflags(ctx.cpu_flags, X86_EFLAGS_MODIFY_CF)) { return false; }
 
         ctx.f_asm->clc();
         break;
     }
     case 2: {
-        if (!has_inst_free_eflags(ctx.eflags_changes, X86_EFLAGS_MODIFY_CF)) { return false; }
+        if (!has_inst_free_eflags(ctx.cpu_flags, X86_EFLAGS_MODIFY_CF)) { return false; }
 
         ctx.f_asm->cmc();
         break;
     }
     case 3: {
-        if (!has_inst_free_eflags(ctx.eflags_changes, X86_EFLAGS_MODIFY_DF)) { return false; }
+        if (!has_inst_free_eflags(ctx.cpu_flags, X86_EFLAGS_MODIFY_DF)) { return false; }
 
         ctx.f_asm->cld();
         break;
     }
     case 4: {
-        if (!has_inst_free_eflags(ctx.eflags_changes, X86_EFLAGS_MODIFY_DF)) { return false; }
+        if (!has_inst_free_eflags(ctx.cpu_flags, X86_EFLAGS_MODIFY_DF)) { return false; }
 
         ctx.f_asm->std();
         break;
@@ -559,8 +542,8 @@ bool junk_86_low_pattern_8(mutation_context & ctx) {
     }
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -571,7 +554,7 @@ bool junk_86_low_pattern_8(mutation_context & ctx) {
 //neg reg
 bool junk_86_high_pattern_1(mutation_context & ctx) {
 
-    if (!has_inst_free_eflags(ctx.eflags_changes,
+    if (!has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
         return false;
@@ -581,27 +564,27 @@ bool junk_86_high_pattern_1(mutation_context & ctx) {
     
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
     ctx.f_asm->inc(dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
     ctx.f_asm->neg(dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
     ctx.f_asm->inc(dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
     ctx.f_asm->neg(dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     return true;
 }
@@ -614,22 +597,26 @@ bool junk_86_high_pattern_2(mutation_context & ctx) {
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(0, 2)];
 
-    if (!generate_86_operand_dst(ctx, dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
-        reg_size, ctx.regs_changes, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
+    
+
+    if (!get_operand_dst_x86( dst, INST_ALLOW_REGISTER | INST_ALLOW_OPERAND,
+        reg_size, ctx.cpu_registers, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
-    uint64_t flag_reg = fuku_reg_to_complex_flag_reg(dst.get_register().get_reg(), reg_size);
+    uint64_t flag_reg = get_flag_complex_by_fuku_register(dst.get_register().get_reg(), reg_size);
+
+    
 
 
     ctx.f_asm->not_(dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
     ctx.f_asm->not_(dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes & ~(flag_reg));
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers & ~(flag_reg));
 
     return true;
 }
@@ -648,32 +635,34 @@ bool junk_86_high_pattern_3(mutation_context & ctx) {
     fuku_type src;
 
     uint32_t reg_size = reg_sizes[FUKU_GET_RAND(1, 2)];
-
-    if (!generate_86_operand_src(ctx, src, INST_ALLOW_REGISTER,
+    
+    if (!get_operand_src_x86( src, INST_ALLOW_REGISTER,
         reg_size, FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
         return false;
     }
 
-    uint64_t flag_reg = fuku_reg_to_complex_flag_reg(src.get_register().get_reg(), reg_size);
+    uint64_t flag_reg = get_flag_complex_by_fuku_register(src.get_register().get_reg(), reg_size);
 
     ctx.f_asm->push(src);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     ctx.f_asm->pop(src);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes | flag_reg);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers | flag_reg);
 
     return true;
 }
 
 
+
 //jcc next_inst
 bool junk_86_high_pattern_4(mutation_context & ctx) {
 
-    if (ctx.current_line_iter == ctx.code_holder->get_lines().end()) {
+    if (ctx.is_next_last_inst) {
+
         return false;
     }
 
@@ -682,17 +671,18 @@ bool junk_86_high_pattern_4(mutation_context & ctx) {
     ctx.f_asm->jcc(fuku_condition(cond), imm(-1));
 
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes)
-        .set_rip_relocation_idx(
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers)
+        .set_rip_reloc(
             ctx.code_holder->create_rip_relocation(
-                ctx.f_asm->get_context().immediate_offset, 
-                ctx.f_asm->get_context().inst
+                    fuku_rip_relocation()
+                    .set_label(
+                        ctx.generate_payload_label()
+                    )
+                    .set_offset(ctx.f_asm->get_context().immediate_offset)   
             )
         );
 
-    ctx.swap_junk_label = true;
-    ctx.junk_label_idx = ctx.code_holder->get_rip_relocations()[ctx.f_asm->get_context().inst->get_rip_relocation_idx()].label_idx;
 
     return true;
 }
@@ -702,24 +692,24 @@ bool junk_86_high_pattern_4(mutation_context & ctx) {
 //some code trash
 bool junk_86_high_pattern_5(mutation_context & ctx) {
 
-    if (ctx.current_line_iter == ctx.code_holder->get_lines().end()) {
+    if (ctx.is_next_last_inst) {
+
         return false;
     }
 
     ctx.f_asm->jmp(imm(-1));
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes)
-        .set_rip_relocation_idx(
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers)
+        .set_rip_reloc(
             ctx.code_holder->create_rip_relocation(
-                ctx.f_asm->get_context().immediate_offset,
-                ctx.f_asm->get_context().inst
+                fuku_rip_relocation()
+                .set_label(
+                    ctx.generate_payload_label()
+                )
+                .set_offset(ctx.f_asm->get_context().immediate_offset)
             )
         );
-
-    ctx.swap_junk_label = true;
-    ctx.junk_label_idx = ctx.code_holder->get_rip_relocations()[ctx.f_asm->get_context().inst->get_rip_relocation_idx()].label_idx;
-
 
     std::vector<uint8_t> trash;
 
@@ -728,11 +718,12 @@ bool junk_86_high_pattern_5(mutation_context & ctx) {
     }
 
     ctx.f_asm->nop();
-    ctx.f_asm->get_context().inst->set_op_code(trash.data(), (uint8_t)trash.size())
-        .set_instruction_flags(FUKU_INST_JUNK_CODE);
+    ctx.f_asm->get_context().inst->set_opcode(trash.data(), (uint8_t)trash.size())
+        .set_inst_flags(FUKU_INST_JUNK_CODE);
 
     return true;
 }
+
 
 
 bool fuku_junk_86_generic_low(mutation_context & ctx) {
@@ -791,20 +782,22 @@ bool fuku_junk_86_generic_high(mutation_context & ctx) {
     return false;
 }
 
-void fuku_junk_86_generic(mutation_context & ctx) {
-
-    ctx.was_junked = false;
+bool fuku_junk_86_generic(mutation_context & ctx) {
 
     switch (FUKU_GET_RAND(0, 3)) {
     case 0:
     case 1: {
-        ctx.was_junked = fuku_junk_86_generic_low(ctx);
+        
+        return fuku_junk_86_generic_low(ctx);
         break;
     }
     case 2:
     case 3: {
-        ctx.was_junked = fuku_junk_86_generic_high(ctx);
+
+        return fuku_junk_86_generic_high(ctx);
         break;
     }
     }
+
+    return false;
 }

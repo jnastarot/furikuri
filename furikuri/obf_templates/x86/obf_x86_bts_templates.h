@@ -78,3 +78,29 @@ bool _bts_86_op_imm_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_86_bts(mutation_context& ctx) {
+
+    auto& detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bts reg, reg
+            return _bts_86_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//bts reg, imm
+            return _bts_86_reg_imm_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //bts [op], reg
+            return _bts_86_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//bts [op], imm
+            return _bts_86_op_imm_tmpl(ctx);
+        }
+    }
+
+    return false;
+}

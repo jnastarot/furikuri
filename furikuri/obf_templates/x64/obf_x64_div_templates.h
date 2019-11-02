@@ -37,3 +37,17 @@ bool _div_64_op_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_64_div(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //div reg
+        return _div_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //div [op]
+        return _div_64_op_tmpl(ctx);
+    }
+
+    return false;
+}

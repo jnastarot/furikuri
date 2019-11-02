@@ -4,30 +4,43 @@
 //jmp jcc_dst
 inline bool _jcc_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, uint8_t inst_size) {
 
-    if (!ctx.is_next_line_end) { //if not last instruction
+    if (ctx.settings->is_not_allowed_relocations()) {
+        return false;
+    }
+
+    if (!ctx.is_next_last_inst) { //if not last instruction
          
 
         fuku_condition cond = capstone_to_fuku_cond((x86_insn)ctx.instruction->id);
-        size_t relocate_rip = ctx.current_line_iter->get_rip_relocation_idx();
+
+        auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+        auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+        auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+        bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
 
         ctx.f_asm->jcc(fuku_condition(cond ^ 1), imm(0xFFFFFFFF));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(ctx.regs_changes)
-            .set_rip_relocation_idx(
-                ctx.code_holder->create_rip_relocation(
-                    ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter)
-                )
-            )
-            .set_instruction_flags(FUKU_INST_NO_MUTATE | ctx.instruction_flags);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(ctx.cpu_registers)
+            .set_rip_reloc(
+                ctx.code_holder->create_rip_relocation(fuku_rip_relocation()
+                    .set_label(
+                        ctx.code_holder->create_label(
+                            fuku_code_label().set_inst(&(*ctx.next_inst_iter)
+                            )
+                        )
+                    )
+                    .set_offset(ctx.f_asm->get_context().immediate_offset)
+                ))
+            .set_inst_flags(FUKU_INST_NO_MUTATE | ctx.inst_flags);
 
         ctx.f_asm->jmp(imm(0xFFFFFFFF));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(ctx.regs_changes)
-            .set_instruction_flags(FUKU_INST_NO_MUTATE | ctx.instruction_flags);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(ctx.cpu_registers)
+            .set_inst_flags(FUKU_INST_NO_MUTATE | ctx.inst_flags);
 
-        restore_rip_relocate_imm(dst);
+        restore_rip_relocate_in_imm(dst);
         
         return true;
     }
@@ -50,4 +63,9 @@ bool _jcc_86_imm_tmpl(mutation_context& ctx) {
     }
 
     return true;
+}
+
+
+bool fukutate_86_jcc(mutation_context& ctx) {
+    return _jcc_86_imm_tmpl(ctx); //jcc imm
 }

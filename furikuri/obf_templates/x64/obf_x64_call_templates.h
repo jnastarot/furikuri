@@ -41,3 +41,21 @@ bool _call_64_op_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_64_call(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_MEM) { //call [op]
+        return _call_64_op_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_REG) {//call reg
+        return _call_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_IMM) {//call imm
+        return _call_64_imm_tmpl(ctx);
+    }
+
+
+    return false;
+}

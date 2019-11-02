@@ -2,7 +2,7 @@
 
 bool fuku_protect_mgr::initialize_virtualization_profiles() {
 
-    pe_image_full& image_full = settings.get_target_module().get_module_image();
+    pe_image_full& image_full = settings.get_target_module();
     pe_image_io image_io(image_full.get_image());
     bool     is32arch = image_full.get_image().is_x32_image();
     uint64_t base_address = image_full.get_image().get_image_base();
@@ -73,7 +73,7 @@ bool fuku_protect_mgr::initialize_virtualization_profiles() {
 
             {
                 fuku_assambler_ctx context;
-                fuku_instruction inst;
+                fuku_inst inst;
 
                 context.arch = is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64;
                 context.inst = &inst;
@@ -91,17 +91,31 @@ bool fuku_protect_mgr::initialize_virtualization_profiles() {
                             &code_region.used_relocs
                         );
 
-                        if (code_holder.get_lines().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
-                            uint16_t id = code_holder.get_lines().back().get_id();
+                        if (code_holder.get_insts().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
+                            uint16_t id = code_holder.get_insts().back().get_id();
 
                             if (id != X86_INS_JMP && id != X86_INS_RET) {
-                                code_holder.add_line() =
-                                    inst.set_rip_relocation_idx(
-                                        code_holder.create_rip_relocation(
-                                            context.immediate_offset,
-                                            code_holder.get_lines().back().get_source_virtual_address() + code_holder.get_lines().back().get_op_length()
+
+                                auto& _inst = code_holder.add_inst();
+
+                                _inst = inst;
+
+                                _inst.set_rip_reloc(
+                                    code_holder.create_rip_relocation(
+                                        fuku_rip_relocation()
+                                        .set_offset(context.immediate_offset)
+                                        .set_label(
+                                            code_holder.create_label(
+                                                fuku_code_label()
+                                                .set_address(
+                                                    code_holder.get_insts().back().get_source_address() +
+                                                    code_holder.get_insts().back().get_oplength()
+                                                )
+                                            )
                                         )
-                                    );
+                                    )
+                                );
+
                             }
                         }
 
@@ -121,7 +135,7 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
 
     if (settings.get_vm_profiles().size()) {
 
-        pe_image_full& image_full = settings.get_target_module().get_module_image();
+        pe_image_full& image_full = settings.get_target_module();
         pe_image_io image_io(image_full.get_image(), enma_io_mode::enma_io_mode_allow_expand);
         bool     is32arch = image_full.get_image().is_x32_image();
 
@@ -162,15 +176,17 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
                 } while (item_idx);
 
 
+                /*
                 fuku_vm_result result = ((fuku_virtualization_environment&)profile.first).get_virtualizer()->build_bytecode(
                     settings.get_target_module(), anal_code.get_code(), std::vector<uint32_t>(), profile.second.relocation_table
                 );
+                */
 
-                if (result != fuku_vm_result::fuku_vm_ok) {
+               // if (result != fuku_vm_result::fuku_vm_ok) {
 
-                    FUKU_DEBUG;
-                    return false;
-                }
+               //     FUKU_DEBUG;
+               //     return false;
+               // }
 
                 if (image_io.write(profile.first.get_virtualizer()->get_bytecode()) != enma_io_success) {
 
@@ -184,30 +200,29 @@ bool fuku_protect_mgr::process_virtualization_profiles() {
     return true;
 }
 
-bool    fuku_protect_mgr::postprocess_virtualization() {
+bool fuku_protect_mgr::postprocess_virtualization() {
 
 
     if (settings.get_vm_profiles().size()) {
 
-        pe_image_full& image_full = settings.get_target_module().get_module_image();
+        pe_image_full& image_full = settings.get_target_module();
         pe_image_io image_io(image_full.get_image());
         uint64_t base_address = image_full.get_image().get_image_base();
         auto&   image_relocs = image_full.get_relocations();
-
-        for (auto& profile : settings.get_vm_profiles()) {
-            std::sort(profile.second.association_table.begin(), profile.second.association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
-                return lhs.original_virtual_address < rhs.original_virtual_address;
-            });
-        }
+        bool    is32arch = image_full.get_image().is_x32_image();
 
         for (auto& profile : settings.get_vm_profiles()) {
             for (auto& region : profile.second.regions) {
 
-                fuku_code_association * dst_func_assoc = find_profile_association(settings, profile.second, region.region_rva);   //set jumps to start of virtualized funcs
+                std::pair<uint64_t, uint64_t> assoc;
 
-                if (dst_func_assoc) {
-                    auto _jmp = profile.first.get_virtualizer()->create_vm_jumpout((region.region_rva + base_address), dst_func_assoc->virtual_address, 
-                        profile.first.get_virtual_machine_entry() + base_address, profile.second.relocation_table);
+
+                //set jumps to start of virtualized funcs
+                /* 
+                if (find_profile_association(settings, profile.second, region.region_rva, assoc)) {
+
+                    auto _jmp = profile.first.get_virtualizer()->create_vm_jumpout((region.region_rva + base_address), assoc.second,
+                       profile.second.relocation_table);
 
                     if (image_io.set_image_offset(region.region_rva).write(_jmp) != enma_io_success) {
 
@@ -218,10 +233,12 @@ bool    fuku_protect_mgr::postprocess_virtualization() {
                 } else {
                     FUKU_DEBUG;
                 }
+                */
             }
 
             for (auto& reloc : profile.second.relocation_table) {
-                image_relocs.add_entry(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
+                image_relocs.add_relocation(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id,
+                    is32arch ? IMAGE_REL_BASED_HIGHLOW : IMAGE_REL_BASED_DIR64);
             }
         }
     }

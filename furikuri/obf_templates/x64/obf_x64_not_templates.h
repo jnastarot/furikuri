@@ -36,3 +36,17 @@ bool _not_64_op_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_64_not(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //not reg
+        return _not_64_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //not [op]
+        return _not_64_op_tmpl(ctx);
+    }
+
+    return false;
+}

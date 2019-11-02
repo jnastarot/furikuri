@@ -57,7 +57,7 @@ void psyche_block::set_properties(const psy_block_props& properties) {
     this->properties = properties;
 }
 
-void psyche_block::add_line(fuku_instruction* line) {
+void psyche_block::add_line(fuku_inst* line) {
     instructions[line] = commands_table();
 }
 

@@ -97,3 +97,33 @@ bool _or_64_op_imm_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_64_or(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //or reg, reg
+            return _or_64_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//or reg, imm
+            return _or_64_reg_imm_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//or reg, [op]
+            return _or_64_reg_op_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //or [op], reg
+            return _or_64_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//or [op], imm
+            return _or_64_op_imm_tmpl(ctx);
+        }
+    }
+
+    return false;
+
+}

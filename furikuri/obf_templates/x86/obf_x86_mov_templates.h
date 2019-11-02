@@ -4,32 +4,36 @@
 //xchg dst, somereg
 inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
 
-    size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
-    size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
+
+    auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+    auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+    auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+    bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
+
 
     fuku_type temp_dst;
 
-    uint64_t changes_regflags = ctx.regs_changes & ~get_operand_mask_register(dst, src);
+    uint64_t changes_regflags = ctx.cpu_registers & ~get_operand_mask_register(dst, src);
 
-    if (!generate_86_operand_dst(ctx, temp_dst, INST_ALLOW_REGISTER, inst_size, changes_regflags,
+    if (!get_operand_dst_x86( temp_dst, INST_ALLOW_REGISTER, inst_size, changes_regflags,
         FLAG_REGISTER_SP | FLAG_REGISTER_ESP)) {
 
         return false;
     }
 
-    uint64_t out_regflags = changes_regflags & ~(fuku_reg_to_complex_flag_reg(temp_dst.get_register().get_reg(), 8));
+    uint64_t out_regflags = changes_regflags & ~(get_flag_complex_by_fuku_register(temp_dst.get_register().get_reg(), 8));
 
     ctx.f_asm->mov(temp_dst, src);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(out_regflags);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(out_regflags);
 
     restore_imm_or_disp(src)
 
     ctx.f_asm->xchg(dst, temp_dst);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(out_regflags);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(out_regflags);
 
 
     restore_disp_relocate(dst)
@@ -42,23 +46,27 @@ inline bool _mov_86_multi_tmpl_1(mutation_context& ctx, fuku_type dst, fuku_type
 //add dst, src
 inline bool _mov_86_multi_tmpl_2(mutation_context& ctx, fuku_type dst, fuku_type src, int8_t inst_size) {
 
-    size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
-    size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
 
-    if (has_inst_free_eflags(ctx.eflags_changes,
+    auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+    auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+    auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+    bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
+
+
+    if (has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
-        uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(dst, src);
+        uint64_t out_regflags = ctx.cpu_registers & ~get_operand_mask_register(dst, src);
 
         ctx.f_asm->xor_(dst, dst);
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(ctx.regs_changes);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(ctx.cpu_registers);
 
         ctx.f_asm->add(dst, src);
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(out_regflags);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(out_regflags);
 
         restore_imm_or_disp(src)
     }
@@ -75,26 +83,30 @@ inline bool _mov_86_multi_tmpl_3(mutation_context& ctx, fuku_type dst, fuku_type
 
     if (inst_size == 1 || (src.get_type() == FUKU_T0_IMMEDIATE && inst_size != 4) ) { return false; }
 
-    size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
-    size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
+
+    auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+    auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+    auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+    bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
+
 
     if (IsAllowedStackOperations &&
         ((dst.get_type() == FUKU_T0_REGISTER) ? dst.get_register().get_index() != FUKU_REG_INDEX_SP : true) &&
         ((src.get_type() == FUKU_T0_REGISTER) ? src.get_register().get_index() != FUKU_REG_INDEX_SP : true)) {
 
-        uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(dst, src);
+        uint64_t out_regflags = ctx.cpu_registers & ~get_operand_mask_register(dst, src);
 
         ctx.f_asm->push(src);
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(out_regflags);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(out_regflags);
 
         restore_imm_or_disp(src)
 
         ctx.f_asm->pop(dst);
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(out_regflags);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(out_regflags);
 
         restore_disp_relocate(dst)
 
@@ -226,4 +238,33 @@ bool _mov_86_op_imm_tmpl(mutation_context& ctx) {
     }
 
     return true;
+}
+
+bool fukutate_86_mov(mutation_context& ctx) {
+
+    auto& detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //mov reg, reg
+            return _mov_86_reg_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//mov reg, imm
+            return _mov_86_reg_imm_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_MEM) {//mov reg, [op]
+            return _mov_86_reg_op_tmpl(ctx);
+        }
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) {
+
+        if (detail.operands[1].type == X86_OP_REG) { //mov [op], reg
+            return _mov_86_op_reg_tmpl(ctx);
+        }
+        else if (detail.operands[1].type == X86_OP_IMM) {//mov [op], imm
+            return _mov_86_op_imm_tmpl(ctx);
+        }
+    }
+
+    return false;
 }

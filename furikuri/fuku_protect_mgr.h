@@ -1,10 +1,10 @@
 #pragma once
 
-#include "fuku_settings_protect_mgr.h"
+#include "fuku_settings_mgr.h"
 
 class fuku_protect_mgr {
     
-    fuku_settings_protect_mgr settings;
+    fuku_settings_mgr settings;
 
     bool initialize_obfuscation_profiles();
     bool initialize_virtualization_profiles();
@@ -17,7 +17,7 @@ class fuku_protect_mgr {
 
 public:
     fuku_protect_mgr();
-    fuku_protect_mgr(const fuku_settings_protect_mgr& settings);
+    fuku_protect_mgr(const fuku_settings_mgr& settings);
 
     ~fuku_protect_mgr();
 
@@ -37,15 +37,15 @@ public:
 
     void clear_profiles();
 
-    void set_settings(const fuku_settings_protect_mgr& settings);
+    void set_settings(const fuku_settings_mgr& settings);
 public:
 
-    fuku_settings_protect_mgr& get_settings();
-    const fuku_settings_protect_mgr& get_settings() const;
+    fuku_settings_mgr& get_settings();
+    const fuku_settings_mgr& get_settings() const;
 };
 
 
 bool protect_manager_create_stage_snapshot(
-    fuku_settings_protect_mgr& settings, fuku_protect_stage stage);
+    fuku_settings_mgr& settings, fuku_protect_stage stage);
 bool protect_manager_load_snapshot(
-    fuku_protect_mgr& mgr, const fuku_settings_protect_mgr& settings);
+    fuku_protect_mgr& mgr, const fuku_settings_mgr& settings);

@@ -18,13 +18,7 @@
 using namespace std;
 
 
-
-#pragma comment(lib,"enma_pe.lib")
-#pragma comment(lib,"shibari.lib")
-#pragma comment(lib,"furikuri.lib")
-
-#include "capstone\include\capstone\capstone.h"
-#include "enma_pe\enma_pe\enma_pe.h"
-#include "shibari\shibari\shibari.h"
-#include "fukutasm\fukutasm\fukutasm.h"
-#include "furikuri\furikuri.h"
+#include <capstone/include/capstone/capstone.h>
+#include <enma_pe/enma_pe/enma_pe.h>
+#include <fukutasm/fukutasm/fukutasm.h>
+#include <furikuri/furikuri.h>

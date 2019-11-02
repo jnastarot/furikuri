@@ -2,8 +2,9 @@
 
 bool fuku_protect_mgr::initialize_obfuscation_profiles() {
 
-    pe_image_full& image_full = settings.get_target_module().get_module_image();
+    pe_image_full& image_full = settings.get_target_module();
     pe_image_io image_io(image_full.get_image());
+
     bool     is32arch = image_full.get_image().is_x32_image();
     uint64_t base_address = image_full.get_image().get_image_base();
 
@@ -71,7 +72,7 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
 
         {
             fuku_assambler_ctx context;
-            fuku_instruction inst;
+            fuku_inst inst;
 
             context.arch = is32arch ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64;
             context.inst = &inst;
@@ -89,17 +90,31 @@ bool fuku_protect_mgr::initialize_obfuscation_profiles() {
                         &code_region.used_relocs
                     );
 
-                    if (code_holder.get_lines().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
-                        uint16_t id = code_holder.get_lines().back().get_id();
+                    if (code_holder.get_insts().size()) { //if taken a part of function we place a jmp to end of analyzed pieñe
+                        uint16_t id = code_holder.get_insts().back().get_id();
 
                         if (id != X86_INS_JMP && id != X86_INS_RET) {
-                            code_holder.add_line() =
-                                inst.set_rip_relocation_idx(
-                                    code_holder.create_rip_relocation(
-                                        context.immediate_offset,
-                                        code_holder.get_lines().back().get_source_virtual_address() + code_holder.get_lines().back().get_op_length()
-                                    )
-                                );
+
+                            auto& _inst = code_holder.add_inst();
+
+                            _inst = inst;
+
+                            _inst.set_rip_reloc(
+                                code_holder.create_rip_relocation(
+                                    fuku_rip_relocation()
+                                        .set_offset(context.immediate_offset)
+                                        .set_label(
+                                            code_holder.create_label(
+                                                fuku_code_label()
+                                                    .set_address(
+                                                        code_holder.get_insts().back().get_source_address() + 
+                                                        code_holder.get_insts().back().get_oplength()
+                                                    )
+                                            )
+                                        )
+                                 )
+                            );
+
                         }
                     }
 
@@ -118,10 +133,11 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
 
     if (settings.get_ob_profile().items.size()) {
 
-        pe_image_full& image_full = settings.get_target_module().get_module_image();
-
+        pe_image_full& image_full = settings.get_target_module();
         pe_image_io image_io(image_full.get_image(), enma_io_mode::enma_io_mode_allow_expand);
+
         fuku_code_analyzer anal_code;
+
         anal_code.set_arch(image_full.get_image().is_x32_image() ? FUKU_ASSAMBLER_ARCH_X86 : FUKU_ASSAMBLER_ARCH_X64);
 
         if (settings.get_ob_profile().items.size()) {
@@ -150,11 +166,12 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
             } while (item_idx);
         }
 
-        uint32_t dest_address_rva = ALIGN_UP( //TODO: FIX
-            image_full.get_image().get_last_section()->get_virtual_address() +
-            image_full.get_image().get_last_section()->get_virtual_size(),
+        uint32_t dest_address_rva = ALIGN_UP(
+            image_full.get_image().get_section_top_rva()->get_virtual_address() +
+            image_full.get_image().get_section_top_rva()->get_virtual_size(),
             image_full.get_image().get_section_align());
 
+        image_full.get_image().get_section_top_rva()->set_executable(true).set_readable(true);
         
         fuku_obfuscator obfuscator;
         obfuscator.set_settings(fuku_settings_obfuscation(1, 1, 0, 5.f, 0 ,0));
@@ -165,9 +182,12 @@ bool fuku_protect_mgr::process_obfuscation_profiles() {
 
         obfuscator.obfuscate_code();
 
-        std::vector<uint8_t> ob_code = finalize_code(anal_code.get_code(), 
-            &settings.get_ob_profile().association_table, &settings.get_ob_profile().relocation_table);
+        anal_code.get_code().finalize_code(
+            &settings.get_ob_profile().association_table, 
+            &settings.get_ob_profile().relocation_table
+        );
 
+        std::vector<uint8_t> ob_code = anal_code.get_code().dump_code();
 
         if (image_io.set_image_offset(dest_address_rva).write(ob_code) != enma_io_success) { 
             
@@ -193,23 +213,21 @@ bool    fuku_protect_mgr::postprocess_obfuscation() {
 
     if (settings.get_ob_profile().regions.size()) {
 
-        pe_image_full& image_full = settings.get_target_module().get_module_image();
+        pe_image_full& image_full = settings.get_target_module();
+        pe_image_io image_io(image_full.get_image());
 
         fuku_assambler_ctx asm_ctx;
-        fuku_instruction inst;
+        fuku_inst inst;
 
         asm_ctx.arch = FUKU_ASSAMBLER_ARCH_X86;
         asm_ctx.short_cfg = 0xFF;
         asm_ctx.inst = &inst;
-
-        pe_image_io image_io(image_full.get_image());
+      
         uint64_t base_address = image_full.get_image().get_image_base();
         auto&   image_relocs = image_full.get_relocations();
-        bool     is32arch = image_full.get_image().is_x32_image();
 
-        std::sort(settings.get_ob_profile().association_table.begin(), settings.get_ob_profile().association_table.end(), [](fuku_code_association& lhs, fuku_code_association& rhs) {
-            return lhs.original_virtual_address < rhs.original_virtual_address;
-        });
+        bool is32arch = image_full.get_image().is_x32_image();
+
 
         for (auto& reloc : image_relocs.get_entries()) {
             reloc.data = 0;
@@ -229,11 +247,13 @@ bool    fuku_protect_mgr::postprocess_obfuscation() {
                 if (reloc.data > region.region_rva &&
                     reloc.data < (region.region_rva + region.region_size)) {
 
-                    fuku_code_association * assoc = find_profile_association(settings,
-                                        settings.get_ob_profile(), (uint32_t)reloc.data);
 
-                    if (assoc) {
-                        reloc.data = assoc->virtual_address;
+                    std::pair<uint64_t, uint64_t> assoc;
+
+                    if (find_profile_association(settings,
+                        settings.get_ob_profile(), (uint32_t)reloc.data, assoc)) {
+
+                        reloc.data = assoc.second;
 
                         if (image_io.set_image_offset(reloc.relative_virtual_address).write(
                             &reloc.data, is32arch ? sizeof(uint32_t) : sizeof(uint64_t)) != enma_io_success) {
@@ -250,10 +270,12 @@ bool    fuku_protect_mgr::postprocess_obfuscation() {
                 }
             }
 
-            fuku_code_association * dst_func_assoc = find_profile_association(settings, settings.get_ob_profile(), region.region_rva);   //set jumps to start of obfuscated funcs
-            if (dst_func_assoc) {
-                
-                _jmp(asm_ctx, fuku_immediate(uint32_t(dst_func_assoc->virtual_address - (region.region_rva + base_address) - 5)));
+            std::pair<uint64_t, uint64_t> assoc;
+
+            if (find_profile_association(settings, settings.get_ob_profile(), region.region_rva, assoc)) {
+
+                //set jumps to start of obfuscated funcs
+                _jmp(asm_ctx, fuku_immediate(uint32_t(assoc.second - (region.region_rva + base_address) - 5)));
 
                 if (image_io.set_image_offset(region.region_rva).write(
                     asm_ctx.bytecode, asm_ctx.length) != enma_io_success) {
@@ -265,29 +287,30 @@ bool    fuku_protect_mgr::postprocess_obfuscation() {
         }
 
         for (auto& reloc : settings.get_ob_profile().relocation_table) {
-            image_relocs.add_entry(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id);
+
+            image_relocs.add_relocation(uint32_t(reloc.virtual_address - base_address), reloc.relocation_id, 
+                is32arch ? IMAGE_REL_BASED_HIGHLOW : IMAGE_REL_BASED_DIR64);
         }
 
         {
-            fuku_code_association * ep_assoc = find_profile_association(settings, settings.get_ob_profile(), image_full.get_image().get_entry_point());
-            if (ep_assoc) {
-                image_full.get_image().set_entry_point(uint32_t(ep_assoc->virtual_address - base_address));
-            }
-        }
+            std::pair<uint64_t, uint64_t> assoc;
 
-        for (auto& ext_ep : settings.get_target_module().get_module_entrys()) {
-            fuku_code_association * ext_ep_assoc = find_profile_association(settings, settings.get_ob_profile(), ext_ep.entry_point_rva);
-            if (ext_ep_assoc) {
-                ext_ep.entry_point_rva = uint32_t(ext_ep_assoc->virtual_address - base_address);
+            if (find_profile_association(settings, settings.get_ob_profile(), 
+                image_full.get_image().get_entry_point(), assoc)) {
+
+                image_full.get_image().set_entry_point(uint32_t(assoc.second - base_address));
             }
         }
 
 
-        for (auto& export_item : image_full.get_exports().get_entries()) {
+        for (auto& export_item : image_full.get_exports().get_functions()) {
 
-            fuku_code_association * item_assoc = find_profile_association(settings, settings.get_ob_profile(), export_item.get_rva());
-            if (item_assoc) {
-                export_item.set_rva(uint32_t(item_assoc->virtual_address - base_address));
+            std::pair<uint64_t, uint64_t> assoc;
+
+            if (find_profile_association(settings, settings.get_ob_profile(),
+                export_item.get_rva(), assoc)) {
+
+                export_item.set_rva(uint32_t(assoc.second - base_address));
             }
         }
     }

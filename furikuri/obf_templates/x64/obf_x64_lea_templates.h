@@ -21,3 +21,16 @@ bool _lea_64_reg_op_tmpl(mutation_context& ctx) {
 
     return true;
 }
+
+bool fukutate_64_lea(mutation_context& ctx) {
+
+    auto detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {
+        if (detail.operands[1].type == X86_OP_MEM) {//lea reg, [op]
+            return _lea_64_reg_op_tmpl(ctx);
+        }
+    }
+
+    return false;
+}

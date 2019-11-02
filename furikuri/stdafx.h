@@ -20,16 +20,9 @@
 
 using namespace std;
 
-
-#pragma comment(lib,"enma_pe.lib")
-#pragma comment(lib,"shibari.lib")
-#pragma comment(lib,"capstone.lib")
-#pragma comment(lib,"fukutasm.lib")
-
-#include "enma_pe\enma_pe\enma_pe.h"
-#include "shibari\shibari\shibari.h"
-#include "capstone\include\capstone\capstone.h"
-#include "fukutasm\fukutasm\fukutasm.h"
+#include <capstone/include/capstone/capstone.h>
+#include <enma_pe/enma_pe/enma_pe.h>
+#include <fukutasm/fukutasm/fukutasm.h>
 
 #define FUKU_GET_RAND(_min,_max) ((_min) == (_max) ? (_min) : ((_min) + ( (rand() | rand() << 16) %(((_max) + (((_max) == UINT_MAX) ? 0 : 1)) - (_min)))))
 
@@ -50,4 +43,3 @@ using namespace std;
 #define FUKU_ASSERT_GT(lhs, rhs) if( !((lhs) >  (rhs)) ){FUKU_DEBUG}
 
 #include "furikuri.h"
-#include "psyche_storage.h"

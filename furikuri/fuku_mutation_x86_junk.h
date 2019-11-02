@@ -2,4 +2,4 @@
 
 
 
-void fuku_junk_86_generic(mutation_context & ctx);
+bool fuku_junk_86_generic(mutation_context & ctx);

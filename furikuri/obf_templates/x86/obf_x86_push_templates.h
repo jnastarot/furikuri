@@ -4,32 +4,36 @@
  //mov [esp],reg
 inline bool _push_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, int8_t inst_size) {
 
-    size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
+
+    auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+    auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+    auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+    bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
+
 
     if (src.get_type() == FUKU_T0_REGISTER && src.get_register().get_index() == FUKU_REG_INDEX_SP) { return false; }
 
-    uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(src);
+    uint64_t out_regflags = ctx.cpu_registers & ~get_operand_mask_register(src);
 
-    if (has_inst_free_eflags(ctx.eflags_changes,
+    if (has_inst_free_eflags(ctx.cpu_flags,
         X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
         ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(inst_size));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(ctx.regs_changes);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(ctx.cpu_registers);
     }
     else {
         ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-inst_size)));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(ctx.regs_changes);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(ctx.cpu_registers);
     }
 
     ctx.f_asm->mov(fuku_operand(FUKU_REG_ESP, (fuku_operand_size)inst_size), src);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(out_regflags)
-        .set_instruction_flags(FUKU_INST_BAD_STACK);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(out_regflags);
 
 
     restore_imm_relocate(src)
@@ -43,35 +47,42 @@ inline bool _push_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, int8_t i
 //(sub esp,4) or (lea esp,[esp - 4])
 inline bool _push_86_multi_tmpl_2(mutation_context& ctx, fuku_type src, int8_t inst_size) {
 
-    size_t relocate_imm = ctx.current_line_iter->get_relocation_imm_idx();
-    size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
+    if (ctx.settings->is_not_allowed_unstable_stack()) {
+        return false;
+    }
+
+    auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+    auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+    auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+    bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
+
 
     if (src.get_type() == FUKU_T0_REGISTER && src.get_register().get_index() == FUKU_REG_INDEX_SP) { return false; }
 
     ctx.f_asm->mov(fuku_operand(FUKU_REG_ESP, imm(-inst_size), (fuku_operand_size)inst_size), src);
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers).set_inst_flags(FUKU_INST_BAD_STACK);;
 
-    uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(src);
+    uint64_t out_regflags = ctx.cpu_registers & ~get_operand_mask_register(src);
 
     restore_imm_relocate(src)
 
-    if (has_inst_free_eflags(ctx.eflags_changes,
+    if (has_inst_free_eflags(ctx.cpu_flags,
             X86_EFLAGS_MODIFY_OF | X86_EFLAGS_MODIFY_SF | X86_EFLAGS_MODIFY_ZF | X86_EFLAGS_MODIFY_AF | X86_EFLAGS_MODIFY_CF | X86_EFLAGS_MODIFY_PF)) {
 
         ctx.f_asm->sub(reg_(FUKU_REG_ESP), imm(inst_size));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(out_regflags)
-            .set_instruction_flags(FUKU_INST_BAD_STACK);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(out_regflags)
+            .set_inst_flags(FUKU_INST_BAD_STACK);
     }
     else {
         ctx.f_asm->lea(reg_(FUKU_REG_ESP), dword_ptr(FUKU_REG_ESP, imm(-inst_size)));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(out_regflags)
-            .set_instruction_flags(FUKU_INST_BAD_STACK);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(out_regflags)
+            .set_inst_flags(FUKU_INST_BAD_STACK);
     }
 
     return true;
@@ -110,7 +121,7 @@ bool _push_86_reg_tmpl(mutation_context& ctx) {
         return _push_86_multi_tmpl_1(ctx, reg_src, detail.operands[0].size);
     }
     case 1: {
-        return _push_86_multi_tmpl_2(ctx, reg_src, detail.operands[0].size);
+       return _push_86_multi_tmpl_2(ctx, reg_src, detail.operands[0].size);
     }
 
     default: { return false; }
@@ -121,6 +132,23 @@ bool _push_86_reg_tmpl(mutation_context& ctx) {
 
 
 bool _push_86_op_tmpl(mutation_context& ctx) {
+
+    return false;
+}
+
+bool fukutate_86_push(mutation_context& ctx) {
+
+    auto& detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_REG) {  //push reg
+        return _push_86_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_MEM) { //push [op]
+        return _push_86_op_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_IMM) { //push imm8/imm32
+        return _push_86_imm_tmpl(ctx);
+    }
 
     return false;
 }

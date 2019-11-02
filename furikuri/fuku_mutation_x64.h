@@ -5,15 +5,16 @@
 class fuku_mutation_x64 :
     public fuku_mutation {
 
+    void* inst_changers;
+
     csh cap_handle;
     fuku_assambler f_asm;
     fuku_settings_obfuscation settings;
 
+    bool fuku_junk(mutation_context& ctx);
 
-    void fuku_junk(mutation_context& ctx);
-
-    void fukutation(fuku_code_holder& code_holder, linestorage::iterator& lines_iter);
-    void obfuscate_lines(fuku_code_holder& code_holder, linestorage::iterator lines_iter_begin, linestorage::iterator lines_iter_end, unsigned int recurse_idx);
+    void fukutation(mutation_context& ctx, inststorage::iterator& lines_iter);
+    void obfuscate_lines(mutation_context& ctx, inststorage::iterator lines_iter_begin, inststorage::iterator lines_iter_end, unsigned int recurse_idx);
 
 public:
     fuku_mutation_x64(const fuku_settings_obfuscation& settings);

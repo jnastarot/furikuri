@@ -6,14 +6,14 @@ inline bool _ret_64_multi_tmpl_1(mutation_context& ctx, uint16_t stack_ret) {
 
     ctx.f_asm->lea(reg_(FUKU_REG_RSP), qword_ptr(FUKU_REG_RSP, imm(8 + stack_ret)));
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers);
 
     ctx.f_asm->jmp(qword_ptr(FUKU_REG_RSP, imm(-8 - stack_ret)));
     ctx.f_asm->get_context().inst->
-        set_used_eflags(ctx.eflags_changes)
-        .set_used_regs(ctx.regs_changes)
-        .set_instruction_flags(FUKU_INST_BAD_STACK);
+        set_cpu_flags(ctx.cpu_flags)
+        .set_cpu_registers(ctx.cpu_registers)
+        .set_inst_flags(FUKU_INST_BAD_STACK);
 
     return true;
 }
@@ -39,4 +39,8 @@ bool _ret_64_imm_tmpl(mutation_context& ctx) {
     }
 
     return true;
+}
+
+bool fukutate_64_ret(mutation_context& ctx) {
+    return _ret_64_imm_tmpl(ctx); //ret \ ret 0xXXXX
 }

@@ -22,7 +22,7 @@ public:
 
     psyche_block& operator=(const psyche_block& block);
 
-    void add_line(fuku_instruction* line);
+    void add_line(fuku_inst* line);
 public:
     void set_arch(uint8_t arch);
 

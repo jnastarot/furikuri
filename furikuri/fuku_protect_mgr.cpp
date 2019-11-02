@@ -2,7 +2,8 @@
 #include "fuku_protect_mgr.h"
 
 
-fuku_code_association * find_profile_association(fuku_settings_protect_mgr& settings, fuku_protection_profile& profile, uint32_t rva);
+bool find_profile_association(fuku_settings_mgr& settings, fuku_protection_profile& profile,
+    uint32_t rva, std::pair<uint64_t, uint64_t>& result);
 
 #include "fuku_protect_obfuscator_mgr.h"
 #include "fuku_protect_virtualizer_mgr.h"
@@ -12,7 +13,7 @@ fuku_code_association * find_profile_association(fuku_settings_protect_mgr& sett
 
 fuku_protect_mgr::fuku_protect_mgr() {}
 
-fuku_protect_mgr::fuku_protect_mgr(const fuku_settings_protect_mgr& settings)
+fuku_protect_mgr::fuku_protect_mgr(const fuku_settings_mgr& settings)
    : settings(settings) {}
 
 
@@ -178,7 +179,7 @@ bool fuku_protect_mgr::finish_process_module() {
 
         if (settings.get_result_code() == fuku_protect_ok) {
 
-            pe_image_full& image_full = settings.get_target_module().get_module_image();
+            pe_image_full& image_full = settings.get_target_module();
 
             settings.set_stage_code(fuku_protect_stage_finish_processing);
 
@@ -217,21 +218,22 @@ void fuku_protect_mgr::clear_profiles() {
     settings.get_vm_profiles().clear();
 }
 
-void fuku_protect_mgr::set_settings(const fuku_settings_protect_mgr& settings) {
+void fuku_protect_mgr::set_settings(const fuku_settings_mgr& settings) {
     this->settings = settings;
 }
 
-fuku_settings_protect_mgr& fuku_protect_mgr::get_settings() {
+fuku_settings_mgr& fuku_protect_mgr::get_settings() {
     return this->settings;
 }
 
-const fuku_settings_protect_mgr& fuku_protect_mgr::get_settings() const {
+const fuku_settings_mgr& fuku_protect_mgr::get_settings() const {
     return this->settings;
 }
 
-fuku_code_association * find_profile_association(fuku_settings_protect_mgr& settings, fuku_protection_profile& profile, uint32_t rva) {
+bool find_profile_association(fuku_settings_mgr& settings, fuku_protection_profile& profile, 
+    uint32_t rva, std::pair<uint64_t, uint64_t>& result) {
 
-    pe_image_full& image_full = settings.get_target_module().get_module_image();
+    pe_image_full& image_full = settings.get_target_module();
 
     for (auto& region : profile.regions) {
 
@@ -239,31 +241,21 @@ fuku_code_association * find_profile_association(fuku_settings_protect_mgr& sett
 
             uint64_t real_address = image_full.get_image().rva_to_va((uint32_t)rva);
 
-            size_t left = 0;
-            size_t right = profile.association_table.size();
-            size_t mid = 0;
+            auto _assoc = profile.association_table.find(real_address);
 
-            while (left < right) {
-                mid = left + (right - left) / 2;
+            if (_assoc != profile.association_table.end()) {
 
-                if (profile.association_table[mid].original_virtual_address == real_address) {
-                    return &profile.association_table[mid];
-                }
-                else if (profile.association_table[mid].original_virtual_address > real_address) {
-                    right = mid;
-                }
-                else {
-                    left = mid + 1;
-                }
+                result = *_assoc;
+                return true;
             }
         }
     }
 
-    return 0;
+    return false;
 }
 
 
-bool protect_manager_create_stage_snapshot(fuku_settings_protect_mgr& settings, fuku_protect_stage stage) {
+bool protect_manager_create_stage_snapshot(fuku_settings_mgr& settings, fuku_protect_stage stage) {
     fuku_protect_mgr mgr(settings);
 
     mgr.step_to_stage(stage);
@@ -273,7 +265,7 @@ bool protect_manager_create_stage_snapshot(fuku_settings_protect_mgr& settings, 
     return settings.get_result_code() == fuku_protect_ok;
 }
 
-bool protect_manager_load_snapshot(fuku_protect_mgr& mgr, const fuku_settings_protect_mgr& settings) {
+bool protect_manager_load_snapshot(fuku_protect_mgr& mgr, const fuku_settings_mgr& settings) {
     
     mgr.get_settings() = settings;
 

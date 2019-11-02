@@ -19,7 +19,7 @@ void fuku_obfuscator::set_destination_virtual_address(uint64_t destination_virtu
 }
 
 void fuku_obfuscator::set_settings(const fuku_settings_obfuscation& settings) {
-    memcpy(&this->settings,&settings,sizeof(fuku_settings_obfuscation));
+    memcpy(&this->settings, &settings, sizeof(fuku_settings_obfuscation));
 }
 
 fuku_assambler_arch fuku_obfuscator::get_arch() const {
@@ -73,16 +73,15 @@ void fuku_obfuscator::obfuscate_code() {
         delete (fuku_mutation_x64*)mutator;
     }
 
-    code->update_virtual_address(destination_virtual_address);
-    code->update_origin_idxs();
+    code->update_current_address(destination_virtual_address);
 }
 
 void fuku_obfuscator::spagetti_code() {
 
-    std::vector<linestorage> line_blocks;
+    std::vector<inststorage> line_blocks;
 
     fuku_assambler_ctx context;
-    fuku_instruction inst;
+    fuku_inst inst;
 
     context.arch = code->get_arch();
     context.inst = &inst;
@@ -92,7 +91,7 @@ void fuku_obfuscator::spagetti_code() {
         std::vector<size_t> block_lens;
  
         {
-            size_t lines_total = code->get_lines().size();
+            size_t lines_total = code->get_insts().size();
             size_t lines_in_blocks = 0;
             size_t current_block_size = 0;
 
@@ -125,25 +124,25 @@ void fuku_obfuscator::spagetti_code() {
             uint64_t inst_customflags = 0;
 
             if (block_len) {
-                auto start = code->get_lines().begin();
+                auto start = code->get_insts().begin();
                 auto end = start;
 
                 std::advance(end, block_len);
 
-                line_blocks[block_idx].splice(line_blocks[block_idx].begin(), code->get_lines(), start, end);   
+                line_blocks[block_idx].splice(line_blocks[block_idx].begin(), code->get_insts(), start, end);   
             }
 
-            if (code->get_lines().size()) {
-                inst_flags = (code->get_lines().begin()->get_instruction_flags());
-                inst_eflags = code->get_lines().begin()->get_used_eflags();
-                inst_customflags = code->get_lines().begin()->get_used_regs();
+            if (code->get_insts().size()) {
+                inst_flags = (code->get_insts().begin()->get_inst_flags());
+                inst_eflags = code->get_insts().begin()->get_cpu_flags();
+                inst_customflags = code->get_insts().begin()->get_cpu_registers();
             }
 
             if (block_idx + 1 != block_lens.size()) { //insert jmp to next block
                 line_blocks[block_idx].push_back(
-                    inst.set_instruction_flags(inst_flags)
-                    .set_used_eflags(inst_eflags)
-                    .set_used_regs(inst_customflags)
+                    inst.set_inst_flags(inst_flags)
+                    .set_cpu_flags(inst_eflags)
+                    .set_cpu_registers(inst_customflags)
                 );
             }
 
@@ -152,8 +151,21 @@ void fuku_obfuscator::spagetti_code() {
                 auto& prev_block_jmp = line_blocks[block_idx - 1].back();
                 auto& first_item_of_current_block = line_blocks[block_idx].begin();
 
-                prev_block_jmp.set_rip_relocation_idx(code->create_rip_relocation(1, &(*first_item_of_current_block)));
-                prev_block_jmp.set_used_eflags(first_item_of_current_block->get_used_eflags());
+                prev_block_jmp.set_rip_reloc(
+                        
+                        code->create_rip_relocation(
+                            fuku_rip_relocation()
+                                .set_offset(1)
+                                .set_label(
+                                    code->create_label(
+                                        fuku_code_label()
+                                        .set_inst(&(*first_item_of_current_block))
+                                    )
+                                )
+                        )
+                );
+                
+                prev_block_jmp.set_cpu_flags(first_item_of_current_block->get_cpu_flags());
             }
 
         }
@@ -178,7 +190,7 @@ void fuku_obfuscator::spagetti_code() {
         
         //push lines
         {
-            auto& code_lines = code->get_lines();
+            auto& code_lines = code->get_insts();
             for (size_t block_idx : block_idxs) {
                 code_lines.splice(code_lines.end(), line_blocks[block_idx]);
             }
@@ -192,22 +204,22 @@ void fuku_obfuscator::handle_jmps() {
     fuku_assambler fuku_asm(code->get_arch());
     fuku_asm.set_holder(code, ASSAMBLER_HOLD_TYPE_FIRST_OVERWRITE);
 
-    for (auto& line_iter = code->get_lines().begin(); line_iter != code->get_lines().end(); ++line_iter) {
+    for (auto& line_iter = code->get_insts().begin(); line_iter != code->get_insts().end(); ++line_iter) {
 
-        fuku_instruction& line = *line_iter;
+        fuku_inst& line = *line_iter;
 
         switch (line.get_id()) {
 
         case X86_INS_JMP: {
 
-            if (line.get_op_code()[line.get_op_pref_size()] == 0xEB) { //near jump
+            if (line.get_opcode()[get_inst_prefixe_count(line)] == 0xEB) { //near jump
 
                 uint8_t op_code[16];
-                memcpy(op_code, line.get_op_code(), line.get_op_length());
+                memcpy(op_code, line.get_opcode(), line.get_oplength());
 
-                op_code[line.get_op_pref_size()] = 0xE9;
+                op_code[get_inst_prefixe_count(line)] = 0xE9;
 
-                line.set_op_code(op_code, line.get_op_length() + 3);
+                line.set_opcode(op_code, line.get_oplength() + 3);
             }
 
             break;
@@ -222,16 +234,19 @@ void fuku_obfuscator::handle_jmps() {
         case  X86_INS_JL: case  X86_INS_JGE:
         case  X86_INS_JLE:case  X86_INS_JG: {
 
-            if ( (line.get_op_code()[line.get_op_pref_size()] & 0xF0) == 0x70) { //near jump
+            if ( (line.get_opcode()[get_inst_prefixe_count(line)] & 0xF0) == 0x70) { //near jump
 
                 uint8_t op_code[16];
-                memcpy(op_code, line.get_op_code(), line.get_op_length());
+                memcpy(op_code, line.get_opcode(), line.get_oplength());
 
-                op_code[line.get_op_pref_size()] = 0x0F;
-                op_code[line.get_op_pref_size() + 1] = 0x80 | (line.get_op_code()[line.get_op_pref_size()] & 0x0F);
-                line.set_op_code(op_code, line.get_op_length() + 4);
+                op_code[get_inst_prefixe_count(line)] = 0x0F;
+                
+                op_code[get_inst_prefixe_count(line) + 1] = 
+                    (0x80 | (line.get_opcode()[get_inst_prefixe_count(line)] & 0x0F));
 
-                code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = 2;
+                line.set_opcode(op_code, line.get_oplength() + 4);
+
+                line.get_rip_reloc()->set_offset(2);
             }
 
             break;
@@ -243,8 +258,8 @@ void fuku_obfuscator::handle_jmps() {
 
             fuku_asm.set_first_emit(true).set_position(line_iter);
 
-            size_t label_idx_f = line.get_label_idx();
-            size_t rip_label_idx = line.get_rip_relocation_idx();
+            auto _label = line.get_label();
+            auto _rip_reloc = line.get_rip_reloc();
 
             fuku_register reg;
 
@@ -256,11 +271,12 @@ void fuku_obfuscator::handle_jmps() {
             }
 
             fuku_asm.or_(reg, reg);
-            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label(_label);
 
             fuku_asm.jcc(FUKU_CONDITION_EQUAL, fuku_immediate(0));
-            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
+            fuku_asm.get_context().inst->set_rip_reloc(_rip_reloc);
+
+            _rip_reloc->set_offset(fuku_asm.get_context().immediate_offset);
 
             ++line_iter;
             break;
@@ -270,15 +286,17 @@ void fuku_obfuscator::handle_jmps() {
         case X86_INS_LOOP: {
             fuku_asm.set_first_emit(true).set_position(line_iter);
 
-            size_t label_idx_f = line.get_label_idx();
-            size_t rip_label_idx = line.get_rip_relocation_idx();
+            auto _label = line.get_label();
+            auto _rip_reloc = line.get_rip_reloc();
+
 
             fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
-            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label(_label);
 
             fuku_asm.jcc(FUKU_CONDITION_NOT_EQUAL, imm(0));      //jnz
-            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
+            fuku_asm.get_context().inst->set_rip_reloc(_rip_reloc);
+
+            _rip_reloc->set_offset(fuku_asm.get_context().immediate_offset);
 
             ++line_iter;
             break;
@@ -287,15 +305,16 @@ void fuku_obfuscator::handle_jmps() {
         case X86_INS_LOOPE: {
             fuku_asm.set_first_emit(true).set_position(line_iter);
 
-            size_t label_idx_f = line.get_label_idx();
-            size_t rip_label_idx = line.get_rip_relocation_idx();
+            auto _label = line.get_label();
+            auto _rip_reloc = line.get_rip_reloc();
 
             fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
-            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label(_label);
 
             fuku_asm.jcc(FUKU_CONDITION_EQUAL, imm(0));      //jz
-            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
+            fuku_asm.get_context().inst->set_rip_reloc(_rip_reloc);
+
+            _rip_reloc->set_offset(fuku_asm.get_context().immediate_offset);
 
             ++line_iter;
             break;
@@ -304,15 +323,16 @@ void fuku_obfuscator::handle_jmps() {
         case X86_INS_LOOPNE: {
             fuku_asm.set_first_emit(true).set_position(line_iter);
 
-            size_t label_idx_f = line.get_label_idx();
-            size_t rip_label_idx = line.get_rip_relocation_idx();
+            auto _label = line.get_label();
+            auto _rip_reloc = line.get_rip_reloc();
 
             fuku_asm.dec(reg_(FUKU_REG_ECX));                  //dec ecx
-            fuku_asm.get_context().inst->set_label_idx(label_idx_f);
+            fuku_asm.get_context().inst->set_label(_label);
 
             fuku_asm.jcc(FUKU_CONDITION_NOT_EQUAL, imm(0));      //jne
-            fuku_asm.get_context().inst->set_rip_relocation_idx(rip_label_idx);
-            code->get_rip_relocations()[line.get_rip_relocation_idx()].offset = fuku_asm.get_context().immediate_offset;
+            fuku_asm.get_context().inst->set_rip_reloc(_rip_reloc);
+
+            _rip_reloc->set_offset(fuku_asm.get_context().immediate_offset);
 
             ++line_iter;
             break;

@@ -10,125 +10,84 @@ class fuku_obfuscator;
 
 
 
-struct mutation_context {
-    fuku_assambler *f_asm;
-    fuku_code_holder* code_holder;
-
-    cs_insn *instruction;
-    linestorage::iterator first_junk_line_iter;
-    linestorage::iterator first_line_iter;
-    linestorage::iterator current_line_iter;
-    linestorage::iterator next_line_iter;
-
-    bool has_unstable_stack;
-    bool is_first_line_begin;
-    bool is_next_line_end;
-    bool was_mutated;
-    bool was_junked;
-
-    size_t   label_idx;
-    uint64_t source_virtual_address;
-
-    uint32_t instruction_flags;
-    uint64_t eflags_changes;
-    uint64_t regs_changes;
-
-    bool swap_junk_label;
-    size_t junk_label_idx;
-};
-
+//#include "psyche_storage.h"
 #include "fuku_settings_obfuscation.h"
 #include "fuku_settings_virtualization.h"
-
-#include "fuku_code_utilits.h"
-#include "fuku_code_profiler.h"
-#include "fuku_code_analyzer.h"
 #include "fuku_obfuscator.h"
 #include "fuku_virtualizer_imp.h"
 #include "fuku_protect_mgr.h"
 
-enum fuku_code_raw_list_type {
-    CODE_RAW_LIST_TYPE_NONE,
-    CODE_RAW_LIST_TYPE_OBFUSCATION,
-    CODE_RAW_LIST_TYPE_VIRTUALIZATION,
+
+
+enum furikuri_protection_type {
+    FURIKURI_PROTECTION_TYPE_NONE,
+    FURIKURI_PROTECTION_TYPE_OBFUSCATION,
+    FURIKURI_PROTECTION_TYPE_VIRTUALIZATION,
 };
 
-class fuku_code_raw_list {
-    fuku_code_raw_list_type type;
+class furikuri_protection_entry {
+    furikuri_protection_type type;
 
     std::vector<fuku_protected_region> functions;
 
     fuku_settings_obfuscation settings;
-    shibari_module*  target_module;
 
-    shibari_module*  vm_holder_module;
-    uint32_t vm_entry_rva;
-    fuku_virtualizer * virtualizer;
+    fuku_virtualizer* virtualizer;
 
 public:
-    fuku_code_raw_list();
-    fuku_code_raw_list(fuku_code_raw_list_type type, const std::vector<fuku_protected_region>& regions,
-        const fuku_settings_obfuscation& settings, shibari_module*  target_module,
-        shibari_module*  vm_holder_module, uint32_t vm_entry_rva, fuku_virtualizer * virtualizer);
+    furikuri_protection_entry();
+    furikuri_protection_entry(furikuri_protection_type type, const std::vector<fuku_protected_region>& regions,
+        const fuku_settings_obfuscation& settings, fuku_virtualizer* virtualizer);
 
-    fuku_code_raw_list(const fuku_code_raw_list& list);
-    ~fuku_code_raw_list();
+    furikuri_protection_entry(const furikuri_protection_entry& list);
+    ~furikuri_protection_entry();
 
-    fuku_code_raw_list& operator=(const fuku_code_raw_list& list);
+    furikuri_protection_entry& operator=(const furikuri_protection_entry& list);
 public:
-    void set_type(fuku_code_raw_list_type type);
+    void set_type(furikuri_protection_type type);
     void set_functions(const std::vector<fuku_protected_region>& functions);
     void set_settings(const fuku_settings_obfuscation& settings);
-    void set_target_module(shibari_module* _module);
-    void set_vm_holder_module(shibari_module* _module);
-    void set_vm_entry_rva(uint32_t entry_rva);
-    void set_virtualizer(fuku_virtualizer * virt);
-   
+    void set_virtualizer(fuku_virtualizer* virt);
+
 public:
     std::vector<fuku_protected_region>& get_functions();
     fuku_settings_obfuscation& get_settings();
-    shibari_module*  get_target_module();
-    shibari_module*  get_vm_holder_module();
-    fuku_virtualizer * get_virtualizer();
+    fuku_virtualizer* get_virtualizer();
 
 public:
-    const fuku_code_raw_list_type get_type() const;
+    const furikuri_protection_type get_type() const;
     const std::vector<fuku_protected_region>& get_functions() const;
     const fuku_settings_obfuscation& get_settings() const;
-    const shibari_module*  get_target_module() const;
-    const shibari_module*  get_vm_holder_module() const;
-    const uint32_t         get_vm_entry_rva() const;
-    const fuku_virtualizer * get_virtualizer() const;
+    const fuku_virtualizer* get_virtualizer() const;
 
 };
 
 class furikuri {
-    std::vector<shibari_module*> extended_modules;
-    shibari_module* main_module;
 
-    std::vector<fuku_code_raw_list> code_raw_lists;
+    pe_image_full * _image;
+    std::vector<furikuri_protection_entry> protect_list;
+
 public:
     furikuri();
     ~furikuri();
 
     bool fuku_protect(std::vector<uint8_t>& out_image); //for custom settings
-    bool fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::vector<uint8_t>& out_image); //for snapshot settings
+    bool fuku_protect(const fuku_settings_mgr& mgr_settings, std::vector<uint8_t>& out_image); //for snapshot settings
 
-    bool create_snapshot(fuku_settings_protect_mgr& mgr_settings, fuku_protect_stage stage);
-
-public:
-    bool set_main_module(shibari_module* module,std::string module_path = "");
-    bool add_extended_module(shibari_module* module, std::string module_path = "");
-
-    bool add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_obfuscation& settings);
-    bool add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_virtualization& settings);
-
-    void clear_code_lists();
-    void clear_extended_modules(); //delete only from pointer table without destruction classes
+    bool create_snapshot(fuku_settings_mgr& mgr_settings, fuku_protect_stage stage);
 
 public:
-    const std::vector<fuku_code_raw_list> & get_code_raw_lists() const;
-    std::vector<shibari_module*>& get_extended_modules();
-    shibari_module* get_main_module();
+    bool set_image_protect(const pe_image& _module);
+    bool set_image_protect(const std::string& module_path);
+
+    bool add_ob_code_list(fuku_protected_region region, fuku_settings_obfuscation& settings);
+    bool add_vm_code_list(fuku_protected_region region, fuku_settings_virtualization& settings);
+
+    void clear_protect_list();
+
+public:
+    const std::vector<furikuri_protection_entry>& get_protect_list() const;
+    pe_image_full* get_image();
+
 };
 

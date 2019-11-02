@@ -4,28 +4,39 @@
 //push next_inst_address
 //jmp reg
 inline bool _call_86_multi_tmpl_1(mutation_context& ctx, fuku_type src, uint8_t inst_size) {
+    
+    if (ctx.settings->is_not_allowed_relocations()) {
+        return false;
+    }
 
-    if (!ctx.is_next_line_end) { //if not last instruction
+    if (!ctx.is_next_last_inst) { //if not last instruction
 
-        size_t relocate_rip = ctx.current_line_iter->get_rip_relocation_idx();
-        size_t relocate_disp = ctx.current_line_iter->get_relocation_disp_idx();
+        auto reloc_imm = ctx.payload_inst_iter->get_imm_reloc();
+        auto reloc_disp = ctx.payload_inst_iter->get_disp_reloc();
+        auto reloc_rip = ctx.payload_inst_iter->get_rip_reloc();
+        bool used_disp_reloc = ctx.payload_inst_iter->is_used_disp_reloc();
 
-        uint64_t out_regflags = ctx.regs_changes & ~get_operand_mask_register(src);
+        uint64_t out_regflags = ctx.cpu_registers & ~get_operand_mask_register(src);
 
         ctx.f_asm->push(imm(0xFFFFFFFF));
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(ctx.regs_changes)
-            .set_relocation_imm_idx(
-                ctx.code_holder->create_relocation(
-                    ctx.f_asm->get_context().immediate_offset, &(*ctx.next_line_iter), 0
-                )
-            );
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(ctx.cpu_registers)
+            .set_imm_reloc(
+                ctx.code_holder->create_relocation(fuku_relocation()
+                    .set_label(
+                        ctx.code_holder->create_label(
+                            fuku_code_label().set_inst(&(*ctx.next_inst_iter)
+                            )
+                        )
+                    )
+                    .set_offset(ctx.f_asm->get_context().immediate_offset)
+                ));
 
         ctx.f_asm->jmp(src);
         ctx.f_asm->get_context().inst->
-            set_used_eflags(ctx.eflags_changes)
-            .set_used_regs(out_regflags);
+            set_cpu_flags(ctx.cpu_flags)
+            .set_cpu_registers(out_regflags);
  
         restore_rip_imm_or_disp(src);
 
@@ -88,4 +99,22 @@ bool _call_86_op_tmpl(mutation_context& ctx) {
     }
 
     return true;
+}
+
+bool fukutate_86_call(mutation_context& ctx) {
+
+    auto& detail = ctx.instruction->detail->x86;
+
+    if (detail.operands[0].type == X86_OP_MEM) { //call [op]
+        return _call_86_op_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_REG) {//call reg
+        return _call_86_reg_tmpl(ctx);
+    }
+    else if (detail.operands[0].type == X86_OP_IMM) {
+        return _call_86_imm_tmpl(ctx);
+    }
+
+
+    return false;
 }

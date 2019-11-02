@@ -2,135 +2,98 @@
 #include "furikuri.h"
 
 
-fuku_code_raw_list::fuku_code_raw_list() 
- :type(CODE_RAW_LIST_TYPE_NONE), target_module(0), vm_holder_module(0), vm_entry_rva(0), virtualizer(0){}
 
-fuku_code_raw_list::fuku_code_raw_list(fuku_code_raw_list_type type, const std::vector<fuku_protected_region>& regions,
-    const fuku_settings_obfuscation& settings, shibari_module*  target_module,
-    shibari_module*  vm_holder_module, uint32_t vm_entry_rva, fuku_virtualizer * virtualizer)
-    : type(type), functions(regions), settings(settings), target_module(target_module), vm_holder_module(vm_holder_module),
-    vm_entry_rva(vm_entry_rva), virtualizer(virtualizer){}
+furikuri_protection_entry::furikuri_protection_entry() 
+ :type(FURIKURI_PROTECTION_TYPE_NONE), virtualizer(0){}
 
-fuku_code_raw_list::fuku_code_raw_list(const fuku_code_raw_list& list) {
+furikuri_protection_entry::furikuri_protection_entry(furikuri_protection_type type, const std::vector<fuku_protected_region>& regions,
+    const fuku_settings_obfuscation& settings, fuku_virtualizer* virtualizer)
+    : type(type), functions(regions), settings(settings), virtualizer(virtualizer){}
+
+furikuri_protection_entry::furikuri_protection_entry(const furikuri_protection_entry& list) {
     operator=(list);
 }
 
-fuku_code_raw_list::~fuku_code_raw_list() {
+furikuri_protection_entry::~furikuri_protection_entry() {
 
 }
 
-fuku_code_raw_list& fuku_code_raw_list::operator=(const fuku_code_raw_list& list) {
+furikuri_protection_entry& furikuri_protection_entry::operator=(const furikuri_protection_entry& list) {
     this->functions     = list.functions;
     this->type          = list.type;
     this->settings      = list.settings;
-    this->target_module = list.target_module;
-    this->vm_holder_module = list.vm_holder_module;
-    this->vm_entry_rva  = list.vm_entry_rva;
     this->virtualizer   = list.virtualizer;
 
     return *this;
 }
 
-void fuku_code_raw_list::set_type(fuku_code_raw_list_type type) {
+void furikuri_protection_entry::set_type(furikuri_protection_type type) {
     this->type = type;
 }
 
-void fuku_code_raw_list::set_functions(const std::vector<fuku_protected_region>& functions) {
+void furikuri_protection_entry::set_functions(const std::vector<fuku_protected_region>& functions) {
     this->functions = functions;
 }
-void fuku_code_raw_list::set_settings(const fuku_settings_obfuscation& settings) {
+void furikuri_protection_entry::set_settings(const fuku_settings_obfuscation& settings) {
     this->settings = settings;
 }
-void fuku_code_raw_list::set_target_module(shibari_module* _module) {
-    this->target_module = _module;
-}
-void fuku_code_raw_list::set_vm_holder_module(shibari_module* _module) {
-    this->vm_holder_module = _module;
-}
-void fuku_code_raw_list::set_vm_entry_rva(uint32_t entry_rva) {
-    this->vm_entry_rva = entry_rva;
-}
-void fuku_code_raw_list::set_virtualizer(fuku_virtualizer * virt) {
+void furikuri_protection_entry::set_virtualizer(fuku_virtualizer * virt) {
     this->virtualizer = virt;
 }
 
 
-std::vector<fuku_protected_region>& fuku_code_raw_list::get_functions() {
+std::vector<fuku_protected_region>& furikuri_protection_entry::get_functions() {
     return this->functions;
 }
-fuku_settings_obfuscation& fuku_code_raw_list::get_settings() {
+fuku_settings_obfuscation& furikuri_protection_entry::get_settings() {
     return this->settings;
 }
-shibari_module*  fuku_code_raw_list::get_target_module() {
-    return this->target_module;
-}
-shibari_module*  fuku_code_raw_list::get_vm_holder_module() {
-    return this->vm_holder_module;
-}
-fuku_virtualizer * fuku_code_raw_list::get_virtualizer() {
+fuku_virtualizer * furikuri_protection_entry::get_virtualizer() {
     return this->virtualizer;
 }
 
-const fuku_code_raw_list_type fuku_code_raw_list::get_type() const {
+const furikuri_protection_type furikuri_protection_entry::get_type() const {
     return this->type;
 }
-const std::vector<fuku_protected_region>& fuku_code_raw_list::get_functions() const {
+const std::vector<fuku_protected_region>& furikuri_protection_entry::get_functions() const {
     return this->functions;
 }
-const fuku_settings_obfuscation& fuku_code_raw_list::get_settings() const {
+const fuku_settings_obfuscation& furikuri_protection_entry::get_settings() const {
     return this->settings;
 }
-const shibari_module*  fuku_code_raw_list::get_target_module() const {
-    return this->target_module;
-}
-const shibari_module*  fuku_code_raw_list::get_vm_holder_module() const {
-    return this->vm_holder_module;
-}
-const uint32_t fuku_code_raw_list::get_vm_entry_rva() const {
-    return this->vm_entry_rva;
-}
-const fuku_virtualizer * fuku_code_raw_list::get_virtualizer() const {
+const fuku_virtualizer * furikuri_protection_entry::get_virtualizer() const {
     return this->virtualizer;
 }
 
 furikuri::furikuri()
-:main_module(0){}
+:_image(0){}
 
-furikuri::~furikuri(){}
+furikuri::~furikuri(){
+
+    if (_image) {
+        delete _image; _image = 0;
+    }
+}
 
 
 bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
-    bool main_has_relocations = main_module->get_module_image().get_relocations().size() != 0;
 
-    shibari_linker_errors linker_result = shibari_linker(extended_modules, main_module).link_modules();
-
-    if (linker_result != shibari_linker_errors::shibari_linker_ok) {
-        return false;
-    }
+    bool main_has_relocations = _image->get_relocations().size() != 0;
 
     fuku_protect_mgr protect_manager;
 
-    protect_manager.get_settings().set_target_module(*main_module);
+    protect_manager.get_settings().set_target_module(*_image);
     protect_manager.get_settings().set_module_used_relocations(main_has_relocations);
 
-    for (auto& list : code_raw_lists) {
-        uint32_t module_offset = list.get_target_module()->get_module_position().get_address_offset();
+    for (auto& list : protect_list) {
 
-        if (module_offset) {
-            for (auto& func : list.get_functions()) {
-                func.region_rva += module_offset;
-            }
-        }
-
-        if (list.get_type() == CODE_RAW_LIST_TYPE_OBFUSCATION) {
+        if (list.get_type() == FURIKURI_PROTECTION_TYPE_OBFUSCATION) {
             protect_manager.add_ob_profile(list.get_functions(), list.get_settings());
         }
         else {
 
             protect_manager.add_vm_profile(list.get_functions(), fuku_settings_virtualization(
                 list.get_settings(),
-                list.get_vm_holder_module(),
-                list.get_vm_entry_rva(),
                 list.get_virtualizer()
             ));
         }
@@ -141,8 +104,8 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
 
     if (code == fuku_protect_ok) {
 
-        build_shibari_image(protect_manager.get_settings().get_target_module().get_module_image(),
-            PE_IMAGE_BUILD_ALL_EXTENDED_SECTIONS | PE_IMAGE_BUILD_ALL_DIRECTORIES, out_image);
+        build_pe_image_full(protect_manager.get_settings().get_target_module(),
+            PE_IMAGE_BUILD_ALL_EXTENDED_SECTIONS | (PE_IMAGE_BUILD_ALL_DIRECTORIES & ~(PE_IMAGE_BUILD_DIR_IMPORT)), out_image);
 
         return true;
     }
@@ -150,7 +113,7 @@ bool furikuri::fuku_protect(std::vector<uint8_t>& out_image) {
     return false;
 }
 
-bool furikuri::fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::vector<uint8_t>& out_image) {
+bool furikuri::fuku_protect(const fuku_settings_mgr& mgr_settings, std::vector<uint8_t>& out_image) {
 
     fuku_protect_mgr protect_manager;
 
@@ -160,10 +123,8 @@ bool furikuri::fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::
 
     if (code == fuku_protect_ok) {
 
-
-
-        build_shibari_image(protect_manager.get_settings().get_target_module().get_module_image(),
-            PE_IMAGE_BUILD_ALL_EXTENDED_SECTIONS | PE_IMAGE_BUILD_ALL_DIRECTORIES, out_image);
+        build_pe_image_full(protect_manager.get_settings().get_target_module(),
+            PE_IMAGE_BUILD_ALL_EXTENDED_SECTIONS | (PE_IMAGE_BUILD_ALL_DIRECTORIES & ~(PE_IMAGE_BUILD_DIR_IMPORT)), out_image);
 
         return true;
     }
@@ -171,37 +132,22 @@ bool furikuri::fuku_protect(const fuku_settings_protect_mgr& mgr_settings, std::
     return false;
 }
 
-bool furikuri::create_snapshot(fuku_settings_protect_mgr& mgr_settings, fuku_protect_stage stage) {
+bool furikuri::create_snapshot(fuku_settings_mgr& mgr_settings, fuku_protect_stage stage) {
 
-    bool main_has_relocations = main_module->get_module_image().get_relocations().size() != 0;
+    bool main_has_relocations = _image->get_relocations().size() != 0;
 
-    shibari_linker_errors linker_result = shibari_linker(extended_modules, main_module).link_modules();
-
-    if (linker_result != shibari_linker_errors::shibari_linker_ok) {
-        return false;
-    }
-
-    mgr_settings.set_target_module(*main_module);
+    mgr_settings.set_target_module(*_image);
     mgr_settings.set_module_used_relocations(main_has_relocations);
 
-    for (auto& list : code_raw_lists) {
-        uint32_t module_offset = list.get_target_module()->get_module_position().get_address_offset();
+    for (auto& list : protect_list) {
 
-        if (module_offset) {
-            for (auto& func : list.get_functions()) {
-                func.region_rva += module_offset;
-            }
-        }
-
-        if (list.get_type() == CODE_RAW_LIST_TYPE_OBFUSCATION) {
+        if (list.get_type() == FURIKURI_PROTECTION_TYPE_OBFUSCATION) {
             mgr_settings.add_ob_profile(list.get_functions(), list.get_settings());
         }
         else {
 
             mgr_settings.add_vm_profile(list.get_functions(), fuku_settings_virtualization(
                 list.get_settings(),
-                list.get_vm_holder_module(),
-                list.get_vm_entry_rva(),
                 list.get_virtualizer()
             ));
         }
@@ -211,134 +157,115 @@ bool furikuri::create_snapshot(fuku_settings_protect_mgr& mgr_settings, fuku_pro
     return protect_manager_create_stage_snapshot(mgr_settings, stage);
 }
 
-bool furikuri::set_main_module(shibari_module* module, std::string module_path) {
-    if (module) {
-        this->main_module = module;
+bool furikuri::set_image_protect(const pe_image& _module) {
+
+    if (this->_image) {
+        delete this->_image; this->_image = 0;
+    }
+
+    this->_image = new pe_image_full(_module);
+
+    pe_placement placement;
+  //  get_directories_placement(this->_image->get_image(), placement, &this->_image->get_bound_imports());
+
+    placement.clear();
+    get_placement_export_directory(this->_image->get_image(), placement);
+    get_placement_resources_directory(this->_image->get_image(), placement);
+    get_placement_exceptions_directory(this->_image->get_image(), placement);
+    get_placement_security_directory(this->_image->get_image(), placement);
+    get_placement_relocation_directory(this->_image->get_image(), placement);
+    get_placement_debug_directory(this->_image->get_image(), placement);
+    get_placement_tls_directory(this->_image->get_image(), placement);
+    get_placement_load_config_directory(this->_image->get_image(), placement);
+    get_placement_bound_import_directory(this->_image->get_image(), placement);
+    get_placement_delay_import_directory(this->_image->get_image(), placement, this->_image->get_bound_imports());
+
+    pe_erase_placement(this->_image->get_image(), placement, &this->_image->get_relocations(), true);
+
+    return true;
+}
+
+bool furikuri::set_image_protect(const std::string& module_path) {
+
+    if (this->_image) {
+        delete this->_image; this->_image = 0;
+    }
+
+    pe_image new_image(module_path);
+
+    if (new_image.get_image_status() == pe_image_status::pe_image_status_ok) {
+
+        this->_image = new pe_image_full(new_image);
+
+        pe_placement placement;
+        get_directories_placement(this->_image->get_image(), placement, &this->_image->get_bound_imports());
+        pe_erase_placement(this->_image->get_image(), placement, &this->_image->get_relocations(), true);
+
         return true;
     }
+
     return false;
 }
 
-bool furikuri::add_extended_module(shibari_module* module, std::string module_path) {
-    if (module) {
-       this->extended_modules.push_back(module);
-       return true;
-    }
-    return false;
-}
+
+bool furikuri::add_ob_code_list(fuku_protected_region region, fuku_settings_obfuscation& settings) {
 
 
-bool furikuri::add_ob_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_obfuscation& settings) {
+    for (auto& list : protect_list) {
 
-    bool valid_module = false;
+        if (list.get_type() == FURIKURI_PROTECTION_TYPE_OBFUSCATION) {
+            if (list.get_settings() == settings) {
+                list.get_functions().push_back(region);
 
-    if (main_module == target_module) {
-        valid_module = true;
-    }
-    else {
-        for (auto ext_module : extended_modules) {
-            if (ext_module == target_module) {
-                valid_module = true;
-                break;
+                return true;
             }
         }
     }
 
-    if (valid_module) {
-        for (auto&list : code_raw_lists) {
-            if (list.get_target_module() == target_module) {
+    protect_list.push_back(furikuri_protection_entry(
+        FURIKURI_PROTECTION_TYPE_OBFUSCATION,
+        std::vector<fuku_protected_region>(1, region),
+        settings,
+        0
+    ));
 
-                if (list.get_type() == CODE_RAW_LIST_TYPE_OBFUSCATION) {
-                    if (list.get_settings() == settings) {
-                        list.get_functions().push_back(region);
-                        return true;
-                    }
-                }
-            }
-        }
+    return true;
 
-        code_raw_lists.push_back(fuku_code_raw_list(
-            CODE_RAW_LIST_TYPE_OBFUSCATION,
-            std::vector<fuku_protected_region>(1, region),
-            settings,
-            target_module,
-            0, 0, 0
-        ));
-
-        return true;
-    }
-    else {
-        return false;
-    }
 }
 
-bool furikuri::add_vm_code_list(fuku_protected_region region, shibari_module* target_module, fuku_settings_virtualization& settings) {
+bool furikuri::add_vm_code_list(fuku_protected_region region, fuku_settings_virtualization& settings) {
 
-    bool valid_module = false;
+    for (auto& list : protect_list) {
 
-    if (main_module == target_module) {
-        valid_module = true;
-    }
-    else {
-        for (auto ext_module : extended_modules) {
-            if (ext_module == target_module) {
-                valid_module = true;
-                break;
+        if (list.get_type() == FURIKURI_PROTECTION_TYPE_VIRTUALIZATION) {
+            if (list.get_settings() == settings.get_obfuscation_settings() &&
+                list.get_virtualizer() == settings.get_virtualizer()) {
+
+                list.get_functions().push_back(region);
+                return true;
             }
         }
     }
 
-    if (valid_module) {
-        for (auto& list : code_raw_lists) {
-            if (list.get_target_module() == target_module) {
+    protect_list.push_back(furikuri_protection_entry(
+        FURIKURI_PROTECTION_TYPE_VIRTUALIZATION,
+        std::vector<fuku_protected_region>(1, region),
+        settings.get_obfuscation_settings(),
+        settings.get_virtualizer()
+    ));
 
-                if (list.get_type() == CODE_RAW_LIST_TYPE_VIRTUALIZATION) {
-                    if (list.get_settings() == settings.get_obfuscation_settings() &&
-                        list.get_vm_holder_module() == settings.get_vm_holder_module() &&
-                        list.get_vm_entry_rva() == settings.get_vm_entry_rva() &&
-                        list.get_virtualizer() == settings.get_virtualizer() ) {
+    return true;
 
-                        list.get_functions().push_back(region);
-                        return true;
-                    }
-                }
-            }
-        }
-
-        code_raw_lists.push_back(fuku_code_raw_list(
-            CODE_RAW_LIST_TYPE_VIRTUALIZATION,
-            std::vector<fuku_protected_region>(1, region),
-            settings.get_obfuscation_settings(),
-            target_module,
-
-            settings.get_vm_holder_module(),
-            settings.get_vm_entry_rva(),
-            settings.get_virtualizer()
-            ));
-
-        return true;
-    }
-    else {
-        return false;
-    }
 }
 
-void furikuri::clear_code_lists() {
-    this->code_raw_lists.clear();
+void furikuri::clear_protect_list() {
+    this->protect_list.clear();
 }
 
-void furikuri::clear_extended_modules() {
-    this->extended_modules.clear();
+const std::vector<furikuri_protection_entry> & furikuri::get_protect_list() const {
+    return this->protect_list;
 }
-
-const std::vector<fuku_code_raw_list> & furikuri::get_code_raw_lists() const {
-    return this->code_raw_lists;
-}
-
-std::vector<shibari_module*>& furikuri::get_extended_modules() {
-    return this->extended_modules;
-}
-    
-shibari_module* furikuri::get_main_module() {
-    return this->main_module;
+ 
+pe_image_full* furikuri::get_image() {
+    return this->_image;
 }

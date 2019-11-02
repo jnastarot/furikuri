@@ -22,20 +22,20 @@
     <ProjectGuid>{88F9CD6C-BF6D-473B-A4A0-EDB1C7F57C62}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>furikuri</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -43,14 +43,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -96,6 +96,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -111,6 +112,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,6 +128,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -143,6 +146,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,10 +155,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="fuku_code_analyzer.h" />
-    <ClInclude Include="fuku_code_profiler.h" />
-    <ClInclude Include="fuku_code_utilits.h" />
-    <ClInclude Include="fuku_code_utilits_conv_tables.h" />
     <ClInclude Include="fuku_mutation_imp.h" />
     <ClInclude Include="fuku_mutation_x64_junk.h" />
     <ClInclude Include="fuku_mutation_x64_rules.h" />
@@ -164,7 +164,7 @@
     <ClInclude Include="fuku_protect_obfuscator_mgr.h" />
     <ClInclude Include="fuku_protect_virtualizer_mgr.h" />
     <ClInclude Include="fuku_settings_obfuscation.h" />
-    <ClInclude Include="fuku_settings_protect_mgr.h" />
+    <ClInclude Include="fuku_settings_mgr.h" />
     <ClInclude Include="fuku_settings_virtualization.h" />
     <ClInclude Include="fuku_virtualizer_imp.h" />
     <ClInclude Include="furikuri.h" />
@@ -229,6 +229,7 @@
     <ClInclude Include="obf_templates\x86\obf_x86_jcc_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_jmp_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_lea_templates.h" />
+    <ClInclude Include="obf_templates\x86\obf_x86_mov_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_mul_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_neg_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_not_templates.h" />
@@ -245,21 +246,12 @@
     <ClInclude Include="obf_templates\x86\obf_x86_shl_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_shr_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_sub_templates.h" />
-    <ClInclude Include="obf_templates\x86\obf_x86_mov_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_test_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_xchg_templates.h" />
     <ClInclude Include="obf_templates\x86\obf_x86_xor_templates.h" />
-    <ClInclude Include="psyche_block.h" />
-    <ClInclude Include="psyche_cmd.h" />
-    <ClInclude Include="psyche_handler.h" />
-    <ClInclude Include="psyche_pcode.h" />
-    <ClInclude Include="psyche_storage.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="fuku_code_analyzer.cpp" />
-    <ClCompile Include="fuku_code_profiler.cpp" />
-    <ClCompile Include="fuku_code_utilits.cpp" />
     <ClCompile Include="fuku_mutation_x64.cpp" />
     <ClCompile Include="fuku_mutation_x64_junk.cpp" />
     <ClCompile Include="fuku_mutation_x64_rules.cpp" />
@@ -268,15 +260,10 @@
     <ClCompile Include="fuku_mutation_x86_rules.cpp" />
     <ClCompile Include="fuku_protect_mgr.cpp" />
     <ClCompile Include="fuku_settings_obfuscation.cpp" />
-    <ClCompile Include="fuku_settings_protect_mgr.cpp" />
+    <ClCompile Include="fuku_settings_mgr.cpp" />
     <ClCompile Include="fuku_settings_virtualization.cpp" />
     <ClCompile Include="furikuri.cpp" />
     <ClCompile Include="fuku_obfuscator.cpp" />
-    <ClCompile Include="psyche_block.cpp" />
-    <ClCompile Include="psyche_cmd.cpp" />
-    <ClCompile Include="psyche_handler.cpp" />
-    <ClCompile Include="psyche_pcode.cpp" />
-    <ClCompile Include="psyche_storage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
